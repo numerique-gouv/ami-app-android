@@ -11,13 +11,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
+import fr.gouv.ami.dev.api.baseUrl
 import fr.gouv.ami.dev.ui.theme.AMITheme
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun HomeScreen() {
-
-    val mUrl = "https://ami-back-staging.osc-fr1.scalingo.io"
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         AndroidView(
@@ -31,7 +30,7 @@ fun HomeScreen() {
                     settings.allowContentAccess = true
                     settings.domStorageEnabled = true
                     webViewClient = WebViewClient()
-                    loadUrl(mUrl)
+                    loadUrl(baseUrl)
                 }
             })
     }
