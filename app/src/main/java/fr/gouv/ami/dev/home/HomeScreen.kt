@@ -27,6 +27,9 @@ fun HomeScreen() {
             factory = {
                 WebView(it).apply {
                     settings.javaScriptEnabled = true
+                    settings.allowFileAccess = true
+                    settings.allowContentAccess = true
+                    settings.domStorageEnabled = true
                     webViewClient = WebViewClient()
                     loadUrl(mUrl)
                 }
