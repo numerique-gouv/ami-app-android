@@ -2,33 +2,34 @@ package fr.gouv.ami.dev.data.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import fr.gouv.ami.dev.data.entity.Notification
+import fr.gouv.ami.dev.data.entity.NotificationEntity
 
 @Dao
 interface NotificationDao {
 
-    @Query("SELECT * FROM notification")
-    fun getAll(): List<Notification>
+    @Query("SELECT * FROM notifications WHERE userId = :id")
+    fun getAll(id: Int): List<NotificationEntity>
 
-    @Query("SELECT * FROM notification WHERE userId = :id")
-    fun getByUserId(id: Int): List<Notification>
+    @Query("SELECT * FROM notifications WHERE id = :id LIMIT 1")
+    fun getById(id: Int): NotificationEntity
 
-    @Query("SELECT * FROM notification WHERE id = :id LIMIT 1")
-    fun getById(id: Int): Notification
-
-    @Insert
-    fun insert(vararg notification: Notification)
+    @Query("SELECT * FROM notifications WHERE isNotified = 0")
+    fun getNotNotified(): List<NotificationEntity>
 
     @Insert
-    fun insertAll(vararg notifications: List<Notification>)
+    fun insert(vararg notificationEntity: NotificationEntity)
 
-    @Query("DELETE FROM notification")
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertAll(notificationEntities: List<NotificationEntity>)
+
+    @Query("DELETE FROM notifications")
     suspend fun deleteAll()
 
-    @Query("DELETE FROM notification WHERE userId = :id")
+    @Query("DELETE FROM notifications WHERE userId = :id")
     suspend fun deleteByUser(id: Int)
 
-    @Query("UPDATE notification SET isNotified = :isNotified WHERE id = :id")
+    @Query("UPDATE notifications SET isNotified = :isNotified WHERE id = :id")
     fun setIsNotified(id: Int, isNotified: Boolean)
 }
