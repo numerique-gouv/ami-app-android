@@ -87,4 +87,8 @@ dependencies {
     implementation(libs.converter.scalars)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
+
+    //room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx) // pour coroutines
 }
