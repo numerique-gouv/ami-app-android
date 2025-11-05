@@ -56,8 +56,8 @@ class NotificationService : Service() {
 
         val notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle("check the notifications in background")
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setPriority(NotificationManager.IMPORTANCE_MIN)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setPriority(NotificationCompat.PRIORITY_MIN)
             .setCategory(Notification.CATEGORY_SERVICE)
             .setOngoing(true)
             .build()
@@ -94,7 +94,7 @@ class NotificationService : Service() {
                             Log.d(TAG, "${newNotifications.size} new notifications")
 
                             if (newNotifications.size == 1) { //display 1 notification
-                                createOnNotification(newNotifications[0])
+                                createOneNotification(newNotifications[0])
                             } else if (newNotifications.size > 1) { //display many notifications
                                 createManyNotifications(newNotifications)
                             }
@@ -106,18 +106,18 @@ class NotificationService : Service() {
                             }
                         }
                 }
-                delay(1000 * 3 * 60) // check notifications every 3 minutes
+                delay(1000 * 3) // check notifications every 3 minutes
             }
         }
     }
 
 
     @SuppressLint("MissingPermission")
-    private fun createOnNotification(notification: NotificationEntity) {
+    private fun createOneNotification(notification: NotificationEntity) {
         val channel = NotificationChannel(
             CHANNEL_ID,
             CHANNEL_NAME,
-            NotificationManager.IMPORTANCE_DEFAULT
+            NotificationManager.IMPORTANCE_HIGH
         )
 
         val notificationManager =
@@ -131,10 +131,10 @@ class NotificationService : Service() {
             PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         var builder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(notification.title)
             .setContentText(notification.message)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
@@ -148,7 +148,7 @@ class NotificationService : Service() {
         val channel = NotificationChannel(
             CHANNEL_ID,
             CHANNEL_NAME,
-            NotificationManager.IMPORTANCE_DEFAULT
+            NotificationManager.IMPORTANCE_HIGH
         )
 
 
@@ -162,10 +162,10 @@ class NotificationService : Service() {
             PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         var builder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("${notifications.size} nouveaux messages")
             .setContentText("Appuyez pour les lire")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
