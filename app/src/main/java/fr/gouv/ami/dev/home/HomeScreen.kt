@@ -27,7 +27,7 @@ import fr.gouv.ami.dev.ui.theme.AMITheme
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun HomeScreen() {
+fun HomeScreen(isNotification: Boolean) {
 
     val context = LocalContext.current
 
@@ -104,6 +104,8 @@ fun HomeScreen() {
 
     }
 
+    val url = if (isNotification) "${baseUrl}/#/notifications" else baseUrl
+
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         AndroidView(
             modifier = Modifier
@@ -116,7 +118,7 @@ fun HomeScreen() {
                     settings.allowContentAccess = true
                     settings.domStorageEnabled = true
                     webViewClient = AmiWebViewClient(context)
-                    loadUrl(baseUrl)
+                    loadUrl(url)
                 }
             })
     }
@@ -126,7 +128,7 @@ fun HomeScreen() {
 @Composable
 fun PreviewHomeScreenLight() {
     AMITheme {
-        HomeScreen()
+        HomeScreen(false)
     }
 }
 
@@ -134,6 +136,6 @@ fun PreviewHomeScreenLight() {
 @Composable
 fun PreviewHomeScreenDark() {
     AMITheme {
-        HomeScreen()
+        HomeScreen(false)
     }
 }

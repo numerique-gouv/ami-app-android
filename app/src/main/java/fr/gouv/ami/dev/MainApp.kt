@@ -19,7 +19,7 @@ enum class Screen {
 }
 
 @Composable
-fun HomeApp(navController: NavHostController = rememberNavController()) {
+fun HomeApp(isNotification: Boolean, navController: NavHostController = rememberNavController()) {
 
     val TAG = object {}.javaClass.enclosingClass?.simpleName ?: "AMI"
 
@@ -30,7 +30,7 @@ fun HomeApp(navController: NavHostController = rememberNavController()) {
         startDestination = startDestinationScreen
     ) {
         composable(route = Screen.Home.name) {
-            HomeScreen()
+            HomeScreen(isNotification)
         }
     }
 }
