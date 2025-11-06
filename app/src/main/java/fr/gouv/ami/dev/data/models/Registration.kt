@@ -4,11 +4,11 @@ import com.google.gson.annotations.SerializedName
 
 data class Registration(
     @SerializedName("user_id")
-    var userId: Int,
+    var userId: String,
     @SerializedName("subscription")
     var subscription: Subscription,
     @SerializedName("id")
-    var id: Int?,
+    var id: String?,
     @SerializedName("created_at")
     var createdAt: String?
 )

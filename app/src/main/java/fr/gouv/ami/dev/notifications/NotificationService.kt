@@ -69,10 +69,10 @@ class NotificationService : Service() {
         CoroutineScope(Dispatchers.IO).launch {
             while (true) {
 
-                val userId = Storage.getInstance(baseContext).getItemInt("user_id")
-                Log.d(TAG, "user_id is ${userId.toString()}")
+                val userId = Storage.getInstance(baseContext).getItemString("user_id")
+                Log.d(TAG, "user_id is $userId")
 
-                if (userId != null && userId != -1) {
+                if (!userId.isNullOrEmpty()) {
                     getNotifications(userId)
                         .catch { e ->
                             Log.d(TAG, e.toString())
@@ -140,7 +140,7 @@ class NotificationService : Service() {
             .setAutoCancel(true)
 
         with(NotificationManagerCompat.from(this)) {
-            notify(notification.id, builder.build())
+            notify(notification.uId, builder.build())
         }
     }
 
@@ -172,7 +172,7 @@ class NotificationService : Service() {
             .setAutoCancel(true)
 
         with(NotificationManagerCompat.from(this)) {
-            notify(notifications[0].id, builder.build())
+            notify(notifications[0].uId, builder.build())
         }
     }
 }

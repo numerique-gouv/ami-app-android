@@ -10,10 +10,10 @@ import fr.gouv.ami.dev.data.entity.NotificationEntity
 interface NotificationDao {
 
     @Query("SELECT * FROM notifications WHERE userId = :id")
-    fun getAll(id: Int): List<NotificationEntity>
+    fun getAll(id: String): List<NotificationEntity>
 
     @Query("SELECT * FROM notifications WHERE id = :id LIMIT 1")
-    fun getById(id: Int): NotificationEntity
+    fun getById(id: String): NotificationEntity
 
     @Query("SELECT * FROM notifications WHERE isNotified = 0")
     fun getNotNotified(): List<NotificationEntity>
@@ -25,11 +25,11 @@ interface NotificationDao {
     fun insertAll(notificationEntities: List<NotificationEntity>)
 
     @Query("DELETE FROM notifications")
-    suspend fun deleteAll()
+    fun deleteAll()
 
     @Query("DELETE FROM notifications WHERE userId = :id")
-    suspend fun deleteByUser(id: Int)
+    fun deleteByUser(id: String)
 
     @Query("UPDATE notifications SET isNotified = :isNotified WHERE id = :id")
-    fun setIsNotified(id: Int, isNotified: Boolean)
+    fun setIsNotified(id: String, isNotified: Boolean)
 }

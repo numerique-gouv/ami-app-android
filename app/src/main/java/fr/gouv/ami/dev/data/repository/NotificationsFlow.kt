@@ -13,7 +13,7 @@ fun getNotificationKey() : Flow<Response<String>> {
     }
 }
 
-fun getNotifications(userId: Int) : Flow<Response<List<Notification>>> {
+fun getNotifications(userId: String) : Flow<Response<List<Notification>>> {
     return flow {
         val response = apiService.getNotifications(userId)
         emit(response)

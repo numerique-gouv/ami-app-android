@@ -14,7 +14,7 @@ interface ApiService {
 
     @GET("/api/v1/users/{user_id}/notifications")
     suspend fun getNotifications(
-        @Path("user_id") userId: Int
+        @Path("user_id") userId: String
     ): Response<List<Notification>>
 
 }

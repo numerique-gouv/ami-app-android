@@ -24,15 +24,15 @@ class AmiWebViewClient(val context: Context): WebViewClient() {
     }
 
     fun getItem(view: WebView?, item: String) {
-        var itemValue: Int? = null
+        var itemValue: String?
         val runnable = object : Runnable {
             override fun run() {
                 view?.evaluateJavascript(
                     "(function() { return localStorage.getItem('$item'); })();"
                 ) { value ->
                     if (value?.removeSurrounding("\"") != null && value.removeSurrounding("\"") != "null") {
-                        itemValue = value.removeSurrounding("\"").toInt()
-                        Storage.getInstance(context = context).saveItemInt(item, itemValue)
+                        itemValue = value.removeSurrounding("\"")
+                        Storage.getInstance(context = context).saveItemString(item, itemValue)
                     } else {
                         Storage.getInstance(context).clearItem(item)
                     }

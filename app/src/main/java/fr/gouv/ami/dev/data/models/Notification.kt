@@ -5,7 +5,7 @@ import fr.gouv.ami.dev.data.entity.NotificationEntity
 
 data class Notification(
     @SerializedName("user_id")
-    var userId: Int,
+    var userId: String,
     @SerializedName("message")
     var message: String,
     @SerializedName("sender")
@@ -13,17 +13,18 @@ data class Notification(
     @SerializedName("title")
     var title: String?,
     @SerializedName("id")
-    var id: Int?,
+    var id: String?,
     @SerializedName("date")
     var date: String?
 ) {
     fun toEntity(): NotificationEntity {
         return NotificationEntity(
+            uId = 0,
             userId = userId,
             message = message,
             sender = sender,
             title = title,
-            id = id ?: 0,
+            id = id ?: "",
             date = date,
             isNotified = false
         )
@@ -32,7 +33,7 @@ data class Notification(
 
 data class NotificationCreate(
     @SerializedName("user_id")
-    var userId: Int,
+    var userId: String,
     @SerializedName("message")
     var message: String,
     @SerializedName("sender")
