@@ -1,7 +1,7 @@
-package fr.gouv.ami.dev.data.models
+package fr.gouv.ami.data.models
 
 import com.google.gson.annotations.SerializedName
-import fr.gouv.ami.dev.data.entity.NotificationEntity
+import fr.gouv.ami.data.entity.NotificationEntity
 
 data class Notification(
     @SerializedName("user_id")

@@ -1,4 +1,4 @@
-package fr.gouv.ami.dev.home
+package fr.gouv.ami.home
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -21,8 +21,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import fr.gouv.ami.dev.api.baseUrl
-import fr.gouv.ami.dev.ui.theme.AMITheme
+import fr.gouv.ami.api.baseUrl
+import fr.gouv.ami.ui.theme.AMITheme
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable

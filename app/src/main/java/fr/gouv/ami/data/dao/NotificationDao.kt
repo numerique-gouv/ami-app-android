@@ -1,10 +1,10 @@
-package fr.gouv.ami.dev.data.dao
+package fr.gouv.ami.data.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import fr.gouv.ami.dev.data.entity.NotificationEntity
+import fr.gouv.ami.data.entity.NotificationEntity
 
 @Dao
 interface NotificationDao {

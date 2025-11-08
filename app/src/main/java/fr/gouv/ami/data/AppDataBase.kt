@@ -1,11 +1,11 @@
-package fr.gouv.ami.dev.data
+package fr.gouv.ami.data
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import fr.gouv.ami.dev.data.dao.NotificationDao
-import fr.gouv.ami.dev.data.entity.NotificationEntity
+import fr.gouv.ami.data.dao.NotificationDao
+import fr.gouv.ami.data.entity.NotificationEntity
 
 @Database(
     entities = [

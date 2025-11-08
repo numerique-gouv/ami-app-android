@@ -1,4 +1,4 @@
-package fr.gouv.ami.dev.data.dto
+package fr.gouv.ami.data.dto
 
 data class NotificationDto(
     var userId: Int,

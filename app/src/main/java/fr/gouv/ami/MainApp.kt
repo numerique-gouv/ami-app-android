@@ -1,4 +1,4 @@
-package fr.gouv.ami.dev
+package fr.gouv.ami
 
 import android.util.Log
 import androidx.compose.runtime.Composable
@@ -7,8 +7,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import fr.gouv.ami.dev.data.repository.getNotificationKey
-import fr.gouv.ami.dev.home.HomeScreen
+import fr.gouv.ami.data.repository.getNotificationKey
+import fr.gouv.ami.home.HomeScreen
 import kotlinx.coroutines.flow.catch
 
 //list of all screens

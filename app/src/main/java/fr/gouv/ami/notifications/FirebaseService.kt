@@ -1,4 +1,4 @@
-package fr.gouv.ami.dev.notifications
+package fr.gouv.ami.notifications
 
 import com.google.firebase.messaging.FirebaseMessagingService
 

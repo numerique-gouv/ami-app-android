@@ -1,4 +1,4 @@
-package fr.gouv.ami.dev
+package fr.gouv.ami
 
 import org.junit.Test
 

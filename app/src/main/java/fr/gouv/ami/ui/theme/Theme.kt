@@ -1,4 +1,4 @@
-package fr.gouv.ami.dev.ui.theme
+package fr.gouv.ami.ui.theme
 
 import android.app.Activity
 import android.os.Build

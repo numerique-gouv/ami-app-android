@@ -1,6 +1,6 @@
-package fr.gouv.ami.dev.data.repository
+package fr.gouv.ami.data.repository
 
-import fr.gouv.ami.dev.api.apiService
+import fr.gouv.ami.api.apiService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.Response

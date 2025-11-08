@@ -1,4 +1,4 @@
-package fr.gouv.ami.dev.api
+package fr.gouv.ami.api
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

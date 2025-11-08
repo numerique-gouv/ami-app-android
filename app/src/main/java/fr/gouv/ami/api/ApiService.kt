@@ -1,4 +1,4 @@
-package fr.gouv.ami.dev.api
+package fr.gouv.ami.api
 
 import retrofit2.Response
 import retrofit2.http.GET

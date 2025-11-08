@@ -20,11 +20,11 @@ val keystoreProperties = Properties()
 keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
 android {
-    namespace = "fr.gouv.ami.dev"
+    namespace = "fr.gouv.ami"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "fr.gouv.ami.dev"
+        applicationId = "fr.gouv.ami"
         minSdk = 26
         targetSdk = 36
         versionCode = 2
