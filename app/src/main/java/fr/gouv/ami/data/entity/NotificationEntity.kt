@@ -5,11 +5,12 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "notifications")
 data class NotificationEntity (
-    var userId: Int,
-    var message: String?,
+    @PrimaryKey var id: String,
+    var userId: String,
+    var message: String,
     var sender: String?,
     var title: String?,
-    @PrimaryKey var id: Int,
+    var unread: Boolean,
     var date: String?,
     var isNotified: Boolean = false
 )
