@@ -21,17 +21,6 @@ fun HomeApp(navController: NavHostController = rememberNavController()) {
 
     val TAG = object {}.javaClass.enclosingClass?.simpleName ?: "AMI"
 
-    //register to notifications
-    LaunchedEffect(Unit) {
-        val notificationKey = getNotificationKey()
-        notificationKey
-            .catch { e -> Log.d(TAG, e.toString()) }
-            .collect { response ->
-                val key = response.body()
-                Log.d(TAG, "The key is $key")
-            }
-    }
-
     var startDestinationScreen = Screen.Home.name
 
     NavHost(

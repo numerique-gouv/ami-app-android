@@ -97,4 +97,8 @@ dependencies {
 
     //firebase
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.analytics)
+
+    //crypto
+    implementation(libs.androidx.security.crypto)
 }
