@@ -15,4 +15,9 @@ interface ApiService {
     @GET("/api/v1/users/{user_id}/notifications")
     suspend fun getNotifications(@Path("userId") userId: String): Response<List<Notification>>
 
+    /** Review App **/
+
+    @GET("/dev-utils/review-apps")
+    suspend fun getReviewApps(): Response<List<List<String>>>
+
 }
