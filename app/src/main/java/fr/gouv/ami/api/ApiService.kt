@@ -18,6 +18,6 @@ interface ApiService {
     /** Review App **/
 
     @GET("/dev-utils/review-apps")
-    suspend fun getReviewApps(): Response<List<List<String>>>
+    suspend fun getReviewApps(): Response<MutableList<List<String>>>
 
 }
