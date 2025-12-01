@@ -11,3 +11,5 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 val BlueFranceMain = Color(0xFF6a6af4)
+val BlueFranceSun113 = Color(0xFF000091)
+val BlueFrance625 = Color(0xFF8585f6)
