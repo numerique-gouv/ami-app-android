@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.Response
 
-fun getReviewApps() : Flow<Response<List<List<String>>>> {
+fun getReviewApps() : Flow<Response<MutableList<List<String>>>> {
     return flow {
         val response = apiService.getReviewApps()
         emit(response)
