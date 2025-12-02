@@ -1,6 +1,7 @@
 package fr.gouv.ami.api
 
 import fr.gouv.ami.data.models.Notification
+import fr.gouv.ami.data.models.Review
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -18,6 +19,6 @@ interface ApiService {
     /** Review App **/
 
     @GET("/dev-utils/review-apps")
-    suspend fun getReviewApps(): Response<MutableList<List<String>>>
+    suspend fun getReviewApps(): Response<MutableList<Review>>
 
 }

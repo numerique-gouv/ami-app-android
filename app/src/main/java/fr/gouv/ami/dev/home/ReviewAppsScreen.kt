@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.Tile
+import fr.gouv.ami.data.models.Review
 import fr.gouv.ami.data.repository.getReviewApps
 import fr.gouv.ami.ui.theme.AMITheme
 import kotlinx.coroutines.flow.catch
@@ -30,7 +31,7 @@ import kotlinx.coroutines.flow.catch
 fun ReviewAppsScreen(onSelectedReviewApp: () -> Unit) {
 
     var reviews by remember {
-        mutableStateOf<MutableList<List<String>>?>(null)
+        mutableStateOf<MutableList<Review>?>(null)
     }
 
     LaunchedEffect(Unit) {
@@ -40,8 +41,12 @@ fun ReviewAppsScreen(onSelectedReviewApp: () -> Unit) {
                 Log.d("ReleasePickerScreen", e.toString())
             }
             .collect {
-                val mainReview: List<String> =
-                    listOf("https://ami-back-staging.osc-fr1.scalingo.io", "Branche principale")
+                val mainReview: Review =
+                    Review(url = "https://ami-back-staging.osc-fr1.scalingo.io",
+                        title = "Branche principale",
+                        number = "0",
+                        description = "Branche principale")
+                    listOf("", "")
                 reviews = it.body()
                 reviews?.add(0, mainReview)
             }
@@ -62,10 +67,10 @@ fun ReviewAppsScreen(onSelectedReviewApp: () -> Unit) {
                 if (reviews != null) {
                     itemsIndexed(reviews!!) { _, review ->
                         Tile(
-                            title = review[0],
-                            content = review[1]
+                            title = review.title,
+                            content = review.description ?: ""
                         ) {
-                            baseUrl = review[0]
+                            baseUrl = review.url
                             onSelectedReviewApp()
                         }
                     }
