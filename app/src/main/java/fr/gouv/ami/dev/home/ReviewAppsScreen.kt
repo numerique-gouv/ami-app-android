@@ -17,9 +17,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import fr.gouv.ami.R
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.Tile
 import fr.gouv.ami.data.models.Review
@@ -33,6 +35,7 @@ fun ReviewAppsScreen(onSelectedReviewApp: () -> Unit) {
     var reviews by remember {
         mutableStateOf<MutableList<Review>?>(null)
     }
+    val stagingString = stringResource(R.string.staging)
 
     LaunchedEffect(Unit) {
         val reviewFlow = getReviewApps()
@@ -43,10 +46,9 @@ fun ReviewAppsScreen(onSelectedReviewApp: () -> Unit) {
             .collect {
                 val mainReview: Review =
                     Review(url = "https://ami-back-staging.osc-fr1.scalingo.io",
-                        title = "Branche principale",
+                        title = stagingString,
                         number = "0",
-                        description = "Branche principale")
-                    listOf("", "")
+                        description = stagingString)
                 reviews = it.body()
                 reviews?.add(0, mainReview)
             }
@@ -60,7 +62,7 @@ fun ReviewAppsScreen(onSelectedReviewApp: () -> Unit) {
         ) {
             Text(
                 modifier = Modifier.padding(16.dp),
-                text = "Choix de la review",
+                text = stringResource(R.string.reviewApp_title),
                 fontSize = 20.sp
             )
             LazyColumn {

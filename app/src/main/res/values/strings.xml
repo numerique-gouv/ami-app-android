@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">AMI</string>
+    <string name="staging">Staging</string>
+    <string name="reviewApp_title">Choix de la review</string>
 </resources>
