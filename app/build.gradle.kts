@@ -51,6 +51,29 @@ android {
             )
         }
     }
+
+    flavorDimensions += "version"
+    productFlavors {
+        create("staging") {
+            dimension = "version"
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-staging"
+            buildConfigField(
+                "String",
+                "BASE_URL",
+                "\"https://ami-back-staging.osc-fr1.scalingo.io\""
+            )
+        }
+        create("prod") {
+            dimension = "version"
+            buildConfigField(
+                "String",
+                "BASE_URL",
+                "\"https://ami-back-prod.osc-secnum-fr1.scalingo.io\""
+            )
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -60,6 +83,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
