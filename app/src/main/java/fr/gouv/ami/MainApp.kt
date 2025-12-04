@@ -19,7 +19,10 @@ fun HomeApp(navController: NavHostController = rememberNavController()) {
 
     val TAG = object {}.javaClass.enclosingClass?.simpleName ?: "AMI"
 
-    var startDestinationScreen = Screen.ReviewApp.name
+    var startDestinationScreen = Screen.Home.name
+    if (BuildConfig.FLAVOR == "staging") {
+        startDestinationScreen = Screen.ReviewApp.name
+    }
 
     NavHost(
         navController = navController,
