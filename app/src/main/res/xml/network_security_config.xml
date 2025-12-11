@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Trust user-added certificates for debug builds -->
+    <debug-overrides>
+        <trust-anchors>
+            <!-- Trust preinstalled CAs -->
+            <certificates src="system" />
+            <!-- Additionally trust user added CAs (like Charles Proxy, self-signed certs) -->
+            <certificates src="user" />
+        </trust-anchors>
+    </debug-overrides>
+
+    <!-- For specific staging domain -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">ami-back-staging.osc-fr1.scalingo.io</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </domain-config>
+
+    <!-- FranceConnect sandbox domains -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">fcp.fournisseur-d-identite.fr</domain>
+        <domain includeSubdomains="true">dev-franceconnect.fr</domain>
+        <domain includeSubdomains="true">sbx.fcp.fournisseur-d-identite.fr</domain>
+        <domain includeSubdomains="true">sbx.dev-franceconnect.fr</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>
