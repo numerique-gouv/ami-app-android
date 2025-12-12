@@ -20,4 +20,12 @@ private val onUrlChanged: (String) -> Unit): WebViewClient() {
         }
         super.doUpdateVisitedHistory(view, url, isReload)
     }
+    override fun onPageFinished(view: WebView?, url: String?) {
+        super.onPageFinished(view, url)
+
+        // Flush cookies to persistent storage immediately: this is to make sure the `token` cookie
+        // received from the backend is stored for the next app restart.
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.flush()
+    }
 }
