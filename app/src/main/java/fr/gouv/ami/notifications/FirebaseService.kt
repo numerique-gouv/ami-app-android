@@ -18,6 +18,21 @@ import com.google.firebase.messaging.RemoteMessage
 import fr.gouv.ami.MainActivity
 import fr.gouv.ami.R
 import fr.gouv.ami.utils.ManagerLocalStorage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
+
+object FcmTokenManager {
+    private val _tokenUpdates = MutableSharedFlow<String>(replay = 0)
+    val tokenUpdates: SharedFlow<String> = _tokenUpdates.asSharedFlow()
+
+    suspend fun emitNewToken(token: String) {
+        _tokenUpdates.emit(token)
+    }
+}
 
 class FirebaseService : FirebaseMessagingService() {
 
@@ -31,8 +46,15 @@ class FirebaseService : FirebaseMessagingService() {
     val CHANNEL_ID = "1000"
 
     override fun onNewToken(token: String) {
-        Log.d(TAG, token)
+        Log.d(TAG, "New FCM token received: $token")
+
+        // Save token locally
         ManagerLocalStorage(this).saveToken(token)
+
+        // Emit token update to any listeners
+        CoroutineScope(Dispatchers.IO).launch {
+            FcmTokenManager.emitNewToken(token)
+        }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
