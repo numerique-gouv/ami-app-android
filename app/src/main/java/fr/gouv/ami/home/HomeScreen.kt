@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
@@ -40,6 +42,7 @@ fun HomeScreen() {
     var hasBackBar by remember { mutableStateOf(false) }
     var currentUrl by remember { mutableStateOf(baseUrl) }
     var lastUrl by remember { mutableStateOf(baseUrl) }
+    var isLoading by remember { mutableStateOf(false) }
 
     /**Check notification permission **/
 
@@ -79,6 +82,13 @@ fun HomeScreen() {
                     currentUrl = lastUrl
                 }
             }
+
+            // Progress bar just above the Webview
+            LinearProgressIndicator(
+                modifier = Modifier.alpha(if (isLoading) { 1f } else { 0f })
+                    .fillMaxWidth()
+            )
+
             AndroidView(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -97,7 +107,8 @@ fun HomeScreen() {
                                     lastUrl = currentUrl
                                 }
                                 currentUrl = it
-                            }
+                            },
+                            onLoadingChanged = { isLoading = it }
                         )
                         loadUrl(baseUrl)
                     }
