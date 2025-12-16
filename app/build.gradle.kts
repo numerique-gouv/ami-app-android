@@ -21,6 +21,13 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+// Load local.properties for local development configuration
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties()
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
 android {
     namespace = "fr.gouv.ami"
     compileSdk = 36
@@ -58,6 +65,15 @@ android {
 
     flavorDimensions += "version"
     productFlavors {
+        create("local") {
+            dimension = "version"
+            versionNameSuffix = "-local"
+
+            // Load from local.properties if available, otherwise use default
+            val localBaseUrl = localProperties.getProperty("local.base.url", "https://10.0.2.2:5173")
+
+            buildConfigField("String", "BASE_URL", "\"$localBaseUrl\"")
+        }
         create("staging") {
             dimension = "version"
             applicationIdSuffix = ".staging"
