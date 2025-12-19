@@ -5,9 +5,7 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
-import android.util.Log
 import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
@@ -38,6 +36,7 @@ fun HomeScreen() {
     val context = LocalContext.current
     var hasBackBar by remember { mutableStateOf(false) }
     var currentUrl by remember { mutableStateOf(baseUrl) }
+    var lastUrl by remember { mutableStateOf(baseUrl) }
 
     /**Check notification permission **/
 
@@ -74,7 +73,7 @@ fun HomeScreen() {
         ) {
             if (hasBackBar) {
                 BackBar {
-                    currentUrl = baseUrl
+                    currentUrl = lastUrl
                 }
             }
             AndroidView(
@@ -90,7 +89,12 @@ fun HomeScreen() {
                         webViewClient = MainWebViewClient(
                             baseUrl = baseUrl,
                             onBackBarChanged = { hasBackBar = it },
-                            onUrlChanged = { currentUrl = it }
+                            onUrlChanged = {
+                                if (currentUrl.contains(baseUrl)) {
+                                    lastUrl = currentUrl
+                                }
+                                currentUrl = it
+                            }
                         )
                         loadUrl(baseUrl)
                     }
