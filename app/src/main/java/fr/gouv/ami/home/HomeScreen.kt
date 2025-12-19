@@ -28,6 +28,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
+import fr.gouv.ami.components.MainWebViewClient
 import fr.gouv.ami.ui.theme.AMITheme
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -80,25 +81,17 @@ fun HomeScreen() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                factory = {
+                factory = { it ->
                     WebView(it).apply {
                         settings.javaScriptEnabled = true
                         settings.allowFileAccess = true
                         settings.allowContentAccess = true
                         settings.domStorageEnabled = true
-                        webViewClient = object : WebViewClient() {
-                            override fun doUpdateVisitedHistory(
-                                view: WebView?,
-                                url: String?,
-                                isReload: Boolean
-                            ) {
-                                hasBackBar = !url.isNullOrEmpty() && !url.contains(baseUrl)
-                                Log.d("HomeScreen", url!!)
-                                currentUrl = url
-
-                                super.doUpdateVisitedHistory(view, url, isReload)
-                            }
-                        }
+                        webViewClient = MainWebViewClient(
+                            baseUrl = baseUrl,
+                            onBackBarChanged = { hasBackBar = it },
+                            onUrlChanged = { currentUrl = it }
+                        )
                         loadUrl(baseUrl)
                     }
                 },
