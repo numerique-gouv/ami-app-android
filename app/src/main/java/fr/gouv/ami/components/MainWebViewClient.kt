@@ -35,9 +35,11 @@ private val onUrlChanged: (String) -> Unit): WebViewClient() {
 
     override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
         Log.w("WebView", "SSL Error on URL: ${error.url} - Error type: ${error.primaryError}")
-        // For debug testing - proceed through SSL errors
+        // For debug builds, proceed through SSL errors
         if (BuildConfig.DEBUG) {
             handler.proceed()
+        } else {
+            handler.cancel()
         }
     }
 }

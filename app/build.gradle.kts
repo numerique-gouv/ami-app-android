@@ -67,6 +67,7 @@ android {
     productFlavors {
         create("local") {
             dimension = "version"
+            applicationIdSuffix = ".local"
             versionNameSuffix = "-local"
 
             // Load from local.properties if available, otherwise use default
