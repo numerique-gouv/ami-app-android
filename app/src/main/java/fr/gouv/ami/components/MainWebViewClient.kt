@@ -1,6 +1,7 @@
 package fr.gouv.ami.components
 
 import android.util.Log
+import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import fr.gouv.ami.api.baseUrl

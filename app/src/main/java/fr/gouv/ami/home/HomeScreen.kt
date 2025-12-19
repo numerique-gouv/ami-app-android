@@ -5,8 +5,6 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
-import android.util.Log
-import android.webkit.CookieManager
 import android.webkit.WebView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -30,19 +28,6 @@ import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
 import fr.gouv.ami.components.MainWebViewClient
 import fr.gouv.ami.ui.theme.AMITheme
-
-/**
- * Helper function to get a specific cookie value from a URL
- */
-fun getCookieValue(url: String, cookieName: String): String? {
-    val cookieManager = CookieManager.getInstance()
-    val cookieString = cookieManager.getCookie(url) ?: return null
-
-    return cookieString.split(";")
-        .map { it.trim() }
-        .firstOrNull { it.startsWith("$cookieName=") }
-        ?.substringAfter("=")
-}
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -97,11 +82,6 @@ fun HomeScreen() {
                     .weight(1f),
                 factory = { it ->
                     WebView(it).apply {
-                        // Enable cookie persistence, needed to stay connected to the AMI backend throughout app restarts.
-                        val cookieManager = CookieManager.getInstance()
-                        cookieManager.setAcceptCookie(true)
-                        cookieManager.setAcceptThirdPartyCookies(this, true)
-
                         settings.javaScriptEnabled = true
                         settings.allowFileAccess = true
                         settings.allowContentAccess = true
