@@ -85,7 +85,7 @@ fun HomeScreen() {
 
             // Progress bar just above the Webview
             LinearProgressIndicator(
-                modifier = Modifier.alpha(if (isLoading) { 1f } else { 0f })
+                modifier = Modifier.alpha(if (isLoading) 1f else 0f)
                     .fillMaxWidth()
             )
 
