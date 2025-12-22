@@ -30,4 +30,13 @@
             <certificates src="user" />
         </trust-anchors>
     </domain-config>
+
+    <!-- Local development - trust self-signed certificates -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain>10.0.2.2</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </domain-config>
 </network-security-config>
