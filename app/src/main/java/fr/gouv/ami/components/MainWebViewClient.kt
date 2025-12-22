@@ -8,9 +8,12 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import fr.gouv.ami.BuildConfig
 
-class MainWebViewClient(private val baseUrl: String,
-private val onBackBarChanged: (Boolean) -> Unit,
-private val onUrlChanged: (String) -> Unit): WebViewClient() {
+class MainWebViewClient(
+    private val baseUrl: String,
+    private val onBackBarChanged: (Boolean) -> Unit,
+    private val onUrlChanged: (String) -> Unit,
+    private val onLoadingChanged: (Boolean) -> Unit,
+): WebViewClient() {
     override fun doUpdateVisitedHistory(
         view: WebView?,
         url: String?,
@@ -24,8 +27,18 @@ private val onUrlChanged: (String) -> Unit): WebViewClient() {
         super.doUpdateVisitedHistory(view, url, isReload)
     }
 
+    override fun onPageStarted(
+        view: WebView?,
+        url: String?,
+        favicon: android.graphics.Bitmap?
+    ) {
+        super.onPageStarted(view, url, favicon)
+        onLoadingChanged(true)
+    }
+
     override fun onPageFinished(view: WebView?, url: String?) {
         super.onPageFinished(view, url)
+        onLoadingChanged(false)
 
         // Flush cookies to persistent storage immediately: this is to make sure the `token` cookie
         // received from the backend is stored for the next app restart.
