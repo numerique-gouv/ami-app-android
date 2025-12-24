@@ -2,4 +2,14 @@
 <resources>
 
     <style name="Theme.AMI" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.AMI.Starting" parent="Theme.SplashScreen">
+        <!-- Use windowSplashScreenAnimatedIcon to add a drawable or an animated
+             drawable. One of these is required. -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+
+        <!-- Set the theme of the Activity that directly follows your splash
+        screen. This is required. -->
+        <item name="postSplashScreenTheme">@style/Theme.AMI</item>
+    </style>
 </resources>
