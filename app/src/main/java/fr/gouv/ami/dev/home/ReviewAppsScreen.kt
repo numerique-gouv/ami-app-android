@@ -35,22 +35,20 @@ fun ReviewAppsScreen(onSelectedReviewApp: () -> Unit) {
     var reviews by remember {
         mutableStateOf<MutableList<Review>?>(null)
     }
-    val stagingString = stringResource(R.string.staging)
 
     LaunchedEffect(Unit) {
         val reviewFlow = getReviewApps()
         reviewFlow
             .catch { e ->
-                Log.d("ReleasePickerScreen", e.toString())
+                Log.e("ReviewAppsScreen", "Error fetching review apps", e)
             }
-            .collect {
-                val mainReview: Review =
-                    Review(url = "https://ami-back-staging.osc-fr1.scalingo.io",
-                        title = stagingString,
-                        number = "0",
-                        description = stagingString)
-                reviews = it.body()
-                reviews?.add(0, mainReview)
+            .collect { response ->
+                if (response.isSuccessful) {
+                    reviews = response.body()
+                    Log.d("ReviewAppsScreen", "Successfully loaded ${reviews?.size ?: 0} review apps")
+                } else {
+                    Log.e("ReviewAppsScreen", "Error loading review apps: ${response.code()} - ${response.message()}")
+                }
             }
     }
 
