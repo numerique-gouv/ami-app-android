@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.catch
 
 @Composable
 fun ReviewAppsScreen(onSelectedReviewApp: () -> Unit) {
+    val TAG = "ReviewAppsScreen"
 
     var reviews by remember {
         mutableStateOf<MutableList<Review>?>(null)
@@ -40,14 +41,14 @@ fun ReviewAppsScreen(onSelectedReviewApp: () -> Unit) {
         val reviewFlow = getReviewApps()
         reviewFlow
             .catch { e ->
-                Log.e("ReviewAppsScreen", "Error fetching review apps", e)
+                Log.e(TAG, "Error fetching review apps", e)
             }
             .collect { response ->
                 if (response.isSuccessful) {
                     reviews = response.body()
-                    Log.d("ReviewAppsScreen", "Successfully loaded ${reviews?.size ?: 0} review apps")
+                    Log.d(TAG, "Successfully loaded ${reviews?.size ?: 0} review apps")
                 } else {
-                    Log.e("ReviewAppsScreen", "Error loading review apps: ${response.code()} - ${response.message()}")
+                    Log.e(TAG, "Error loading review apps: ${response.code()} - ${response.message()}")
                 }
             }
     }
