@@ -7,17 +7,25 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.os.Build
 import android.util.Log
+import android.webkit.CookieManager
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import fr.gouv.ami.BuildConfig
 import fr.gouv.ami.MainActivity
 import fr.gouv.ami.R
+import fr.gouv.ami.api.apiService
+import fr.gouv.ami.api.baseUrl
+import fr.gouv.ami.data.models.Subscription
 import fr.gouv.ami.utils.ManagerLocalStorage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class FirebaseService : FirebaseMessagingService() {
 
@@ -33,6 +41,36 @@ class FirebaseService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         Log.d(TAG, token)
         ManagerLocalStorage(this).saveToken(token)
+        sendRegistration(this)
+    }
+
+    fun sendRegistration(context: Context) {
+        val cookieManager = CookieManager.getInstance()
+        val cookies = cookieManager.getCookie(baseUrl)
+        val managerStorage = ManagerLocalStorage(context)
+        if (!cookies.isNullOrEmpty() && !managerStorage.getToken().isNullOrEmpty()) {
+            val values = cookies.split("=")
+            var bearer: String? = null
+            values.forEachIndexed { id, cookie ->
+                if (cookie == "sc-sticky-session" && id + 1 < values.size) {
+                    bearer = values[id + 1]
+                }
+            }
+            if (bearer != null) {
+                val subscription = Subscription(
+                    fcmToken = managerStorage.getToken()!!,
+                    deviceId = managerStorage.getOrCreateDeviceId(),
+                    platform = "android",
+                    appVersion = BuildConfig.VERSION_NAME,
+                    model = managerStorage.getDeviceModel()
+                )
+                GlobalScope.launch {
+                    withContext(Dispatchers.IO) {
+                        apiService.registrations(bearer, subscription)
+                    }
+                }
+            }
+        }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
