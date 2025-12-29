@@ -1,9 +1,11 @@
 package fr.gouv.ami.api
 
-import fr.gouv.ami.data.models.Notification
-import fr.gouv.ami.data.models.Review
+import fr.gouv.ami.data.models.*
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.POST
 import retrofit2.http.Path
 
 interface ApiService {
@@ -15,6 +17,12 @@ interface ApiService {
 
     @GET("/api/v1/users/{user_id}/notifications")
     suspend fun getNotifications(@Path("userId") userId: String): Response<List<Notification>>
+
+    @POST("/api/v1/users/registrations")
+    suspend fun registrations(
+        @Header("Authorization") token: String,
+        @Body subscription: Subscription
+    ): Response<Registration>
 
     /** Review App **/
 
