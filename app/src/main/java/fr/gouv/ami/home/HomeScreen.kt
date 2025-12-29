@@ -4,10 +4,11 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.net.http.SslError
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
-import android.webkit.SslErrorHandler
+import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -32,7 +33,9 @@ import androidx.core.content.ContextCompat
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
 import fr.gouv.ami.components.MainWebViewClient
+import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.ui.theme.AMITheme
+import fr.gouv.ami.utils.ManagerLocalStorage
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -85,7 +88,8 @@ fun HomeScreen() {
 
             // Progress bar just above the Webview
             LinearProgressIndicator(
-                modifier = Modifier.alpha(if (isLoading) 1f else 0f)
+                modifier = Modifier
+                    .alpha(if (isLoading) 1f else 0f)
                     .fillMaxWidth()
             )
 
@@ -110,6 +114,22 @@ fun HomeScreen() {
                             },
                             onLoadingChanged = { isLoading = it }
                         )
+
+                        addJavascriptInterface(object {
+                            @JavascriptInterface
+                            fun onEvent(eventName: String, dataJson: String) {
+                                Log.d("WebView", "Event received: $eventName - $dataJson")
+                                val storage = ManagerLocalStorage(context)
+                                if (eventName == "user_logged_in") {
+                                    if (storage.getToken() != "") {
+                                        // Post to main thread to access WebView
+                                        Handler(Looper.getMainLooper()).post {
+                                            FirebaseService().sendRegistration(context)
+                                        }
+                                    }
+                                }
+                            }
+                        }, "NativeBridge")
                         loadUrl(baseUrl)
                     }
                 },
