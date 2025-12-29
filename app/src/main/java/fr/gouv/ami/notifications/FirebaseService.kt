@@ -21,6 +21,7 @@ import fr.gouv.ami.R
 import fr.gouv.ami.api.apiService
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.data.models.Subscription
+import fr.gouv.ami.data.models.SubscriptionRequest
 import fr.gouv.ami.utils.ManagerLocalStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -49,11 +50,12 @@ class FirebaseService : FirebaseMessagingService() {
         val cookies = cookieManager.getCookie(baseUrl)
         val managerStorage = ManagerLocalStorage(context)
         if (!cookies.isNullOrEmpty() && !managerStorage.getToken().isNullOrEmpty()) {
-            val values = cookies.split("=")
+            val values = cookies.split(";")
             var bearer: String? = null
             values.forEachIndexed { id, cookie ->
-                if (cookie == "sc-sticky-session" && id + 1 < values.size) {
-                    bearer = values[id + 1]
+                if (cookie.contains("token")) {
+                    bearer = cookie.split("\"")[1]
+                    Log.d(TAG, bearer)
                 }
             }
             if (bearer != null) {
@@ -66,7 +68,7 @@ class FirebaseService : FirebaseMessagingService() {
                 )
                 GlobalScope.launch {
                     withContext(Dispatchers.IO) {
-                        apiService.registrations(bearer, subscription)
+                        apiService.registrations(bearer, SubscriptionRequest(subscription))
                     }
                 }
             }
