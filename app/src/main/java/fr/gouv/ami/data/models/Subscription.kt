@@ -2,6 +2,11 @@ package fr.gouv.ami.data.models
 
 import com.google.gson.annotations.SerializedName
 
+data class SubscriptionRequest(
+    @SerializedName("subscription")
+    var subscription: Subscription
+)
+
 data class Subscription(
     @SerializedName("fcm_token")
     var fcmToken: String,

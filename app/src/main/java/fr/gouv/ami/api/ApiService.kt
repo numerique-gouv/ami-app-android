@@ -21,7 +21,7 @@ interface ApiService {
     @POST("/api/v1/users/registrations")
     suspend fun registrations(
         @Header("Authorization") token: String,
-        @Body subscription: Subscription
+        @Body subscription: SubscriptionRequest
     ): Response<Registration>
 
     /** Review App **/
