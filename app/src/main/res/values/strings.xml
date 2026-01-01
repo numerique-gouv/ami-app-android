@@ -3,4 +3,7 @@
     <string name="staging">Staging</string>
     <string name="reviewApp_title">Choix de la review</string>
     <string name="back">Retour</string>
+
+    <string name="connection_lost_title">Problème de connexion Internet</string>
+    <string name="connection_lost_description">Vérifiez votre réseau (données mobiles ou Wi-Fi) et relancez l\'application pour vous connecter.</string>
 </resources>
