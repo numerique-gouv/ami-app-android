@@ -4,45 +4,30 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.net.http.SslError
 import android.os.Build
-import android.util.Log
-import android.webkit.SslErrorHandler
-import android.webkit.WebView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import fr.gouv.ami.api.baseUrl
-import fr.gouv.ami.components.BackBar
-import fr.gouv.ami.components.MainWebViewClient
+import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.gouv.ami.networkManager.WifiErrorScreen
 import fr.gouv.ami.ui.theme.AMITheme
+import fr.gouv.ami.utils.NetworkMonitor
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun HomeScreen() {
+fun HomeScreen(webViewViewModel: WebViewViewModel = viewModel()) {
 
     val context = LocalContext.current
-    var hasBackBar by remember { mutableStateOf(false) }
-    var currentUrl by remember { mutableStateOf(baseUrl) }
-    var lastUrl by remember { mutableStateOf(baseUrl) }
-    var isLoading by remember { mutableStateOf(false) }
+    val networkMonitor = remember { NetworkMonitor(context) }
+    val isConnected by networkMonitor.isConnected.collectAsState(true)
 
     /**Check notification permission **/
 
@@ -68,58 +53,11 @@ fun HomeScreen() {
             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
-
     /** UI **/
-
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            if (hasBackBar) {
-                BackBar {
-                    currentUrl = lastUrl
-                }
-            }
-
-            // Progress bar just above the Webview
-            LinearProgressIndicator(
-                modifier = Modifier.alpha(if (isLoading) 1f else 0f)
-                    .fillMaxWidth()
-            )
-
-            AndroidView(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                factory = { it ->
-                    WebView(it).apply {
-                        settings.javaScriptEnabled = true
-                        settings.allowFileAccess = true
-                        settings.allowContentAccess = true
-                        settings.domStorageEnabled = true
-                        webViewClient = MainWebViewClient(
-                            baseUrl = baseUrl,
-                            onBackBarChanged = { hasBackBar = it },
-                            onUrlChanged = {
-                                if (currentUrl.contains(baseUrl)) {
-                                    lastUrl = currentUrl
-                                }
-                                currentUrl = it
-                            },
-                            onLoadingChanged = { isLoading = it }
-                        )
-                        loadUrl(baseUrl)
-                    }
-                },
-                update = { webView ->
-                    if (webView.url != currentUrl) {
-                        webView.loadUrl(currentUrl)
-                    }
-                }
-            )
-        }
+    if (isConnected) {
+        WebViewScreen(webViewViewModel)
+    } else {
+        WifiErrorScreen()
     }
 }
 

@@ -1,0 +1,100 @@
+package fr.gouv.ami.home
+
+import android.content.res.Configuration
+import android.webkit.WebView
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.gouv.ami.api.baseUrl
+import fr.gouv.ami.components.BackBar
+import fr.gouv.ami.components.MainWebViewClient
+import fr.gouv.ami.ui.theme.AMITheme
+
+@Composable
+fun WebViewScreen(webViewViewModel: WebViewViewModel) {
+    var hasBackBar by remember { mutableStateOf(false) }
+    //var currentUrl by remember { mutableStateOf(baseUrl) }
+    //var lastUrl by remember { mutableStateOf(baseUrl) }
+    var isLoading by remember { mutableStateOf(false) }
+
+    /** UI **/
+
+    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            if (hasBackBar) {
+                BackBar {
+                    webViewViewModel.onBackPressed()
+                }
+            }
+
+            // Progress bar just above the Webview
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .alpha(if (isLoading) 1f else 0f)
+                    .fillMaxWidth()
+            )
+
+            AndroidView(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                factory = { it ->
+                    WebView(it).apply {
+                        settings.javaScriptEnabled = true
+                        settings.allowFileAccess = true
+                        settings.allowContentAccess = true
+                        settings.domStorageEnabled = true
+                        webViewClient = MainWebViewClient(
+                            baseUrl = baseUrl,
+                            onBackBarChanged = { hasBackBar = it },
+                            onUrlChanged =
+                                {
+                                    webViewViewModel.onUrlChanged(it)
+                                },
+                            onLoadingChanged = { isLoading = it }
+                        )
+                        loadUrl(webViewViewModel.currentUrl)
+                    }
+                },
+                update = { webView ->
+                    if (webView.url != webViewViewModel.currentUrl) {
+                        webView.loadUrl(webViewViewModel.currentUrl)
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun PreviewWebViewScreenLight() {
+    AMITheme {
+        WebViewScreen(viewModel())
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun PreviewWebViewScreenDark() {
+    AMITheme {
+        WebViewScreen(viewModel())
+    }
+}
