@@ -16,13 +16,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
-import fr.gouv.ami.ui.theme.AMITheme
+import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.networkManager.WifiErrorScreen
+import fr.gouv.ami.ui.theme.AMITheme
 import fr.gouv.ami.utils.NetworkMonitor
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun HomeScreen() {
+fun HomeScreen(webViewViewModel: WebViewViewModel = viewModel()) {
 
     val context = LocalContext.current
     val networkMonitor = remember { NetworkMonitor(context) }
@@ -55,7 +56,7 @@ fun HomeScreen() {
     /** UI **/
 
     if (isConnected) {
-        WebViewScreen()
+        WebViewScreen(webViewViewModel)
     } else {
         WifiErrorScreen()
     }
