@@ -52,10 +52,11 @@ class FirebaseService : FirebaseMessagingService() {
         if (!cookies.isNullOrEmpty() && !managerStorage.getToken().isNullOrEmpty()) {
             val values = cookies.split(";")
             var bearer: String? = null
-            values.forEachIndexed { id, cookie ->
+            for (cookie in values) {
                 if (cookie.contains("token")) {
                     bearer = cookie.split("\"")[1]
-                    Log.d(TAG, bearer)
+                    Log.d(TAG, "bearer: $bearer")
+                    break
                 }
             }
             if (bearer != null) {
