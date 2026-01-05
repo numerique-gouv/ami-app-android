@@ -41,7 +41,7 @@ fun HomeScreen() {
     val context = LocalContext.current
     var hasBackBar by remember { mutableStateOf(false) }
     var currentUrl by remember { mutableStateOf(baseUrl) }
-    var lastUrl by remember { mutableStateOf(baseUrl) }
+    var lastUrl by remember { mutableStateOf(baseUrl) } //not used for now
     var isLoading by remember { mutableStateOf(false) }
 
     /**Check notification permission **/
@@ -79,7 +79,7 @@ fun HomeScreen() {
         ) {
             if (hasBackBar) {
                 BackBar {
-                    currentUrl = lastUrl
+                    currentUrl = baseUrl //return to home and not the latest url
                 }
             }
 
