@@ -9,9 +9,7 @@ import android.webkit.WebView
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
 import fr.gouv.ami.components.MainWebViewClient
+import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.utils.ManagerLocalStorage
 import fr.gouv.ami.ui.theme.AMITheme
@@ -36,11 +35,10 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
 
     /** UI **/
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    BaseScreen {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
         ) {
             if (hasBackBar) {
                 BackBar {

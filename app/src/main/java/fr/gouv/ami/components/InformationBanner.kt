@@ -45,6 +45,7 @@ enum class InformationType {
 fun InformationBanner(
     informationType: InformationType,
     title: String,
+    icon: Int,
     content: String? = null,
     link: String? = null,
     hasCloseIcon: Boolean = true,
@@ -53,31 +54,26 @@ fun InformationBanner(
 ) {
     var colorBg: Color
     var colorContent: Color
-    var icon: Int
 
     when (informationType) {
         InformationType.Information -> {
             colorBg = BlueInformationBg
             colorContent = BlueInformationContent
-            icon = R.drawable.ic_information_information
         }
 
         InformationType.Warning -> {
             colorBg = OrangeInformationBg
             colorContent = OrangeInformationContent
-            icon = R.drawable.ic_information_warning
         }
 
         InformationType.Error -> {
             colorBg = RedInformationBg
             colorContent = RedInformationContent
-            icon = R.drawable.ic_information_error
         }
 
         InformationType.Validation -> {
             colorBg = GreenInformationBg
             colorContent = GreenInformationContent
-            icon = R.drawable.ic_information_validation
         }
     }
 
@@ -90,7 +86,7 @@ fun InformationBanner(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Row (verticalAlignment = Alignment.CenterVertically) {
-                Image(painterResource(icon), contentDescription = "banner icon")
+                Image(painterResource(icon), contentDescription = "banner icon", colorFilter = ColorFilter.tint(colorContent))
                 Text(
                     modifier = Modifier.padding(start = 8.dp),
                     text = title,
@@ -134,6 +130,7 @@ fun PreviewInformationBannerWarning() {
     AMITheme {
         InformationBanner(
             informationType = InformationType.Warning,
+            icon = R.drawable.ic_information_warning,
             title = "Connexion indisponible",
             content = "Vérifiez votre connexion et réessayez.",
             link = "Lien de consultation",
@@ -148,6 +145,7 @@ fun PreviewInformationBannerInformation() {
         InformationBanner(
             informationType = InformationType.Information,
             title = "Nouvelle démarche disponible",
+            icon = R.drawable.ic_information_information,
             content = "Vérifiez votre connexion et réessayez.",
             link = "Lien de consultation",
         )
@@ -161,6 +159,7 @@ fun PreviewInformationBannerError() {
         InformationBanner(
             informationType = InformationType.Error,
             title = "Application hors-service",
+            icon = R.drawable.ic_information_error,
             content = "Vérifiez votre connexion et réessayez.",
             link = "Lien de consultation",
         )
@@ -174,6 +173,7 @@ fun PreviewInformationBannerValidation() {
         InformationBanner(
             informationType = InformationType.Validation,
             title = "Connexion rétablie",
+            icon = R.drawable.ic_information_validation,
             content = "L’application est de nouveau fonctionnelle.",
             link = "Lien de consultation",
         )
