@@ -10,14 +10,6 @@ import retrofit2.http.Path
 
 interface ApiService {
 
-    /** notifications **/
-
-    @GET("/notification-key")
-    suspend fun getNotificationKey(): Response<String>
-
-    @GET("/api/v1/users/{user_id}/notifications")
-    suspend fun getNotifications(@Path("userId") userId: String): Response<List<Notification>>
-
     @POST("/api/v1/users/registrations")
     suspend fun registrations(
         @Header("Authorization") token: String,
