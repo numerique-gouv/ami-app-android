@@ -6,4 +6,6 @@
 
     <string name="connection_lost_title">Problème de connexion Internet</string>
     <string name="connection_lost_description">Vérifiez votre réseau (données mobiles ou Wi-Fi) et relancez l\'application pour vous connecter.</string>
+    <string name="no_connexion">Connexion indisponible</string>
+    <string name="no_connextion_subtitle">Vérifiez votre connexion et réessayez.</string>
 </resources>
