@@ -6,6 +6,7 @@ import android.util.Log
 import android.webkit.JavascriptInterface
 import android.content.res.Configuration
 import android.webkit.WebView
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,6 +35,7 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
     var hasBackBar by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
+    var canGoBack by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         webViewViewModel.refreshView.collect {
@@ -43,6 +45,16 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
                 null
             )
         }
+    }
+
+    /** Handle back button for WebView navigation
+    We can't just check webView.canGoBack() here as it would only be done during recomposition,
+    which doesn't seem to happen when navigating in the webview.
+    We thus need to check it in MainWebViewClient.doUpdateVisitedHistory using a callback to update
+    the `canGoBack` state here.
+    **/
+    BackHandler(enabled = canGoBack) {
+        webViewRef.value?.goBack()
     }
 
     /** UI **/
@@ -84,7 +96,8 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
                                 {
                                     webViewViewModel.onUrlChanged(it)
                                 },
-                            onLoadingChanged = { isLoading = it }
+                            onLoadingChanged = { isLoading = it },
+                            onCanGoBackChanged = { canGoBack = it },
                         )
 
                         addJavascriptInterface(object {

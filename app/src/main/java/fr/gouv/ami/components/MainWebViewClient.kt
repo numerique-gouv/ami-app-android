@@ -13,6 +13,7 @@ class MainWebViewClient(
     private val onBackBarChanged: (Boolean) -> Unit,
     private val onUrlChanged: (String) -> Unit,
     private val onLoadingChanged: (Boolean) -> Unit,
+    private val onCanGoBackChanged: (Boolean) -> Unit = {},
 ): WebViewClient() {
     override fun doUpdateVisitedHistory(
         view: WebView?,
@@ -24,6 +25,7 @@ class MainWebViewClient(
             onUrlChanged(url)
             Log.d("HomeScreen", url)
         }
+        view?.let { onCanGoBackChanged(it.canGoBack()) }
         super.doUpdateVisitedHistory(view, url, isReload)
     }
 
