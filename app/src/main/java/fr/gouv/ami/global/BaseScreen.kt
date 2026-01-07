@@ -38,9 +38,9 @@ fun BaseScreen(viewModel: BaseViewModel, content: @Composable () -> Unit) {
             if (!isConnected)
                 InformationBanner(
                     informationType = InformationType.Warning,
-                    title = stringResource(R.string.no_connexion),
-                    icon = R.drawable.ic_no_connexion,
-                    content = stringResource(R.string.no_connextion_subtitle),
+                    title = stringResource(R.string.no_connection),
+                    icon = R.drawable.ic_no_connection,
+                    content = stringResource(R.string.no_connection_subtitle),
                     hasCloseIcon = false
                 )
 
