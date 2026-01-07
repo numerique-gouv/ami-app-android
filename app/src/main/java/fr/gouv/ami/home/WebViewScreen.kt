@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,10 +33,21 @@ import fr.gouv.ami.ui.theme.AMITheme
 fun WebViewScreen(webViewViewModel: WebViewViewModel) {
     var hasBackBar by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
+    val webViewRef = remember { mutableStateOf<WebView?>(null) }
+
+    LaunchedEffect(Unit) {
+        webViewViewModel.refreshView.collect {
+            //webViewRef.value?.reload() doesn't work, the history is lost
+            webViewRef.value?.evaluateJavascript(
+                "window.location.reload();",
+                null
+            )
+        }
+    }
 
     /** UI **/
 
-    BaseScreen {
+    BaseScreen(webViewViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -59,6 +71,8 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
                     .weight(1f),
                 factory = { it ->
                     WebView(it).apply {
+                        webViewRef.value = this
+
                         settings.javaScriptEnabled = true
                         settings.allowFileAccess = true
                         settings.allowContentAccess = true

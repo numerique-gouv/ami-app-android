@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.R
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.Tile
@@ -55,7 +56,7 @@ fun ReviewAppsScreen(onSelectedReviewApp: () -> Unit) {
             }
     }
 
-    return BaseScreen {
+    return BaseScreen(viewModel()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
