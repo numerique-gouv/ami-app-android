@@ -12,13 +12,20 @@ class WebViewViewModel : BaseViewModel() {
     var currentUrl by mutableStateOf(baseUrl)
     var lastUrl by mutableStateOf(baseUrl) //not used for now
 
-    // SharedFlow for notification permission request event from JavaScript
     private val _notificationPermissionRequested = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val notificationPermissionRequested = _notificationPermissionRequested.asSharedFlow()
 
-    // State for displaying notification permission granted banner
     var showNotificationPermissionGrantedBanner by mutableStateOf(false)
         private set
+
+    private val _openNotificationSettings = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val openNotificationSettings = _openNotificationSettings.asSharedFlow()
+
+    private val _executeJavaScript = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val executeJavaScript = _executeJavaScript.asSharedFlow()
+
+    private val _pageFinished = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val pageFinished = _pageFinished.asSharedFlow()
 
     fun onUrlChanged(url: String) {
         if (currentUrl.contains(baseUrl)) {
@@ -35,25 +42,32 @@ class WebViewViewModel : BaseViewModel() {
         currentUrl = baseUrl
     }
 
-    /**
-     * Triggers the notification permission request flow.
-     * Called when the JavaScript bridge receives a "notification_permission_requested" event.
-     */
     fun triggerNotificationPermissionRequest() {
         _notificationPermissionRequested.tryEmit(Unit)
     }
 
-    /**
-     * Shows the notification permission granted banner.
-     */
     fun showNotificationPermissionGrantedBanner() {
         showNotificationPermissionGrantedBanner = true
     }
 
-    /**
-     * Dismisses the notification permission granted banner.
-     */
     fun dismissNotificationPermissionGrantedBanner() {
         showNotificationPermissionGrantedBanner = false
+    }
+
+    fun openNotificationSettings() {
+        _openNotificationSettings.tryEmit(Unit)
+    }
+
+    fun runJavaScript(script: String) {
+        _executeJavaScript.tryEmit(script)
+    }
+
+    fun setLocalStorage(key: String, value: String) {
+        val script = "localStorage.setItem('$key', '$value');"
+        runJavaScript(script)
+    }
+
+    fun notifyPageFinished() {
+        _pageFinished.tryEmit(Unit)
     }
 }

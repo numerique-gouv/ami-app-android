@@ -51,6 +51,13 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
         }
     }
 
+    LaunchedEffect(Unit) {
+        webViewViewModel.executeJavaScript.collect { script ->
+            webViewRef.value?.evaluateJavascript(script, null)
+            Log.d("WebView", "Executed JavaScript: $script")
+        }
+    }
+
     /** Handle back button for WebView navigation
     We can't just check webView.canGoBack() here as it would only be done during recomposition,
     which doesn't seem to happen when navigating in the webview.
@@ -111,6 +118,7 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
                                 },
                             onLoadingChanged = { isLoading = it },
                             onCanGoBackChanged = { canGoBack = it },
+                            onPageFinished = { webViewViewModel.notifyPageFinished() },
                         )
 
                         addJavascriptInterface(object {
@@ -131,6 +139,12 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
                                         // Trigger notification permission request
                                         Handler(Looper.getMainLooper()).post {
                                             webViewViewModel.triggerNotificationPermissionRequest()
+                                        }
+                                    }
+                                    "notification_permission_removed" -> {
+                                        // Open system settings to let user revoke permission
+                                        Handler(Looper.getMainLooper()).post {
+                                            webViewViewModel.openNotificationSettings()
                                         }
                                     }
                                 }
