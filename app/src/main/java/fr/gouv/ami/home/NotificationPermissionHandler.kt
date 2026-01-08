@@ -1,6 +1,7 @@
 package fr.gouv.ami.home
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -13,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
 /**
@@ -33,7 +35,7 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
     // and doesn't properly set the localStorage.
     LaunchedEffect(Unit) {
         webViewViewModel.pageFinished.collect {
-            val isGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+            val isGranted = isPermissionGranted(context)
             webViewViewModel.setLocalStorage("notifications_enabled", if (isGranted) "true" else "false")
             Log.d("NotificationPermission", "Initialized localStorage notifications_enabled: $isGranted")
         }
@@ -59,7 +61,21 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
     LaunchedEffect(Unit) {
         webViewViewModel.notificationPermissionRequested.collect {
             Log.d("NotificationPermission", "JavaScript event 'notification_permission_requested' received")
-            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+
+            val isGranted = isPermissionGranted(context)
+            val shouldShowRationale = shouldShowRequestPermissionRationale(context)
+            val isPermanentlyDenied = !isGranted && !shouldShowRationale
+
+            Log.d("NotificationPermission", "Permission status - granted: $isGranted, shouldShowRationale: $shouldShowRationale, permanentlyDenied: $isPermanentlyDenied")
+
+            if (isPermanentlyDenied) {
+                // Permission was permanently denied, open settings instead
+                Log.d("NotificationPermission", "Permission permanently denied, we can't show the permission popup anymore, last resort is displaying the OS notification settings")
+                openAppNotificationSettings(context)
+            } else {
+                // Can still request permission
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
         }
     }
 
@@ -92,4 +108,25 @@ private fun openAppNotificationSettings(context: Context) {
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     context.startActivity(intent)
     Log.d("NotificationPermission", "Opened app notification settings")
+}
+
+private fun isPermissionGranted(context: Context): Boolean {
+    return ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+}
+
+/**
+ * Checks if we should show a rationale for requesting the permission.
+ * Returns true if the user previously denied the permission but hasn't permanently denied it yet.
+ * Returns false if:
+ * - Permission was never requested before (first time)
+ * - Permission was permanently denied (user selected "Don't ask again" or denied twice on Android 11+)
+ */
+private fun shouldShowRequestPermissionRationale(context: Context): Boolean {
+    val activity = context as? Activity
+    return activity?.let {
+        ActivityCompat.shouldShowRequestPermissionRationale(
+            it,
+            Manifest.permission.POST_NOTIFICATIONS
+        )
+    } ?: false
 }
