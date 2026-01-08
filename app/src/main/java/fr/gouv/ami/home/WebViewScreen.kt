@@ -105,11 +105,19 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
                             fun onEvent(eventName: String, dataJson: String) {
                                 Log.d("WebView", "Event received: $eventName - $dataJson")
                                 val storage = ManagerLocalStorage(context)
-                                if (eventName == "user_logged_in") {
-                                    if (storage.getToken() != "") {
-                                        // Post to main thread to access WebView
+                                when (eventName) {
+                                    "user_logged_in" -> {
+                                        if (storage.getToken() != "") {
+                                            // Post to main thread to access WebView
+                                            Handler(Looper.getMainLooper()).post {
+                                                FirebaseService().sendRegistration(context)
+                                            }
+                                        }
+                                    }
+                                    "notification_permission_requested" -> {
+                                        // Trigger notification permission request
                                         Handler(Looper.getMainLooper()).post {
-                                            FirebaseService().sendRegistration(context)
+                                            webViewViewModel.triggerNotificationPermissionRequest()
                                         }
                                     }
                                 }
