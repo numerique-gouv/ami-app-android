@@ -16,6 +16,10 @@ class WebViewViewModel : BaseViewModel() {
     private val _notificationPermissionRequested = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val notificationPermissionRequested = _notificationPermissionRequested.asSharedFlow()
 
+    // State for displaying notification permission granted banner
+    var showNotificationPermissionGrantedBanner by mutableStateOf(false)
+        private set
+
     fun onUrlChanged(url: String) {
         if (currentUrl.contains(baseUrl)) {
             lastUrl = currentUrl
@@ -27,13 +31,8 @@ class WebViewViewModel : BaseViewModel() {
         onGoHome()
     }
 
-    fun onGoHome(query: List<String> = emptyList()) {
-        if (query.isNullOrEmpty()) {
-            currentUrl = baseUrl
-        } else {
-            val queryString = query.joinToString("&")
-            currentUrl = "$baseUrl/?$queryString"
-        }
+    fun onGoHome() {
+        currentUrl = baseUrl
     }
 
     /**
@@ -42,5 +41,19 @@ class WebViewViewModel : BaseViewModel() {
      */
     fun triggerNotificationPermissionRequest() {
         _notificationPermissionRequested.tryEmit(Unit)
+    }
+
+    /**
+     * Shows the notification permission granted banner.
+     */
+    fun showNotificationPermissionGrantedBanner() {
+        showNotificationPermissionGrantedBanner = true
+    }
+
+    /**
+     * Dismisses the notification permission granted banner.
+     */
+    fun dismissNotificationPermissionGrantedBanner() {
+        showNotificationPermissionGrantedBanner = false
     }
 }

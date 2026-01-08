@@ -8,4 +8,5 @@
     <string name="connection_lost_description">Vérifiez votre réseau (données mobiles ou Wi-Fi) et relancez l\'application pour vous connecter.</string>
     <string name="no_connection">Vous êtes hors ligne</string>
     <string name="no_connection_subtitle">L\'accès à certaines fonctionnalités est limité.</string>
+    <string name="notification_permission_granted">Les notifications ont été activées</string>
 </resources>

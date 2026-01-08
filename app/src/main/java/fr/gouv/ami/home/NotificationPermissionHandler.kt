@@ -31,12 +31,11 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
     ) { isGranted ->
         Log.d("NotificationPermission", "User responded: ${if (isGranted) "GRANTED" else "DENIED"}")
 
-        // Navigate back to home after user responds
         if (isGranted) {
-            webViewViewModel.onGoHome(query=listOf("has_enabled_notifications"))
-        } else {
-            webViewViewModel.onGoHome()
+            webViewViewModel.showNotificationPermissionGrantedBanner()
         }
+        // Navigate back to home after user responds
+        webViewViewModel.onGoHome()
     }
 
     // Observe JavaScript event for notification permission request

@@ -19,11 +19,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.gouv.ami.R
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
+import fr.gouv.ami.components.InformationBanner
+import fr.gouv.ami.components.InformationType
 import fr.gouv.ami.components.MainWebViewClient
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.notifications.FirebaseService
@@ -64,6 +68,15 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
             modifier = Modifier
                 .fillMaxSize()
         ) {
+            if (webViewViewModel.showNotificationPermissionGrantedBanner) {
+                InformationBanner(
+                    informationType = InformationType.Validation,
+                    title = stringResource(R.string.notification_permission_granted),
+                    icon = R.drawable.ic_information_validation,
+                    onClose = { webViewViewModel.dismissNotificationPermissionGrantedBanner() }
+                )
+            }
+
             if (hasBackBar) {
                 BackBar {
                     webViewViewModel.onBackPressed()
