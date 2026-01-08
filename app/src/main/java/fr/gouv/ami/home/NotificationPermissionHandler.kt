@@ -42,53 +42,7 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
     LaunchedEffect(Unit) {
         webViewViewModel.notificationPermissionRequested.collect {
             Log.d("NotificationPermission", "JavaScript event 'notification_permission_requested' received")
-            handleNotificationPermissionRequest(
-                context = context,
-                webViewViewModel = webViewViewModel,
-                permissionLauncher = { notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) }
-            )
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
-}
-
-/**
- * Handles the logic for requesting notification permission.
- * Checks various conditions (Android version, permission status)
- * and either shows the dialog or navigates home.
- */
-private fun handleNotificationPermissionRequest(
-    context: Context,
-    webViewViewModel: WebViewViewModel,
-    permissionLauncher: () -> Unit
-) {
-    val androidVersion = Build.VERSION.SDK_INT
-    val needsPermission = androidVersion >= Build.VERSION_CODES.TIRAMISU
-    Log.d("NotificationPermission", "Android version: $androidVersion, needs permission: $needsPermission")
-
-    if (needsPermission) {
-        handleAndroid13PlusPermission(context, webViewViewModel, permissionLauncher)
-    } else {
-        // Android < 13: No permission dialog needed
-        Log.d("NotificationPermission", "Android < 13, notifications are automatically allowed without dialog")
-        webViewViewModel.onGoHome()
-    }
-}
-
-/**
- * Handles permission request for Android 13+ (Tiramisu and above).
- */
-private fun handleAndroid13PlusPermission(
-    context: Context,
-    webViewViewModel: WebViewViewModel,
-    permissionLauncher: () -> Unit
-) {
-    val currentPermissionStatus = ContextCompat.checkSelfPermission(
-        context,
-        Manifest.permission.POST_NOTIFICATIONS
-    )
-    val isGranted = currentPermissionStatus == PackageManager.PERMISSION_GRANTED
-    Log.d("NotificationPermission", "Current permission status: ${if (isGranted) "GRANTED" else "DENIED/NOT_ASKED"}")
-
-    Log.d("NotificationPermission", "Launching permission dialog...")
-    permissionLauncher()
 }
