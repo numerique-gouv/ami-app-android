@@ -72,6 +72,7 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
                 // Permission was permanently denied, open settings instead
                 Log.d("NotificationPermission", "Permission permanently denied, we can't show the permission popup anymore, last resort is displaying the OS notification settings")
                 openAppNotificationSettings(context)
+                webViewViewModel.onGoHome()
             } else {
                 // Can still request permission
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -84,6 +85,7 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
         webViewViewModel.openNotificationSettings.collect {
             Log.d("NotificationPermission", "JavaScript event 'notification_permission_removed' received")
             openAppNotificationSettings(context)
+            webViewViewModel.onGoHome()
         }
     }
 }
