@@ -4,6 +4,7 @@ import android.net.http.SslError
 import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.SslErrorHandler
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import fr.gouv.ami.BuildConfig
@@ -16,6 +17,12 @@ class MainWebViewClient(
     private val onCanGoBackChanged: (Boolean) -> Unit = {},
     private val onPageFinished: () -> Unit = {},
 ): WebViewClient() {
+    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+        // Show loader immediately on link click (before onPageStarted)
+        onLoadingChanged(true)
+        return false // Let WebView handle the navigation
+    }
+
     override fun doUpdateVisitedHistory(
         view: WebView?,
         url: String?,
