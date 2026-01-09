@@ -64,9 +64,10 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
 
             val isGranted = isPermissionGranted(context)
             val shouldShowRationale = shouldShowRequestPermissionRationale(context)
-            val isPermanentlyDenied = !isGranted && !shouldShowRationale
+            val hasRequestedBefore = hasRequestedPermissionBefore(context)
+            val isPermanentlyDenied = !isGranted && !shouldShowRationale && hasRequestedBefore
 
-            Log.d("NotificationPermission", "Permission status - granted: $isGranted, shouldShowRationale: $shouldShowRationale, permanentlyDenied: $isPermanentlyDenied")
+            Log.d("NotificationPermission", "Permission status - granted: $isGranted, shouldShowRationale: $shouldShowRationale, hasRequestedBefore: $hasRequestedBefore, permanentlyDenied: $isPermanentlyDenied")
 
             if (isPermanentlyDenied) {
                 // Permission was permanently denied, open settings instead
@@ -74,6 +75,8 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
                 openAppNotificationSettings(context)
                 webViewViewModel.onGoHome()
             } else {
+                // Mark that we've requested permission (before showing the dialog)
+                markPermissionRequested(context)
                 // Can still request permission
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
@@ -131,4 +134,26 @@ private fun shouldShowRequestPermissionRationale(context: Context): Boolean {
             Manifest.permission.POST_NOTIFICATIONS
         )
     } ?: false
+}
+
+private const val PREFS_NAME = "notification_permission_prefs"
+private const val KEY_PERMISSION_REQUESTED = "permission_requested"
+
+/**
+ * Checks if we have requested the notification permission at least once before.
+ * This helps distinguish between "never asked" and "permanently denied" states.
+ */
+private fun hasRequestedPermissionBefore(context: Context): Boolean {
+    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    return prefs.getBoolean(KEY_PERMISSION_REQUESTED, false)
+}
+
+/**
+ * Marks that we have requested the notification permission.
+ * Should be called before launching the permission request.
+ */
+private fun markPermissionRequested(context: Context) {
+    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    prefs.edit().putBoolean(KEY_PERMISSION_REQUESTED, true).apply()
+    Log.d("NotificationPermission", "Marked permission as requested")
 }
