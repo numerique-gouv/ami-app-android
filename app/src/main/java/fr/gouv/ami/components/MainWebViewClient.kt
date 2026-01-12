@@ -14,6 +14,7 @@ class MainWebViewClient(
     private val onUrlChanged: (String) -> Unit,
     private val onLoadingChanged: (Boolean) -> Unit,
     private val onCanGoBackChanged: (Boolean) -> Unit = {},
+    private val onPageFinished: () -> Unit = {},
 ): WebViewClient() {
     override fun doUpdateVisitedHistory(
         view: WebView?,
@@ -46,6 +47,9 @@ class MainWebViewClient(
         // received from the backend is stored for the next app restart.
         val cookieManager = CookieManager.getInstance()
         cookieManager.flush()
+
+        // Notify that page finished loading
+        onPageFinished()
     }
 
     override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {

@@ -19,11 +19,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.gouv.ami.R
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
+import fr.gouv.ami.components.InformationBanner
+import fr.gouv.ami.components.InformationType
 import fr.gouv.ami.components.MainWebViewClient
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.notifications.FirebaseService
@@ -47,6 +51,13 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
         }
     }
 
+    LaunchedEffect(Unit) {
+        webViewViewModel.executeJavaScript.collect { script ->
+            webViewRef.value?.evaluateJavascript(script, null)
+            Log.d("WebView", "Executed JavaScript: $script")
+        }
+    }
+
     /** Handle back button for WebView navigation
     We can't just check webView.canGoBack() here as it would only be done during recomposition,
     which doesn't seem to happen when navigating in the webview.
@@ -64,6 +75,15 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
             modifier = Modifier
                 .fillMaxSize()
         ) {
+            if (webViewViewModel.showNotificationPermissionGrantedBanner) {
+                InformationBanner(
+                    informationType = InformationType.Validation,
+                    title = stringResource(R.string.notification_permission_granted),
+                    icon = R.drawable.ic_information_validation,
+                    onClose = { webViewViewModel.dismissNotificationPermissionGrantedBanner() }
+                )
+            }
+
             if (hasBackBar) {
                 BackBar {
                     webViewViewModel.onBackPressed()
@@ -98,6 +118,7 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
                                 },
                             onLoadingChanged = { isLoading = it },
                             onCanGoBackChanged = { canGoBack = it },
+                            onPageFinished = { webViewViewModel.notifyPageFinished() },
                         )
 
                         addJavascriptInterface(object {
@@ -105,11 +126,25 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
                             fun onEvent(eventName: String, dataJson: String) {
                                 Log.d("WebView", "Event received: $eventName - $dataJson")
                                 val storage = ManagerLocalStorage(context)
-                                if (eventName == "user_logged_in") {
-                                    if (storage.getToken() != "") {
-                                        // Post to main thread to access WebView
+                                when (eventName) {
+                                    "user_logged_in" -> {
+                                        if (storage.getToken() != "") {
+                                            // Post to main thread to access WebView
+                                            Handler(Looper.getMainLooper()).post {
+                                                FirebaseService().sendRegistration(context)
+                                            }
+                                        }
+                                    }
+                                    "notification_permission_requested" -> {
+                                        // Trigger notification permission request
                                         Handler(Looper.getMainLooper()).post {
-                                            FirebaseService().sendRegistration(context)
+                                            webViewViewModel.triggerNotificationPermissionRequest()
+                                        }
+                                    }
+                                    "notification_permission_removed" -> {
+                                        // Open system settings to let user revoke permission
+                                        Handler(Looper.getMainLooper()).post {
+                                            webViewViewModel.openNotificationSettings()
                                         }
                                     }
                                 }
