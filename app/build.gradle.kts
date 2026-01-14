@@ -36,8 +36,8 @@ android {
         applicationId = "fr.gouv.ami"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.1"
+        versionCode = 4
+        versionName = "0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -60,6 +60,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
