@@ -3,6 +3,7 @@ package fr.gouv.ami.components
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.net.http.SslError
@@ -106,11 +107,15 @@ private fun launchNativeBeforeApi30(context: Context, url: String): Boolean {
     Log.d("MainWebViewClient", "API before 30")
     val pm = context.packageManager
 
-    // Get all Apps that resolve a generic url
-    val browserActivityIntent = Intent(Intent.ACTION_VIEW, Uri.parse("http://")).apply {
+    // Get all Apps that resolve a generic url (both http:// and https://)
+    val httpBrowserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("http://")).apply {
         addCategory(Intent.CATEGORY_BROWSABLE)
     }
-    val genericResolvedList = extractPackageNames(pm.queryIntentActivities(browserActivityIntent, 0))
+    val httpsBrowserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://")).apply {
+        addCategory(Intent.CATEGORY_BROWSABLE)
+    }
+    val genericResolvedList = extractPackageNames(pm.queryIntentActivities(httpBrowserIntent, PackageManager.MATCH_ALL)) +
+            extractPackageNames(pm.queryIntentActivities(httpsBrowserIntent, PackageManager.MATCH_ALL))
     Log.d("MainWebViewClient", "Native apps that can open any url: $genericResolvedList")
 
     // Get all apps that resolve the specific Url
