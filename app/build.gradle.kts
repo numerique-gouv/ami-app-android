@@ -74,16 +74,20 @@ android {
             val localBaseUrl = localProperties.getProperty("local.base.url", "https://10.0.2.2:5173")
 
             buildConfigField("String", "BASE_URL", "\"$localBaseUrl\"")
+            resValue("string", "app_name", "AMI Local")
         }
         create("staging") {
             dimension = "version"
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-staging"
+
             buildConfigField(
                 "String",
                 "BASE_URL",
                 "\"https://ami-back-staging.osc-fr1.scalingo.io\""
             )
+
+            resValue("string", "app_name", "AMI Staging")
         }
         create("prod") {
             dimension = "version"
