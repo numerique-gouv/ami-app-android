@@ -22,3 +22,5 @@ val RedInformationBg = Color(0xFFFFE9E9)
 val RedInformationContent = Color(0xFFCE0500)
 val GreenInformationBg = Color(0xFFE3FDEB)
 val GreenInformationContent = Color(0xFF18753C)
+
+val GrayNeutral = Color(0xFF343434)
