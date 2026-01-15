@@ -7,19 +7,37 @@ import android.webkit.JavascriptInterface
 import android.content.res.Configuration
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import fr.gouv.ami.ui.theme.BlueFranceSun113
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -31,6 +49,7 @@ import fr.gouv.ami.components.InformationType
 import fr.gouv.ami.components.MainWebViewClient
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.notifications.FirebaseService
+import fr.gouv.ami.utils.LogsExporter
 import fr.gouv.ami.utils.ManagerLocalStorage
 import fr.gouv.ami.ui.theme.AMITheme
 
@@ -70,11 +89,14 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel, goSettings: () -> Unit) {
 
     /** UI **/
 
+    val context = LocalContext.current
+
     BaseScreen(viewModel = webViewViewModel) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
             if (webViewViewModel.showNotificationPermissionGrantedBanner) {
                 InformationBanner(
                     informationType = InformationType.Validation,
@@ -165,6 +187,46 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel, goSettings: () -> Unit) {
                     }
                 }
             )
+            }
+
+            // Download logs button - appears only on contact page
+            AnimatedVisibility(
+                visible = webViewViewModel.isOnContactPage,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 24.dp),
+                enter = slideInVertically { it },
+                exit = slideOutVertically { it }
+            ) {
+                Button(
+                    onClick = {
+                        // Fetch user_fc_hash from localStorage before sharing logs
+                        webViewRef.value?.evaluateJavascript("localStorage.getItem('user_fc_hash')") { result ->
+                            // Result comes as JSON string: "\"value\"" or "null"
+                            val userFcHash = result
+                                ?.trim()
+                                ?.removeSurrounding("\"")
+                                ?.takeIf { it != "null" }
+                            LogsExporter.shareLogcat(context, userFcHash)
+                        } ?: LogsExporter.shareLogcat(context)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RectangleShape,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BlueFranceSun113,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.download_logs),
+                        fontFamily = FontFamily(Font(R.font.marianne_regular)),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier.padding(vertical = 6.dp),
+                    )
+                }
+            }
         }
     }
 }

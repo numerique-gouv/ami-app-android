@@ -12,4 +12,6 @@
 
     <string name="settings">Paramètres</string>
     <string name="settings_notification">Recevoir les notifications sur mon appareil mobile</string>
+
+    <string name="download_logs">Télécharger les logs</string>
 </resources>
