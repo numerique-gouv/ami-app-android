@@ -12,6 +12,9 @@ class WebViewViewModel : BaseViewModel() {
     var currentUrl by mutableStateOf(baseUrl)
     var lastUrl by mutableStateOf(baseUrl) //not used for now
 
+    var isOnContactPage by mutableStateOf(false)
+        private set
+
     private val _notificationPermissionRequested = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val notificationPermissionRequested = _notificationPermissionRequested.asSharedFlow()
 
@@ -32,6 +35,7 @@ class WebViewViewModel : BaseViewModel() {
             lastUrl = currentUrl
         }
         currentUrl = url
+        isOnContactPage = url.contains("/#/contact")
     }
 
     fun onBackPressed() {

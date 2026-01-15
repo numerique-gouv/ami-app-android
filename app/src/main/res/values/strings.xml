@@ -9,4 +9,5 @@
     <string name="no_connection">Vous êtes hors ligne</string>
     <string name="no_connection_subtitle">L\'accès à certaines fonctionnalités est limité.</string>
     <string name="notification_permission_granted">Les notifications ont été activées</string>
+    <string name="download_logs">Télécharger les logs</string>
 </resources>
