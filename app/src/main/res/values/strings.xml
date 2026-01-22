@@ -22,4 +22,10 @@
 
     <string name="ssl_error_title">Erreur de certificat</string>
     <string name="ssl_error_description">Le certificat n\'est pas reconnu.</string>
+
+    <string name="franceConnexion_description">Pour accéder à vos droits, des conseils personnalisés et les échéances liées à votre situation personnelle, merci de vous connecter avec FranceConnect.</string>
+    <string name="franceConnexion_subtitle">FranceConnect est la solution proposée par l\'Etat pour sécuriser et simplifier la connexion à vos services en ligne.</string>
+    <string name="FC_button_description">Qu\'est ce que FranceConnect ?</string>
+    <string name="connection_difficult">Vous n\'arrivez pas à vous connecter ?</string>
+    <string name="tchap">Contactez-nous sur Tchap</string>
 </resources>

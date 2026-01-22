@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import fr.gouv.ami.dev.home.ReviewAppsScreen
+import fr.gouv.ami.home.FranceConnexionScreen
 import fr.gouv.ami.home.HomeScreen
 import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.settings.SettingsScreen
@@ -17,7 +18,8 @@ enum class Screen {
     Home,
     ReviewApp,
     Settings,
-    Onboarding
+    Onboarding,
+    FranceConnection
 }
 
 @Composable
@@ -26,7 +28,7 @@ fun HomeApp(navController: NavHostController = rememberNavController()) {
     val TAG = object {}.javaClass.enclosingClass?.simpleName ?: "AMI"
     var webViewViewModel = viewModel<WebViewViewModel>()
 
-    var startDestinationScreen = Screen.Home.name
+    var startDestinationScreen = Screen.FranceConnection.name
     if (BuildConfig.FLAVOR == "staging") {
         startDestinationScreen = Screen.ReviewApp.name
     }
@@ -49,7 +51,7 @@ fun HomeApp(navController: NavHostController = rememberNavController()) {
         composable(route = Screen.ReviewApp.name) {
             ReviewAppsScreen(
                 onSelectedReviewApp = {
-                    navController.navigate(Screen.Home.name)
+                    navController.navigate(Screen.FranceConnection.name)
                 }
             )
         }
@@ -67,6 +69,11 @@ fun HomeApp(navController: NavHostController = rememberNavController()) {
                 onChooseClick = {
                     navController.navigate(Screen.Home.name)
                 })
+        }
+        composable(route = Screen.FranceConnection.name) {
+            FranceConnexionScreen(
+                onFcClick = { navController.navigate(Screen.Home.name) }
+            )
         }
     }
 }
