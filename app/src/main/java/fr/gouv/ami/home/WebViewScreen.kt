@@ -70,7 +70,7 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
 
     /** UI **/
 
-    BaseScreen(webViewViewModel) {
+    BaseScreen(viewModel = webViewViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()

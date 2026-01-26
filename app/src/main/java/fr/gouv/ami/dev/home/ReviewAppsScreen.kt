@@ -56,7 +56,7 @@ fun ReviewAppsScreen(onSelectedReviewApp: () -> Unit) {
             }
     }
 
-    return BaseScreen(viewModel()) {
+    return BaseScreen(viewModel = viewModel()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
