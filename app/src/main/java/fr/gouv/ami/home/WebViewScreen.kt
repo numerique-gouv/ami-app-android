@@ -7,25 +7,12 @@ import android.webkit.JavascriptInterface
 import android.content.res.Configuration
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Text
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-import fr.gouv.ami.ui.theme.BlueFranceSun113
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,17 +31,21 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.R
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
+import fr.gouv.ami.components.DownloadLogsButton
+import fr.gouv.ami.components.DownloadLogsViewModel
 import fr.gouv.ami.components.InformationBanner
 import fr.gouv.ami.components.InformationType
 import fr.gouv.ami.components.MainWebViewClient
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.notifications.FirebaseService
-import fr.gouv.ami.utils.LogsExporter
 import fr.gouv.ami.utils.ManagerLocalStorage
 import fr.gouv.ami.ui.theme.AMITheme
 
-@Composable
-fun WebViewScreen(webViewViewModel: WebViewViewModel, goSettings: () -> Unit) {
+fun WebViewScreen(
+    webViewViewModel: WebViewViewModel,
+    downloadLogsViewModel: DownloadLogsViewModel = viewModel(),
+    goSettings: () -> Unit
+) {
     var hasBackBar by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
@@ -190,43 +181,24 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel, goSettings: () -> Unit) {
             }
 
             // Download logs button - appears only on contact page
-            AnimatedVisibility(
+            DownloadLogsButton(
                 visible = webViewViewModel.isOnContactPage,
+                onClick = {
+                    // Fetch user_fc_hash from localStorage before sharing logs
+                    webViewRef.value?.evaluateJavascript("localStorage.getItem('user_fc_hash')") { result ->
+                        // Result comes as JSON string: "\"value\"" or "null"
+                        val userFcHash = result
+                            ?.trim()
+                            ?.removeSurrounding("\"")
+                            ?.takeIf { it != "null" }
+                        downloadLogsViewModel.shareLogs(context, userFcHash)
+                    } ?: downloadLogsViewModel.shareLogs(context)
+                },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 24.dp),
-                enter = slideInVertically { it },
-                exit = slideOutVertically { it }
-            ) {
-                Button(
-                    onClick = {
-                        // Fetch user_fc_hash from localStorage before sharing logs
-                        webViewRef.value?.evaluateJavascript("localStorage.getItem('user_fc_hash')") { result ->
-                            // Result comes as JSON string: "\"value\"" or "null"
-                            val userFcHash = result
-                                ?.trim()
-                                ?.removeSurrounding("\"")
-                                ?.takeIf { it != "null" }
-                            LogsExporter.shareLogcat(context, userFcHash)
-                        } ?: LogsExporter.shareLogcat(context)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RectangleShape,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = BlueFranceSun113,
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(
-                        text = stringResource(R.string.download_logs),
-                        fontFamily = FontFamily(Font(R.font.marianne_regular)),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal,
-                        modifier = Modifier.padding(vertical = 6.dp),
-                    )
-                }
-            }
+                    .padding(horizontal = 16.dp, vertical = 24.dp)
+            )
         }
     }
 }
