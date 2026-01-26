@@ -9,35 +9,42 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import fr.gouv.ami.R
 
+val MarianneFamily = FontFamily(
+    listOf(
+        Font(
+            R.font.marianne_regular,
+            weight = FontWeight.Normal,
+            style = FontStyle.Normal
+        ),
+        Font(
+            R.font.marianne_regular_italic,
+            weight = FontWeight.Normal,
+            style = FontStyle.Italic,
+        ),
+        Font(
+            R.font.marianne_bold,
+            weight = FontWeight.Bold
+        ),
+        Font(
+            R.font.marianne_bold_italic,
+            weight = FontWeight.Bold,
+            style = FontStyle.Italic
+        )
+    )
+)
+
 // Set of Material typography styles to start with
 val Typography = Typography(
     bodyLarge = TextStyle(
-        fontFamily = FontFamily(
-            listOf(
-                Font(
-                    R.font.marianne_regular,
-                    weight = FontWeight.Normal,
-                    style = FontStyle.Normal
-                ),
-                Font(
-                    R.font.marianne_regular_italic,
-                    weight = FontWeight.Normal,
-                    style = FontStyle.Italic,
-                ),
-                Font(
-                    R.font.marianne_bold,
-                    weight = FontWeight.Bold
-                ),
-                Font(
-                    R.font.marianne_bold_italic,
-                    weight = FontWeight.Bold,
-                    style = FontStyle.Italic
-                )
-            )
-        ),
+        fontFamily = MarianneFamily,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
+    ),
+    labelLarge = TextStyle(
+        fontFamily = MarianneFamily,
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Normal
     )
     /* Other default text styles to override
     titleLarge = TextStyle(
