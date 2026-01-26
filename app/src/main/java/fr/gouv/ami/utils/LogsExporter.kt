@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.content.FileProvider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -18,41 +20,47 @@ object LogsExporter {
      *
      * @param userFcHash Optional user identifier from localStorage to include in filename
      */
-    fun shareLogcat(context: Context, userFcHash: String? = null) {
+    suspend fun shareLogcat(context: Context, userFcHash: String? = null) {
         try {
-            // Create the logs directory in cache if it doesn't exist
-            val logsDir = File(context.cacheDir, "logs")
-            if (!logsDir.exists()) {
-                logsDir.mkdirs()
-            }
-
-            // Generate a timestamped filename with optional user hash
             val timestamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault()).format(Date())
-            val filename = if (!userFcHash.isNullOrBlank()) {
-                "ami_logs_android_${userFcHash}_$timestamp.txt"
-            } else {
-                "ami_logs_android_$timestamp.txt"
+
+            // Run blocking I/O operations on background thread
+            val (logFile, contentUri) = withContext(Dispatchers.IO) {
+                // Create the logs directory in cache if it doesn't exist
+                val logsDir = File(context.cacheDir, "logs")
+                if (!logsDir.exists()) {
+                    logsDir.mkdirs()
+                }
+
+                // Generate filename with optional user hash
+                val filename = if (!userFcHash.isNullOrBlank()) {
+                    "ami_logs_android_${userFcHash}_$timestamp.txt"
+                } else {
+                    "ami_logs_android_$timestamp.txt"
+                }
+                val file = File(logsDir, filename)
+
+                // Execute logcat command to capture logs
+                // -d: dump and exit (non-blocking)
+                // -t 5000: last 5000 lines (reasonable limit)
+                val process = Runtime.getRuntime().exec("logcat -d -t 5000")
+                val logs = process.inputStream.bufferedReader().readText()
+                process.waitFor()
+
+                // Write logs to file
+                file.writeText(logs)
+
+                Log.d(TAG, "Logs saved to: ${file.absolutePath} (${file.length()} bytes)")
+
+                // Create a content URI using FileProvider (required for sharing files on Android 7+)
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    file
+                )
+
+                Pair(file, uri)
             }
-            val logFile = File(logsDir, filename)
-
-            // Execute logcat command to capture logs
-            // -d: dump and exit (non-blocking)
-            // -t 5000: last 5000 lines (reasonable limit)
-            val process = Runtime.getRuntime().exec("logcat -d -t 5000")
-            val logs = process.inputStream.bufferedReader().readText()
-            process.waitFor()
-
-            // Write logs to file
-            logFile.writeText(logs)
-
-            Log.d(TAG, "Logs saved to: ${logFile.absolutePath} (${logFile.length()} bytes)")
-
-            // Create a content URI using FileProvider (required for sharing files on Android 7+)
-            val contentUri = FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.fileprovider",
-                logFile
-            )
 
             // Create share intent
             // Using "*/*" instead of "text/plain" because some apps (like Tchap)
