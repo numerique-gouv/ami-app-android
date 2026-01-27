@@ -9,14 +9,14 @@ import fr.gouv.ami.ui.theme.AMITheme
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun HomeScreen(webViewViewModel: WebViewViewModel = viewModel()) {
+fun HomeScreen(webViewViewModel: WebViewViewModel = viewModel(), goSettings: () -> Unit) {
 
     // Handle notification permission request when user reaches the welcome page
     NotificationPermissionHandler(webViewViewModel)
 
     /** UI **/
 
-    WebViewScreen(webViewViewModel)
+    WebViewScreen(webViewViewModel, goSettings)
 
 }
 
@@ -24,7 +24,7 @@ fun HomeScreen(webViewViewModel: WebViewViewModel = viewModel()) {
 @Composable
 fun PreviewHomeScreenLight() {
     AMITheme {
-        HomeScreen()
+        HomeScreen() {}
     }
 }
 
@@ -32,6 +32,6 @@ fun PreviewHomeScreenLight() {
 @Composable
 fun PreviewHomeScreenDark() {
     AMITheme {
-        HomeScreen()
+        HomeScreen() {}
     }
 }

@@ -34,6 +34,7 @@ import fr.gouv.ami.R
 fun BaseScreen(
     hasTopBar: Boolean = false,
     topBarTitle: String = "",
+    onBackButton: () -> Unit = {},
     viewModel: BaseViewModel, content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -54,7 +55,7 @@ fun BaseScreen(
                         Text(topBarTitle)
                     },
                     navigationIcon = {
-                        IconButton(onClick = { }) {
+                        IconButton(onClick = onBackButton) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
                                 "backIcon"
