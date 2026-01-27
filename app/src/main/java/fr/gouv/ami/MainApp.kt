@@ -7,11 +7,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import fr.gouv.ami.dev.home.ReviewAppsScreen
 import fr.gouv.ami.home.HomeScreen
+import fr.gouv.ami.settings.SettingsScreen
 
 //list of all screens
 enum class Screen {
     Home,
-    ReviewApp
+    ReviewApp,
+    Settings
 }
 
 @Composable
@@ -29,11 +31,20 @@ fun HomeApp(navController: NavHostController = rememberNavController()) {
         startDestination = startDestinationScreen
     ) {
         composable(route = Screen.Home.name) {
-            HomeScreen()
+            HomeScreen(goSettings = {
+                navController.navigate(Screen.Settings.name)
+            })
         }
         composable(route = Screen.ReviewApp.name) {
             ReviewAppsScreen(
                 onSelectedReviewApp = {
+                    navController.navigate(Screen.Home.name)
+                }
+            )
+        }
+        composable(route = Screen.Settings.name) {
+            SettingsScreen(
+                onBackButton = {
                     navController.navigate(Screen.Home.name)
                 }
             )

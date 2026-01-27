@@ -32,13 +32,14 @@ import fr.gouv.ami.ui.theme.AMITheme
 import fr.gouv.ami.ui.theme.BlueFrance625
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(onBackButton: () -> Unit) {
 
     var checked by remember { mutableStateOf(true) }
 
     BaseScreen(
         hasTopBar = true,
         topBarTitle = stringResource(R.string.settings),
+        onBackButton = onBackButton,
         viewModel = viewModel()
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -72,7 +73,7 @@ fun SettingsScreen() {
 @Composable
 fun PreviewSettingsScreenLight() {
     AMITheme {
-        SettingsScreen()
+        SettingsScreen() {}
     }
 }
 
@@ -80,6 +81,6 @@ fun PreviewSettingsScreenLight() {
 @Composable
 fun PreviewSettingsScreenDark() {
     AMITheme {
-        SettingsScreen()
+        SettingsScreen() {}
     }
 }
