@@ -9,4 +9,7 @@
     <string name="no_connection">Vous êtes hors ligne</string>
     <string name="no_connection_subtitle">L\'accès à certaines fonctionnalités est limité.</string>
     <string name="notification_permission_granted">Les notifications ont été activées</string>
+
+    <string name="settings">Paramètres</string>
+    <string name="settings_notification">Recevoir les notifications sur mon appareil mobile</string>
 </resources>
