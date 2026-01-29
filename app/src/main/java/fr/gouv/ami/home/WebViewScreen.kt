@@ -35,7 +35,12 @@ import fr.gouv.ami.utils.ManagerLocalStorage
 import fr.gouv.ami.ui.theme.AMITheme
 
 @Composable
-fun WebViewScreen(webViewViewModel: WebViewViewModel) {
+fun WebViewScreen(
+    webViewViewModel: WebViewViewModel,
+    goSettings: () -> Unit,
+    goOnboarding: () -> Unit
+) {
+
     var hasBackBar by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
@@ -63,14 +68,14 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
     which doesn't seem to happen when navigating in the webview.
     We thus need to check it in MainWebViewClient.doUpdateVisitedHistory using a callback to update
     the `canGoBack` state here.
-    **/
+     **/
     BackHandler(enabled = canGoBack) {
         webViewRef.value?.goBack()
     }
 
     /** UI **/
 
-    BaseScreen(webViewViewModel) {
+    BaseScreen(viewModel = webViewViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -115,6 +120,9 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
                             onUrlChanged =
                                 {
                                     webViewViewModel.onUrlChanged(it)
+                                    if (it.contains("settings")) {
+                                        goSettings()
+                                    }
                                 },
                             onLoadingChanged = { isLoading = it },
                             onCanGoBackChanged = { canGoBack = it },
@@ -134,13 +142,20 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
                                                 FirebaseService().sendRegistration(context)
                                             }
                                         }
+                                        if (!hasRequestedPermissionBefore(context)) {
+                                            Handler(Looper.getMainLooper()).post {
+                                                goOnboarding()
+                                            }
+                                        }
                                     }
+
                                     "notification_permission_requested" -> {
                                         // Trigger notification permission request
                                         Handler(Looper.getMainLooper()).post {
                                             webViewViewModel.triggerNotificationPermissionRequest()
                                         }
                                     }
+
                                     "notification_permission_removed" -> {
                                         // Open system settings to let user revoke permission
                                         Handler(Looper.getMainLooper()).post {
@@ -167,7 +182,10 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel) {
 @Composable
 fun PreviewWebViewScreenLight() {
     AMITheme {
-        WebViewScreen(viewModel())
+        WebViewScreen(
+            webViewViewModel = viewModel(),
+            goSettings = {},
+            goOnboarding = {})
     }
 }
 
@@ -175,6 +193,9 @@ fun PreviewWebViewScreenLight() {
 @Composable
 fun PreviewWebViewScreenDark() {
     AMITheme {
-        WebViewScreen(viewModel())
+        WebViewScreen(
+            webViewViewModel = viewModel(),
+            goSettings = {},
+            goOnboarding = {})
     }
 }

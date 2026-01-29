@@ -36,8 +36,14 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
     LaunchedEffect(Unit) {
         webViewViewModel.pageFinished.collect {
             val isGranted = isPermissionGranted(context)
-            webViewViewModel.setLocalStorage("notifications_enabled", if (isGranted) "true" else "false")
-            Log.d("NotificationPermission", "Initialized localStorage notifications_enabled: $isGranted")
+            webViewViewModel.setLocalStorage(
+                "notifications_enabled",
+                if (isGranted) "true" else "false"
+            )
+            Log.d(
+                "NotificationPermission",
+                "Initialized localStorage notifications_enabled: $isGranted"
+            )
         }
     }
 
@@ -60,18 +66,27 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
     // Observe event for notification permission request
     LaunchedEffect(Unit) {
         webViewViewModel.notificationPermissionRequested.collect {
-            Log.d("NotificationPermission", "JavaScript event 'notification_permission_requested' received")
+            Log.d(
+                "NotificationPermission",
+                "JavaScript event 'notification_permission_requested' received"
+            )
 
             val isGranted = isPermissionGranted(context)
             val shouldShowRationale = shouldShowRequestPermissionRationale(context)
             val hasRequestedBefore = hasRequestedPermissionBefore(context)
             val isPermanentlyDenied = !isGranted && !shouldShowRationale && hasRequestedBefore
 
-            Log.d("NotificationPermission", "Permission status - granted: $isGranted, shouldShowRationale: $shouldShowRationale, hasRequestedBefore: $hasRequestedBefore, permanentlyDenied: $isPermanentlyDenied")
+            Log.d(
+                "NotificationPermission",
+                "Permission status - granted: $isGranted, shouldShowRationale: $shouldShowRationale, hasRequestedBefore: $hasRequestedBefore, permanentlyDenied: $isPermanentlyDenied"
+            )
 
             if (isPermanentlyDenied) {
                 // Permission was permanently denied, open settings instead
-                Log.d("NotificationPermission", "Permission permanently denied, we can't show the permission popup anymore, last resort is displaying the OS notification settings")
+                Log.d(
+                    "NotificationPermission",
+                    "Permission permanently denied, we can't show the permission popup anymore, last resort is displaying the OS notification settings"
+                )
                 openAppNotificationSettings(context)
                 webViewViewModel.onGoHome()
             } else {
@@ -86,7 +101,10 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
     // Observe event to open notification settings
     LaunchedEffect(Unit) {
         webViewViewModel.openNotificationSettings.collect {
-            Log.d("NotificationPermission", "JavaScript event 'notification_permission_removed' received")
+            Log.d(
+                "NotificationPermission",
+                "JavaScript event 'notification_permission_removed' received"
+            )
             openAppNotificationSettings(context)
             webViewViewModel.onGoHome()
         }
@@ -115,8 +133,11 @@ private fun openAppNotificationSettings(context: Context) {
     Log.d("NotificationPermission", "Opened app notification settings")
 }
 
-private fun isPermissionGranted(context: Context): Boolean {
-    return ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+fun isPermissionGranted(context: Context): Boolean {
+    return ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.POST_NOTIFICATIONS
+    ) == PackageManager.PERMISSION_GRANTED
 }
 
 /**
@@ -143,7 +164,7 @@ private const val KEY_PERMISSION_REQUESTED = "permission_requested"
  * Checks if we have requested the notification permission at least once before.
  * This helps distinguish between "never asked" and "permanently denied" states.
  */
-private fun hasRequestedPermissionBefore(context: Context): Boolean {
+fun hasRequestedPermissionBefore(context: Context): Boolean {
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     return prefs.getBoolean(KEY_PERMISSION_REQUESTED, false)
 }
@@ -152,7 +173,7 @@ private fun hasRequestedPermissionBefore(context: Context): Boolean {
  * Marks that we have requested the notification permission.
  * Should be called before launching the permission request.
  */
-private fun markPermissionRequested(context: Context) {
+fun markPermissionRequested(context: Context) {
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     prefs.edit().putBoolean(KEY_PERMISSION_REQUESTED, true).apply()
     Log.d("NotificationPermission", "Marked permission as requested")
