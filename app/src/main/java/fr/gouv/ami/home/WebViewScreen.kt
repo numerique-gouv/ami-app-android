@@ -35,7 +35,12 @@ import fr.gouv.ami.utils.ManagerLocalStorage
 import fr.gouv.ami.ui.theme.AMITheme
 
 @Composable
-fun WebViewScreen(webViewViewModel: WebViewViewModel, goSettings: () -> Unit) {
+fun WebViewScreen(
+    webViewViewModel: WebViewViewModel,
+    goSettings: () -> Unit,
+    goOnboarding: () -> Unit
+) {
+
     var hasBackBar by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
@@ -138,6 +143,11 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel, goSettings: () -> Unit) {
                                                 FirebaseService().sendRegistration(context)
                                             }
                                         }
+                                        if (!hasRequestedPermissionBefore(context)) {
+                                            Handler(Looper.getMainLooper()).post {
+                                                goOnboarding()
+                                            }
+                                        }
                                     }
 
                                     "notification_permission_requested" -> {
@@ -173,7 +183,10 @@ fun WebViewScreen(webViewViewModel: WebViewViewModel, goSettings: () -> Unit) {
 @Composable
 fun PreviewWebViewScreenLight() {
     AMITheme {
-        WebViewScreen(viewModel()) {}
+        WebViewScreen(
+            webViewViewModel = viewModel(),
+            goSettings = {},
+            goOnboarding = {})
     }
 }
 
@@ -181,6 +194,9 @@ fun PreviewWebViewScreenLight() {
 @Composable
 fun PreviewWebViewScreenDark() {
     AMITheme {
-        WebViewScreen(viewModel()) {}
+        WebViewScreen(
+            webViewViewModel = viewModel(),
+            goSettings = {},
+            goOnboarding = {})
     }
 }

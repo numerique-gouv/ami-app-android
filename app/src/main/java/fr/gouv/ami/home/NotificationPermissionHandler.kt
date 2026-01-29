@@ -164,7 +164,7 @@ private const val KEY_PERMISSION_REQUESTED = "permission_requested"
  * Checks if we have requested the notification permission at least once before.
  * This helps distinguish between "never asked" and "permanently denied" states.
  */
-private fun hasRequestedPermissionBefore(context: Context): Boolean {
+fun hasRequestedPermissionBefore(context: Context): Boolean {
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     return prefs.getBoolean(KEY_PERMISSION_REQUESTED, false)
 }
@@ -173,7 +173,7 @@ private fun hasRequestedPermissionBefore(context: Context): Boolean {
  * Marks that we have requested the notification permission.
  * Should be called before launching the permission request.
  */
-private fun markPermissionRequested(context: Context) {
+fun markPermissionRequested(context: Context) {
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     prefs.edit().putBoolean(KEY_PERMISSION_REQUESTED, true).apply()
     Log.d("NotificationPermission", "Marked permission as requested")
