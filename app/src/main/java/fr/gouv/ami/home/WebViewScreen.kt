@@ -41,10 +41,11 @@ import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.utils.ManagerLocalStorage
 import fr.gouv.ami.ui.theme.AMITheme
 
+@Composable
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
-    downloadLogsViewModel: DownloadLogsViewModel = viewModel(),
-    goSettings: () -> Unit
+    goSettings: () -> Unit,
+    downloadLogsViewModel: DownloadLogsViewModel = viewModel()
 ) {
     var hasBackBar by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
@@ -207,7 +208,7 @@ fun WebViewScreen(
 @Composable
 fun PreviewWebViewScreenLight() {
     AMITheme {
-        WebViewScreen(viewModel()) {}
+        WebViewScreen(viewModel(), goSettings = {})
     }
 }
 
@@ -215,6 +216,6 @@ fun PreviewWebViewScreenLight() {
 @Composable
 fun PreviewWebViewScreenDark() {
     AMITheme {
-        WebViewScreen(viewModel()) {}
+        WebViewScreen(viewModel(), goSettings = {})
     }
 }
