@@ -12,4 +12,10 @@
 
     <string name="settings">Paramètres</string>
     <string name="settings_notification">Recevoir les notifications sur mon appareil mobile</string>
+
+    <string name="franceConnexion_description">Pour accéder à vos droits, des conseils personnalisés et les échéances liées à votre situation personnelle, merci de vous connecter avec FranceConnect.</string>
+    <string name="franceConnexion_subtitle">FranceConnect est la solution proposée par l\'Etat pour sécuriser et simplifier la connexion à vos services en ligne.</string>
+    <string name="FC_button_description">Qu\'est ce que FranceConnect ?</string>
+    <string name="connection_difficult">Vous n\'arrivez pas à vous connecter ?</string>
+    <string name="tchap">Contactez-nous sur Tchap</string>
 </resources>
