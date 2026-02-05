@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.dev.home.ReviewAppsScreen
 import fr.gouv.ami.home.HomeScreen
 import fr.gouv.ami.home.WebViewViewModel
@@ -44,6 +45,9 @@ fun HomeApp(navController: NavHostController = rememberNavController()) {
         composable(route = Screen.ReviewApp.name) {
             ReviewAppsScreen(
                 onSelectedReviewApp = {
+                    // We need to update the `currentUrl` here, as it was initialized with the
+                    // baseUrl from the config, before we even selected the review app.
+                    webViewViewModel.currentUrl = baseUrl
                     navController.navigate(Screen.Home.name)
                 }
             )
