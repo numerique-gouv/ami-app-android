@@ -18,10 +18,6 @@ class MainActivity : ComponentActivity() {
         // Initialize CookieManager before creating WebView to ensure cookies are properly restored
         val cookieManager = CookieManager.getInstance()
         cookieManager.setAcceptCookie(true)
-
-        // Log existing cookies on startup to verify persistence
-        val cookies = cookieManager.getCookie(fr.gouv.ami.api.baseUrl)
-        Log.d("CookiePersistence", "Cookies on app start: $cookies")
         TokenManager().saveFirebaseToken(applicationContext)
 
         enableEdgeToEdge()

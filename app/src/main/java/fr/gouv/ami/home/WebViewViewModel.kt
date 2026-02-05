@@ -1,5 +1,6 @@
 package fr.gouv.ami.home
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
 class WebViewViewModel : BaseViewModel() {
+    val TAG = "WebViewViewModel"
     var currentUrl by mutableStateOf(baseUrl)
     var lastUrl by mutableStateOf(baseUrl) //not used for now
 
@@ -31,6 +33,7 @@ class WebViewViewModel : BaseViewModel() {
     val pageFinished = _pageFinished.asSharedFlow()
 
     fun onUrlChanged(url: String) {
+        Log.d(TAG, "onUrlChanged to url ${url}")
         if (currentUrl.contains(baseUrl)) {
             lastUrl = currentUrl
         }
@@ -39,10 +42,12 @@ class WebViewViewModel : BaseViewModel() {
     }
 
     fun onBackPressed() {
+        Log.d(TAG, "onBackPressed")
         onGoHome()
     }
 
     fun onGoHome() {
+        Log.d(TAG, "onGoHome to ${baseUrl}")
         currentUrl = baseUrl
     }
 

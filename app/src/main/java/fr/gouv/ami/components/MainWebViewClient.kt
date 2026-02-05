@@ -24,6 +24,8 @@ class MainWebViewClient(
     private val onCanGoBackChanged: (Boolean) -> Unit = {},
     private val onPageFinished: () -> Unit = {},
 ): WebViewClient() {
+    val TAG = "MainWebViewClient"
+
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
         // Show loader immediately on link click (before onPageStarted)
         onLoadingChanged(true)
@@ -44,6 +46,7 @@ class MainWebViewClient(
         url: String?,
         isReload: Boolean
     ) {
+        Log.d(TAG, "UpdateVisitedHistory: baseUrl is: ${baseUrl}, url visited: ${url}")
         if (!url.isNullOrEmpty()) {
             onBackBarChanged(!url.contains(baseUrl))
             onUrlChanged(url)
@@ -59,6 +62,7 @@ class MainWebViewClient(
         favicon: android.graphics.Bitmap?
     ) {
         super.onPageStarted(view, url, favicon)
+        Log.d(TAG, "onPageStarted with url ${url}")
         onLoadingChanged(true)
     }
 
