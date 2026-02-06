@@ -1,5 +1,6 @@
 package fr.gouv.ami
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,6 +26,15 @@ fun HomeApp() {
     navigationViewModel.initialize(startEntry)
 
     val currentEntry = navigationViewModel.currentEntry
+
+    BackHandler(enabled = navigationViewModel.canGoBack) {
+        val previousEntry = currentEntry
+        navigationViewModel.goBack()
+        // When going back from a WebView URL, sync the WebView's navigation history
+        if (previousEntry is NavEntry.WebViewUrl) {
+            webViewViewModel.goBackInWebView?.invoke()
+        }
+    }
 
     Box {
         // WebView is always alive underneath native screen overlays
