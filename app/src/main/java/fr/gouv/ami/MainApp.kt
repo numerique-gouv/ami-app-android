@@ -34,10 +34,8 @@ fun HomeApp() {
         // This allows us to keep the WebView's scroll position, avoid useless reloads,
         // keep the websocket opened...
         HomeScreen(
-            goSettings = {
-                navigationViewModel.pushScreen(NativeScreen.Settings)
-            },
-            webViewViewModel = webViewViewModel
+            webViewViewModel = webViewViewModel,
+            navigationViewModel = navigationViewModel,
         )
 
         // Native screens overlay on top when active

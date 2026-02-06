@@ -37,6 +37,7 @@ import fr.gouv.ami.components.InformationBanner
 import fr.gouv.ami.components.InformationType
 import fr.gouv.ami.components.MainWebViewClient
 import fr.gouv.ami.global.BaseScreen
+import fr.gouv.ami.navigation.NavigationViewModel
 import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.utils.ManagerLocalStorage
 import fr.gouv.ami.ui.theme.AMITheme
@@ -44,7 +45,7 @@ import fr.gouv.ami.ui.theme.AMITheme
 @Composable
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
-    goSettings: () -> Unit,
+    navigationViewModel: NavigationViewModel,
     downloadLogsViewModel: DownloadLogsViewModel = viewModel()
 ) {
     var hasBackBar by remember { mutableStateOf(false) }
@@ -129,7 +130,7 @@ fun WebViewScreen(
                             onUrlChanged =
                                 {
                                     if (it.contains("settings")) {
-                                        goSettings()
+                                        navigationViewModel.goSettings()
                                     } else {
                                         webViewViewModel.onUrlChanged(it)
                                     }
@@ -208,7 +209,7 @@ fun WebViewScreen(
 @Composable
 fun PreviewWebViewScreenLight() {
     AMITheme {
-        WebViewScreen(viewModel(), goSettings = {})
+        WebViewScreen(viewModel(), NavigationViewModel())
     }
 }
 
@@ -216,6 +217,6 @@ fun PreviewWebViewScreenLight() {
 @Composable
 fun PreviewWebViewScreenDark() {
     AMITheme {
-        WebViewScreen(viewModel(), goSettings = {})
+        WebViewScreen(viewModel(), NavigationViewModel())
     }
 }

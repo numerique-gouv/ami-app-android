@@ -71,6 +71,15 @@ class NavigationViewModel : ViewModel() {
     }
 
     /**
+     * Reset the back stack to the initial state (e.g., after selecting a review app).
+     */
+    fun reset(initialUrl: String = baseUrl) {
+        _backStack.clear()
+        _backStack.add(NavEntry.WebViewUrl(initialUrl))
+        Log.d(TAG, "reset: backStack=${backStack}")
+    }
+
+    /**
      * Go back in the unified history.
      * @return The entry to navigate to, or null if at the root.
      */
@@ -83,11 +92,10 @@ class NavigationViewModel : ViewModel() {
     }
 
     /**
-     * Reset the back stack to the initial state (e.g., after selecting a review app).
+     * Go to the native settings page.
      */
-    fun reset(initialUrl: String = baseUrl) {
-        _backStack.clear()
-        _backStack.add(NavEntry.WebViewUrl(initialUrl))
-        Log.d(TAG, "reset: backStack=${backStack}")
+    fun goSettings() {
+        pushScreen(NativeScreen.Settings)
     }
+
 }
