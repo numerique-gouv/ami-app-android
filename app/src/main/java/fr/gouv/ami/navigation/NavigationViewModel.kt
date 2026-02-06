@@ -35,8 +35,8 @@ class NavigationViewModel : ViewModel() {
     fun initialize(startEntry: NavEntry) {
         if (_backStack.isEmpty()) {
             _backStack.add(startEntry)
+            Log.d(TAG, "initialize: backStack=${backStack}")
         }
-        Log.d(TAG, "initialize: backStack=${backStack}")
     }
 
     /** Current navigation entry */
@@ -50,8 +50,10 @@ class NavigationViewModel : ViewModel() {
      * Called when the WebView navigates to a new URL.
      */
     fun pushUrl(url: String) {
-        // Avoid duplicates if navigating to the same URL
         val current = currentEntry
+        // Ignore WebView URL changes while on the ReviewApp screen
+        if (current is NavEntry.Screen && current.screen == NativeScreen.ReviewApp) return
+        // Avoid duplicates if navigating to the same URL
         if (current is NavEntry.WebViewUrl && current.url == url) return
 
         _backStack.add(NavEntry.WebViewUrl(url))
@@ -89,6 +91,16 @@ class NavigationViewModel : ViewModel() {
         _backStack.removeLast()
         Log.d(TAG, "goBack: backStack=${backStack}")
         return currentEntry
+    }
+
+    /**
+     * Deal with url changes, and either add a navEntry, or a navScreen.
+     */
+    fun onUrlChanged(url: String) {
+        when {
+            url.contains("settings") -> { goSettings() }
+            else -> { pushUrl(url) }
+        }
     }
 
     /**

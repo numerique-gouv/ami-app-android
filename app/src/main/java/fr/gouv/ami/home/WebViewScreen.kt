@@ -129,11 +129,8 @@ fun WebViewScreen(
                             onBackBarChanged = { hasBackBar = it },
                             onUrlChanged =
                                 {
-                                    if (it.contains("settings")) {
-                                        navigationViewModel.goSettings()
-                                    } else {
-                                        webViewViewModel.onUrlChanged(it)
-                                    }
+                                    navigationViewModel.onUrlChanged(it)
+                                    webViewViewModel.onUrlChanged(it)
                                 },
                             onLoadingChanged = { isLoading = it },
                             onCanGoBackChanged = { canGoBack = it },

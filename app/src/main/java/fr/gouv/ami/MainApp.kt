@@ -2,7 +2,6 @@ package fr.gouv.ami
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.dev.home.ReviewAppsScreen
@@ -18,14 +17,12 @@ fun HomeApp() {
     val webViewViewModel = viewModel<WebViewViewModel>()
     val navigationViewModel = viewModel<NavigationViewModel>()
 
-    LaunchedEffect(Unit) {
-        val startEntry = if (BuildConfig.FLAVOR == "staging") {
-            NavEntry.Screen(NativeScreen.ReviewApp)
-        } else {
-            NavEntry.WebViewUrl(baseUrl)
-        }
-        navigationViewModel.initialize(startEntry)
+    val startEntry = if (BuildConfig.FLAVOR == "staging") {
+        NavEntry.Screen(NativeScreen.ReviewApp)
+    } else {
+        NavEntry.WebViewUrl(baseUrl)
     }
+    navigationViewModel.initialize(startEntry)
 
     val currentEntry = navigationViewModel.currentEntry
 
