@@ -28,12 +28,7 @@ fun HomeApp() {
     val currentEntry = navigationViewModel.currentEntry
 
     BackHandler(enabled = navigationViewModel.canGoBack) {
-        val previousEntry = currentEntry
-        navigationViewModel.goBack()
-        // When going back from a WebView URL, sync the WebView's navigation history
-        if (previousEntry is NavEntry.WebViewUrl) {
-            webViewViewModel.goBackInWebView?.invoke()
-        }
+        goBack(navigationViewModel, webViewViewModel)
     }
 
     Box {
@@ -55,11 +50,19 @@ fun HomeApp() {
                 )
                 NativeScreen.Settings -> SettingsScreen(
                     onBackButton = {
-                        navigationViewModel.goBack()
+                        goBack(navigationViewModel, webViewViewModel)
                     },
                     webViewViewModel = webViewViewModel
                 )
             }
         }
+    }
+}
+
+fun goBack(navigationViewModel: NavigationViewModel, webViewViewModel: WebViewViewModel) {
+    val newEntry = navigationViewModel.goBack()
+    // Update the WebView's current URL to match the navigation state
+    if (newEntry is NavEntry.WebViewUrl) {
+        webViewViewModel.currentUrl = newEntry.url
     }
 }
