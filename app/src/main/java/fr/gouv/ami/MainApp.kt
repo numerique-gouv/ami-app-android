@@ -27,8 +27,8 @@ fun HomeApp() {
 
     val currentEntry = navigationViewModel.currentEntry
 
-    val onGoBack: () -> Unit = {
-        val newEntry = navigationViewModel.goBack()
+    val onGoBack: (url: String?) -> Unit = { url ->
+        val newEntry = navigationViewModel.goBack(url)
         // Update the WebView's current URL to match the navigation state
         if (newEntry is NavEntry.WebViewUrl) {
             webViewViewModel.currentUrl = newEntry.url
@@ -36,7 +36,7 @@ fun HomeApp() {
     }
 
     BackHandler(enabled = navigationViewModel.canGoBack) {
-        onGoBack()
+        onGoBack(null)
     }
 
     Box {
