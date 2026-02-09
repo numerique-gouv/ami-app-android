@@ -1,7 +1,6 @@
 package fr.gouv.ami.settings
 
 import android.content.res.Configuration
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -54,7 +53,6 @@ fun OnboardingNotificationScreen(webViewViewModel: WebViewViewModel, onChooseCli
                 modifier = Modifier.padding(bottom = 16.dp)
             )
             PrimaryButton(stringResource(R.string.enable)) {
-                Log.d("test", "prout")
                 webViewViewModel.triggerNotificationPermissionRequest()
                 onChooseClick()
             }
