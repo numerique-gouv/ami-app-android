@@ -45,7 +45,7 @@ import fr.gouv.ami.ui.theme.AMITheme
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
     navigationViewModel: NavigationViewModel,
-    onGoBack: () -> Unit = {},
+    onGoBack: (url: String?) -> Unit = {},
     downloadLogsViewModel: DownloadLogsViewModel = viewModel()
 ) {
     var hasBackBar by remember { mutableStateOf(false) }
@@ -92,7 +92,7 @@ fun WebViewScreen(
 
             if (hasBackBar) {
                 BackBar {
-                    onGoBack()
+                    onGoBack(webViewViewModel.lastUrl)
                 }
             }
 

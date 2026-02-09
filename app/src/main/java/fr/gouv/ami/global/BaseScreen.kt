@@ -34,12 +34,13 @@ import fr.gouv.ami.R
 fun BaseScreen(
     hasTopBar: Boolean = false,
     topBarTitle: String = "",
-    onBackButton: () -> Unit = {},
+    onBackButton: (url: String?) -> Unit = {},
     viewModel: BaseViewModel, content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
     val networkMonitor = remember { NetworkMonitor(context) }
     val isConnected by networkMonitor.isConnected.collectAsState(true)
+    val onBackOnce: () -> Unit  = { onBackButton(null) }
 
     LaunchedEffect(isConnected) {
         if (isConnected) {
@@ -55,7 +56,7 @@ fun BaseScreen(
                         Text(topBarTitle)
                     },
                     navigationIcon = {
-                        IconButton(onClick = onBackButton) {
+                        IconButton(onClick = onBackOnce) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
                                 "backIcon"

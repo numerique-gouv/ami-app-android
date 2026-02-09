@@ -85,10 +85,21 @@ class NavigationViewModel : ViewModel() {
      * Go back in the unified history.
      * @return The entry to navigate to, or null if at the root.
      */
-    fun goBack(): NavEntry? {
-        if (_backStack.size <= 1) return null
+    fun goBack(url: String?): NavEntry? {
+        if (!canGoBack) return null
 
-        _backStack.removeLast()
+        _backStack.removeAt(_backStack.lastIndex)
+        while (url != null && canGoBack) {
+            Log.d(TAG, "going back to url ${url}")
+            val current = currentEntry
+            if (current is NavEntry.Screen ||
+                (current is NavEntry.WebViewUrl && current.url != url)) {
+                Log.d(TAG, "removing current entry ${current}")
+                _backStack.removeAt(_backStack.lastIndex)
+            } else {
+                break
+            }
+        }
         Log.d(TAG, "goBack: backStack=${backStack}")
         return currentEntry
     }
