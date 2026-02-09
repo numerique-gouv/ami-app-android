@@ -27,7 +27,7 @@ import androidx.core.content.ContextCompat
  * @param webViewViewModel The WebView view model to observe events and trigger navigation
  */
 @Composable
-fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel, onGoBack: () -> Unit = {}) {
+fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
     val context = LocalContext.current
 
     // Initialize localStorage with current permission state when page finishes loading
@@ -59,8 +59,6 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel, onGoBack: 
         } else {
             webViewViewModel.setLocalStorage("notifications_enabled", "false")
         }
-        // Navigate back to home after user responds
-        onGoBack()
     }
 
     // Observe event for notification permission request
@@ -88,7 +86,6 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel, onGoBack: 
                     "Permission permanently denied, we can't show the permission popup anymore, last resort is displaying the OS notification settings"
                 )
                 openAppNotificationSettings(context)
-                onGoBack()
             } else {
                 // Mark that we've requested permission (before showing the dialog)
                 markPermissionRequested(context)
@@ -106,7 +103,6 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel, onGoBack: 
                 "JavaScript event 'notification_permission_removed' received"
             )
             openAppNotificationSettings(context)
-            onGoBack()
         }
     }
 }

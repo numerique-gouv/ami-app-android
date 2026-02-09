@@ -13,7 +13,7 @@ import fr.gouv.ami.ui.theme.AMITheme
 fun HomeScreen(webViewViewModel: WebViewViewModel, navigationViewModel: NavigationViewModel, onGoBack: () -> Unit = {}) {
 
     // Handle notification permission request when user reaches the welcome page
-    NotificationPermissionHandler(webViewViewModel, onGoBack)
+    NotificationPermissionHandler(webViewViewModel)
 
     /** UI **/
 
