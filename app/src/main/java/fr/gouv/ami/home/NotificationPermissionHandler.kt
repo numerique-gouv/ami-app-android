@@ -59,8 +59,6 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
         } else {
             webViewViewModel.setLocalStorage("notifications_enabled", "false")
         }
-        // Navigate back to home after user responds
-        webViewViewModel.onGoHome()
     }
 
     // Observe event for notification permission request
@@ -88,7 +86,6 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
                     "Permission permanently denied, we can't show the permission popup anymore, last resort is displaying the OS notification settings"
                 )
                 openAppNotificationSettings(context)
-                webViewViewModel.onGoHome()
             } else {
                 // Mark that we've requested permission (before showing the dialog)
                 markPermissionRequested(context)
@@ -106,7 +103,6 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
                 "JavaScript event 'notification_permission_removed' received"
             )
             openAppNotificationSettings(context)
-            webViewViewModel.onGoHome()
         }
     }
 }

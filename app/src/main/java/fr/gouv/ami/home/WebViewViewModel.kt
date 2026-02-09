@@ -12,6 +12,9 @@ class WebViewViewModel : BaseViewModel() {
     var currentUrl by mutableStateOf(baseUrl)
     var lastUrl by mutableStateOf(baseUrl) //not used for now
 
+    /** Set by WebViewScreen to allow the top-level BackHandler to trigger webView.goBack() */
+    var goBackInWebView: (() -> Unit)? = null
+
     var isOnContactPage by mutableStateOf(false)
         private set
 
@@ -36,14 +39,6 @@ class WebViewViewModel : BaseViewModel() {
         }
         currentUrl = url
         isOnContactPage = url.contains("/#/contact")
-    }
-
-    fun onBackPressed() {
-        onGoHome()
-    }
-
-    fun onGoHome() {
-        currentUrl = baseUrl
     }
 
     fun triggerNotificationPermissionRequest() {

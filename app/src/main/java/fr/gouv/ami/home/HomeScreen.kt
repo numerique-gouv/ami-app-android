@@ -5,18 +5,19 @@ import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.gouv.ami.navigation.NavigationViewModel
 import fr.gouv.ami.ui.theme.AMITheme
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun HomeScreen(webViewViewModel: WebViewViewModel, goSettings: () -> Unit) {
+fun HomeScreen(webViewViewModel: WebViewViewModel, navigationViewModel: NavigationViewModel, onGoBack: (url: String?) -> Unit = {}) {
 
     // Handle notification permission request when user reaches the welcome page
     NotificationPermissionHandler(webViewViewModel)
 
     /** UI **/
 
-    WebViewScreen(webViewViewModel, goSettings)
+    WebViewScreen(webViewViewModel, navigationViewModel, onGoBack)
 
 }
 
@@ -24,7 +25,7 @@ fun HomeScreen(webViewViewModel: WebViewViewModel, goSettings: () -> Unit) {
 @Composable
 fun PreviewHomeScreenLight() {
     AMITheme {
-        HomeScreen(viewModel()) {}
+        HomeScreen(viewModel(), NavigationViewModel())
     }
 }
 
@@ -32,6 +33,6 @@ fun PreviewHomeScreenLight() {
 @Composable
 fun PreviewHomeScreenDark() {
     AMITheme {
-        HomeScreen(viewModel()) {}
+        HomeScreen(viewModel(), NavigationViewModel())
     }
 }

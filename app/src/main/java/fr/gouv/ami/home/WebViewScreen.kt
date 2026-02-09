@@ -6,7 +6,6 @@ import android.util.Log
 import android.webkit.JavascriptInterface
 import android.content.res.Configuration
 import android.webkit.WebView
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,6 +36,7 @@ import fr.gouv.ami.components.InformationBanner
 import fr.gouv.ami.components.InformationType
 import fr.gouv.ami.components.MainWebViewClient
 import fr.gouv.ami.global.BaseScreen
+import fr.gouv.ami.navigation.NavigationViewModel
 import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.utils.ManagerLocalStorage
 import fr.gouv.ami.ui.theme.AMITheme
@@ -44,13 +44,15 @@ import fr.gouv.ami.ui.theme.AMITheme
 @Composable
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
-    goSettings: () -> Unit,
+    navigationViewModel: NavigationViewModel,
+    onGoBack: (url: String?) -> Unit = {},
     downloadLogsViewModel: DownloadLogsViewModel = viewModel()
 ) {
     var hasBackBar by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
-    var canGoBack by remember { mutableStateOf(false) }
+
+    webViewViewModel.goBackInWebView = { webViewRef.value?.goBack() }
 
     LaunchedEffect(Unit) {
         webViewViewModel.refreshView.collect {
@@ -67,16 +69,6 @@ fun WebViewScreen(
             webViewRef.value?.evaluateJavascript(script, null)
             Log.d("WebView", "Executed JavaScript: $script")
         }
-    }
-
-    /** Handle back button for WebView navigation
-    We can't just check webView.canGoBack() here as it would only be done during recomposition,
-    which doesn't seem to happen when navigating in the webview.
-    We thus need to check it in MainWebViewClient.doUpdateVisitedHistory using a callback to update
-    the `canGoBack` state here.
-     **/
-    BackHandler(enabled = canGoBack) {
-        webViewRef.value?.goBack()
     }
 
     /** UI **/
@@ -100,7 +92,7 @@ fun WebViewScreen(
 
             if (hasBackBar) {
                 BackBar {
-                    webViewViewModel.onBackPressed()
+                    onGoBack(webViewViewModel.lastUrl)
                 }
             }
 
@@ -128,14 +120,10 @@ fun WebViewScreen(
                             onBackBarChanged = { hasBackBar = it },
                             onUrlChanged =
                                 {
-                                    if (it.contains("settings")) {
-                                        goSettings()
-                                    } else {
-                                        webViewViewModel.onUrlChanged(it)
-                                    }
+                                    navigationViewModel.onUrlChanged(it)
+                                    webViewViewModel.onUrlChanged(it)
                                 },
                             onLoadingChanged = { isLoading = it },
-                            onCanGoBackChanged = { canGoBack = it },
                             onPageFinished = { webViewViewModel.notifyPageFinished() },
                         )
 
@@ -208,7 +196,7 @@ fun WebViewScreen(
 @Composable
 fun PreviewWebViewScreenLight() {
     AMITheme {
-        WebViewScreen(viewModel(), goSettings = {})
+        WebViewScreen(viewModel(), NavigationViewModel())
     }
 }
 
@@ -216,6 +204,6 @@ fun PreviewWebViewScreenLight() {
 @Composable
 fun PreviewWebViewScreenDark() {
     AMITheme {
-        WebViewScreen(viewModel(), goSettings = {})
+        WebViewScreen(viewModel(), NavigationViewModel())
     }
 }
