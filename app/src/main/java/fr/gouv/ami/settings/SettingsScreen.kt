@@ -36,7 +36,7 @@ import fr.gouv.ami.ui.theme.AMITheme
 @Composable
 fun SettingsScreen(webViewViewModel: WebViewViewModel, onBackButton: () -> Unit) {
 
-    NotificationPermissionHandler(webViewViewModel)
+    NotificationPermissionHandler(webViewViewModel, onBackButton)
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 

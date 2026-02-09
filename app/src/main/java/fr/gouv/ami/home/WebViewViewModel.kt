@@ -41,14 +41,6 @@ class WebViewViewModel : BaseViewModel() {
         isOnContactPage = url.contains("/#/contact")
     }
 
-    fun onBackPressed() {
-        onGoHome()
-    }
-
-    fun onGoHome() {
-        currentUrl = baseUrl
-    }
-
     fun triggerNotificationPermissionRequest() {
         _notificationPermissionRequested.tryEmit(Unit)
     }

@@ -10,14 +10,14 @@ import fr.gouv.ami.ui.theme.AMITheme
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun HomeScreen(webViewViewModel: WebViewViewModel, navigationViewModel: NavigationViewModel) {
+fun HomeScreen(webViewViewModel: WebViewViewModel, navigationViewModel: NavigationViewModel, onGoBack: () -> Unit = {}) {
 
     // Handle notification permission request when user reaches the welcome page
-    NotificationPermissionHandler(webViewViewModel)
+    NotificationPermissionHandler(webViewViewModel, onGoBack)
 
     /** UI **/
 
-    WebViewScreen(webViewViewModel, navigationViewModel)
+    WebViewScreen(webViewViewModel, navigationViewModel, onGoBack)
 
 }
 

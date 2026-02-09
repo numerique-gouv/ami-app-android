@@ -27,8 +27,16 @@ fun HomeApp() {
 
     val currentEntry = navigationViewModel.currentEntry
 
+    val onGoBack: () -> Unit = {
+        val newEntry = navigationViewModel.goBack()
+        // Update the WebView's current URL to match the navigation state
+        if (newEntry is NavEntry.WebViewUrl) {
+            webViewViewModel.currentUrl = newEntry.url
+        }
+    }
+
     BackHandler(enabled = navigationViewModel.canGoBack) {
-        goBack(navigationViewModel, webViewViewModel)
+        onGoBack()
     }
 
     Box {
@@ -38,6 +46,7 @@ fun HomeApp() {
         HomeScreen(
             webViewViewModel = webViewViewModel,
             navigationViewModel = navigationViewModel,
+            onGoBack = onGoBack,
         )
 
         // Native screens overlay on top when active
@@ -49,20 +58,10 @@ fun HomeApp() {
                     }
                 )
                 NativeScreen.Settings -> SettingsScreen(
-                    onBackButton = {
-                        goBack(navigationViewModel, webViewViewModel)
-                    },
+                    onBackButton = onGoBack,
                     webViewViewModel = webViewViewModel
                 )
             }
         }
-    }
-}
-
-fun goBack(navigationViewModel: NavigationViewModel, webViewViewModel: WebViewViewModel) {
-    val newEntry = navigationViewModel.goBack()
-    // Update the WebView's current URL to match the navigation state
-    if (newEntry is NavEntry.WebViewUrl) {
-        webViewViewModel.currentUrl = newEntry.url
     }
 }
