@@ -45,7 +45,7 @@ import fr.gouv.ami.ui.theme.AMITheme
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
     goSettings: () -> Unit,
-    goOnboarding: () -> Unit
+    goOnboarding: () -> Unit,
     downloadLogsViewModel: DownloadLogsViewModel = viewModel()
 ) {
     var hasBackBar by remember { mutableStateOf(false) }
