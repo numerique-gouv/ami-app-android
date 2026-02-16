@@ -15,11 +15,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.gouv.ami.ui.theme.AMITheme
 
+//The primary button is a DSFR component whose appearance must not be modified.
 @Composable
-fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun PrimaryButton(text: String, onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         shape = RectangleShape,
         colors = ButtonDefaults.buttonColors(contentColor = Color.White),
     ) {

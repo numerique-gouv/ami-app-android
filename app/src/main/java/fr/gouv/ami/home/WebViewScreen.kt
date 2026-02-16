@@ -45,6 +45,7 @@ import fr.gouv.ami.ui.theme.AMITheme
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
     goSettings: () -> Unit,
+    goOnboarding: () -> Unit,
     downloadLogsViewModel: DownloadLogsViewModel = viewModel()
 ) {
     var hasBackBar by remember { mutableStateOf(false) }
@@ -152,6 +153,11 @@ fun WebViewScreen(
                                                 FirebaseService().sendRegistration(context)
                                             }
                                         }
+                                        if (!hasRequestedPermissionBefore(context)) {
+                                            Handler(Looper.getMainLooper()).post {
+                                                goOnboarding()
+                                            }
+                                        }
                                     }
 
                                     "notification_permission_requested" -> {
@@ -208,7 +214,10 @@ fun WebViewScreen(
 @Composable
 fun PreviewWebViewScreenLight() {
     AMITheme {
-        WebViewScreen(viewModel(), goSettings = {})
+        WebViewScreen(
+            webViewViewModel = viewModel(),
+            goSettings = {},
+            goOnboarding = {})
     }
 }
 
@@ -216,6 +225,9 @@ fun PreviewWebViewScreenLight() {
 @Composable
 fun PreviewWebViewScreenDark() {
     AMITheme {
-        WebViewScreen(viewModel(), goSettings = {})
+        WebViewScreen(
+            webViewViewModel = viewModel(),
+            goSettings = {},
+            goOnboarding = {})
     }
 }
