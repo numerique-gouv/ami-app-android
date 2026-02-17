@@ -1,6 +1,10 @@
 package fr.gouv.ami.home
 
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Gray
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
@@ -31,6 +37,10 @@ import fr.gouv.ami.ui.theme.AMITheme
 
 @Composable
 fun FranceConnexionScreen(onFcClick: () -> Unit) {
+    val targetTchap = "fr.gouv.tchap.a"
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Box(
             modifier = Modifier
@@ -70,22 +80,9 @@ fun FranceConnexionScreen(onFcClick: () -> Unit) {
                         contentDescription = "franceConnect button"
                     )
                 }
-                /*TextButton(
-                    onClick =
-                ) { }*/
-                Text(
-                    buildAnnotatedString {
-                        withLink(
-                            LinkAnnotation.Url(
-                                "https://franceconnect.gouv.fr/",
-                                //TextLinkStyles(style = SpanStyle(color = Color.Blue))
-                            )
-                        ) {
-                            append(stringResource(R.string.FC_button_description))
-                        }
-                    },
-                    modifier = Modifier.padding(12.dp)
-                )
+                TextButton(
+                    onClick = {uriHandler.openUri("https://franceconnect.gouv.fr/")}
+                ) { Text(stringResource(R.string.FC_button_description))}
             }
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -93,22 +90,39 @@ fun FranceConnexionScreen(onFcClick: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(stringResource(R.string.connection_difficult))
-                Text(
-                    buildAnnotatedString {
-                        withLink(
-                            LinkAnnotation.Url(
-                                "",
-                                //TextLinkStyles(style = SpanStyle(color = Color.Blue))
-                            )
-                        ) {
-                            append(stringResource(R.string.tchap))
-                        }
-                    },
-                    modifier = Modifier.padding(12.dp)
-                )
+                TextButton(
+                    onClick = {
+                        context.openOrInstallApp(targetTchap)
+                    }
+                ) {
+                    Text(stringResource(R.string.tchap))
+                }
             }
 
         }
+    }
+}
+
+fun Context.isAppInstalled(packageName: String): Boolean {
+    return try {
+        packageManager.getPackageInfo(packageName, 0)
+        true
+    } catch (e: PackageManager.NameNotFoundException) {
+        false
+    }
+}
+
+fun Context.openOrInstallApp(packageName: String) {
+    if (isAppInstalled(packageName)) {
+        val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
+        launchIntent?.let { startActivity(it) }
+    } else {
+        val intent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("market://details?id=$packageName")
+        )
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
     }
 }
 
@@ -117,7 +131,7 @@ fun FranceConnexionScreen(onFcClick: () -> Unit) {
 @Composable
 fun PreviewFranceConnexionScreenLight() {
     AMITheme {
-        FranceConnexionScreen(){}
+        FranceConnexionScreen() {}
     }
 }
 
@@ -125,6 +139,6 @@ fun PreviewFranceConnexionScreenLight() {
 @Composable
 fun PreviewFranceConnexionScreenDark() {
     AMITheme {
-        FranceConnexionScreen(){}
+        FranceConnexionScreen() {}
     }
 }
