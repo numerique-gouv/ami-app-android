@@ -14,7 +14,6 @@ import android.webkit.SslErrorHandler
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import fr.gouv.ami.BuildConfig
 
 class MainWebViewClient(
     private val baseUrl: String,
@@ -23,6 +22,7 @@ class MainWebViewClient(
     private val onLoadingChanged: (Boolean) -> Unit,
     private val onCanGoBackChanged: (Boolean) -> Unit = {},
     private val onPageFinished: () -> Unit = {},
+    private val onSslError: () -> Unit = {},
 ): WebViewClient() {
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
         // Show loader immediately on link click (before onPageStarted)
@@ -77,12 +77,8 @@ class MainWebViewClient(
 
     override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
         Log.w("WebView", "SSL Error on URL: ${error.url} - Error type: ${error.primaryError}")
-        // For debug builds, proceed through SSL errors
-        if (BuildConfig.DEBUG) {
-            handler.proceed()
-        } else {
-            handler.cancel()
-        }
+        handler.cancel()
+        onSslError()
     }
 }
 

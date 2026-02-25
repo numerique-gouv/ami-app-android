@@ -21,6 +21,9 @@ class WebViewViewModel : BaseViewModel() {
     var showNotificationPermissionGrantedBanner by mutableStateOf(false)
         private set
 
+    var showSSLErrorBanner by mutableStateOf(false)
+        private set
+
     private val _openNotificationSettings = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val openNotificationSettings = _openNotificationSettings.asSharedFlow()
 
@@ -56,6 +59,14 @@ class WebViewViewModel : BaseViewModel() {
 
     fun dismissNotificationPermissionGrantedBanner() {
         showNotificationPermissionGrantedBanner = false
+    }
+
+    fun showSSLErrorBanner() {
+        showSSLErrorBanner = true
+    }
+
+    fun dismissSSLErrorBanner() {
+        showSSLErrorBanner = false
     }
 
     fun openNotificationSettings() {
