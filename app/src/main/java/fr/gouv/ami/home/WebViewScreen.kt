@@ -7,6 +7,7 @@ import android.webkit.JavascriptInterface
 import android.content.res.Configuration
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -88,6 +89,7 @@ fun WebViewScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .imePadding()
             ) {
             if (webViewViewModel.showNotificationPermissionGrantedBanner) {
                 InformationBanner(
