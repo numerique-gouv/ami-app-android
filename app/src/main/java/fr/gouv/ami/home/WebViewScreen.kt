@@ -103,6 +103,16 @@ fun WebViewScreen(
                     )
                 }
 
+                if (webViewViewModel.showSSLErrorBanner) {
+                    InformationBanner(
+                        informationType = InformationType.Error,
+                        title = stringResource(R.string.ssl_error_title),
+                        icon = R.drawable.ic_information_error,
+                        content = stringResource(R.string.ssl_error_description),
+                        onClose = { webViewViewModel.dismissSSLErrorBanner() }
+                    )
+                }
+
                 if (hasBackBar) {
                     BackBar {
                         webViewViewModel.onBackPressed()
@@ -142,6 +152,7 @@ fun WebViewScreen(
                                 onLoadingChanged = { isLoading = it },
                                 onCanGoBackChanged = { canGoBack = it },
                                 onPageFinished = { webViewViewModel.notifyPageFinished() },
+                                onSslError = { webViewViewModel.showSSLErrorBanner() },
                             )
 
                             addJavascriptInterface(object {
