@@ -7,9 +7,12 @@ import android.webkit.JavascriptInterface
 import android.content.res.Configuration
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,15 +20,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.R
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
+import fr.gouv.ami.components.DownloadLogsButton
+import fr.gouv.ami.components.DownloadLogsViewModel
 import fr.gouv.ami.components.InformationBanner
 import fr.gouv.ami.components.InformationType
 import fr.gouv.ami.components.MainWebViewClient
@@ -38,9 +46,9 @@ import fr.gouv.ami.ui.theme.AMITheme
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
     goSettings: () -> Unit,
-    goOnboarding: () -> Unit
+    goOnboarding: () -> Unit,
+    downloadLogsViewModel: DownloadLogsViewModel = viewModel()
 ) {
-
     var hasBackBar by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
@@ -75,11 +83,15 @@ fun WebViewScreen(
 
     /** UI **/
 
+    val context = LocalContext.current
+
     BaseScreen(viewModel = webViewViewModel) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .imePadding()
+            ) {
             if (webViewViewModel.showNotificationPermissionGrantedBanner) {
                 InformationBanner(
                     informationType = InformationType.Validation,
@@ -174,6 +186,27 @@ fun WebViewScreen(
                         webView.loadUrl(webViewViewModel.currentUrl)
                     }
                 }
+            )
+            }
+
+            // Download logs button - appears only on contact page
+            DownloadLogsButton(
+                visible = webViewViewModel.isOnContactPage,
+                onClick = {
+                    // Fetch user_fc_hash from localStorage before sharing logs
+                    webViewRef.value?.evaluateJavascript("localStorage.getItem('user_fc_hash')") { result ->
+                        // Result comes as JSON string: "\"value\"" or "null"
+                        val userFcHash = result
+                            ?.trim()
+                            ?.removeSurrounding("\"")
+                            ?.takeIf { it != "null" }
+                        downloadLogsViewModel.shareLogs(context, userFcHash)
+                    } ?: downloadLogsViewModel.shareLogs(context)
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 24.dp)
             )
         }
     }

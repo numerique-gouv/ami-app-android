@@ -17,4 +17,6 @@
 
     <string name="onboarding_title">Activez les notifications pour suivre vos démarches </string>
     <string name="onboarding_description">Recevez des alertes de suivi et des rappels utiles quand vous en avez besoin. Vous pourrez les désactiver à tout moment.</string>
+
+    <string name="download_logs">Télécharger les logs</string>
 </resources>
