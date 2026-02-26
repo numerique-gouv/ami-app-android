@@ -32,7 +32,9 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.R
+import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.ui.theme.AMITheme
 
 @Composable
@@ -41,11 +43,10 @@ fun FranceConnexionScreen(onFcClick: () -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    BaseScreen(viewModel = viewModel()) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
                 .padding(16.dp)
         ) {
 
