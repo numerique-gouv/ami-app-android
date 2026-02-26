@@ -10,12 +10,14 @@ import fr.gouv.ami.dev.home.ReviewAppsScreen
 import fr.gouv.ami.home.HomeScreen
 import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.settings.SettingsScreen
+import fr.gouv.ami.settings.OnboardingNotificationScreen
 
 //list of all screens
 enum class Screen {
     Home,
     ReviewApp,
-    Settings
+    Settings,
+    Onboarding
 }
 
 @Composable
@@ -38,6 +40,9 @@ fun HomeApp(navController: NavHostController = rememberNavController()) {
                 goSettings = {
                     navController.navigate(Screen.Settings.name)
                 },
+                goOnboarding = {
+                    navController.navigate(Screen.Onboarding.name)
+                },
                 webViewViewModel = webViewViewModel
             )
         }
@@ -55,6 +60,13 @@ fun HomeApp(navController: NavHostController = rememberNavController()) {
                 },
                 webViewViewModel = webViewViewModel
             )
+        }
+        composable(route = Screen.Onboarding.name) {
+            OnboardingNotificationScreen(
+                webViewViewModel = webViewViewModel,
+                onChooseClick = {
+                    navController.navigate(Screen.Home.name)
+                })
         }
     }
 }

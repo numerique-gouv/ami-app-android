@@ -16,10 +16,10 @@ import androidx.compose.ui.unit.sp
 import fr.gouv.ami.ui.theme.AMITheme
 
 @Composable
-fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun PrimaryButton(text: String, onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         shape = RectangleShape,
         colors = ButtonDefaults.buttonColors(contentColor = Color.White),
     ) {
