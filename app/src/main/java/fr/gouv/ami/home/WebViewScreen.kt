@@ -1,7 +1,5 @@
 package fr.gouv.ami.home
 
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.content.res.Configuration
@@ -28,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.R
 import fr.gouv.ami.api.baseUrl
@@ -41,6 +40,9 @@ import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.utils.ManagerLocalStorage
 import fr.gouv.ami.ui.theme.AMITheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun WebViewScreen(
@@ -92,101 +94,101 @@ fun WebViewScreen(
                     .fillMaxSize()
                     .imePadding()
             ) {
-            if (webViewViewModel.showNotificationPermissionGrantedBanner) {
-                InformationBanner(
-                    informationType = InformationType.Validation,
-                    title = stringResource(R.string.notification_permission_granted),
-                    icon = R.drawable.ic_information_validation,
-                    onClose = { webViewViewModel.dismissNotificationPermissionGrantedBanner() }
-                )
-            }
-
-            if (hasBackBar) {
-                BackBar {
-                    webViewViewModel.onBackPressed()
+                if (webViewViewModel.showNotificationPermissionGrantedBanner) {
+                    InformationBanner(
+                        informationType = InformationType.Validation,
+                        title = stringResource(R.string.notification_permission_granted),
+                        icon = R.drawable.ic_information_validation,
+                        onClose = { webViewViewModel.dismissNotificationPermissionGrantedBanner() }
+                    )
                 }
-            }
 
-            // Progress bar just above the Webview
-            LinearProgressIndicator(
-                modifier = Modifier
-                    .alpha(if (isLoading) 1f else 0f)
-                    .fillMaxWidth()
-            )
+                if (hasBackBar) {
+                    BackBar {
+                        webViewViewModel.onBackPressed()
+                    }
+                }
 
-            AndroidView(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                factory = { it ->
-                    WebView(it).apply {
-                        webViewRef.value = this
+                // Progress bar just above the Webview
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .alpha(if (isLoading) 1f else 0f)
+                        .fillMaxWidth()
+                )
 
-                        settings.javaScriptEnabled = true
-                        settings.allowFileAccess = true
-                        settings.allowContentAccess = true
-                        settings.domStorageEnabled = true
-                        webViewClient = MainWebViewClient(
-                            baseUrl = baseUrl,
-                            onBackBarChanged = { hasBackBar = it },
-                            onUrlChanged =
-                                {
-                                    if (it.contains("settings")) {
-                                        goSettings()
-                                    } else {
-                                        webViewViewModel.onUrlChanged(it)
-                                    }
-                                },
-                            onLoadingChanged = { isLoading = it },
-                            onCanGoBackChanged = { canGoBack = it },
-                            onPageFinished = { webViewViewModel.notifyPageFinished() },
-                        )
+                AndroidView(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    factory = { it ->
+                        WebView(it).apply {
+                            webViewRef.value = this
 
-                        addJavascriptInterface(object {
-                            @JavascriptInterface
-                            fun onEvent(eventName: String, dataJson: String) {
-                                Log.d("WebView", "Event received: $eventName - $dataJson")
-                                val storage = ManagerLocalStorage(context)
-                                when (eventName) {
-                                    "user_logged_in" -> {
-                                        if (storage.getToken() != "") {
-                                            // Post to main thread to access WebView
-                                            Handler(Looper.getMainLooper()).post {
-                                                FirebaseService().sendRegistration(context)
+                            settings.javaScriptEnabled = true
+                            settings.allowFileAccess = true
+                            settings.allowContentAccess = true
+                            settings.domStorageEnabled = true
+                            webViewClient = MainWebViewClient(
+                                baseUrl = baseUrl,
+                                onBackBarChanged = { hasBackBar = it },
+                                onUrlChanged =
+                                    {
+                                        if (it.contains("settings")) {
+                                            goSettings()
+                                        } else {
+                                            webViewViewModel.onUrlChanged(it)
+                                        }
+                                    },
+                                onLoadingChanged = { isLoading = it },
+                                onCanGoBackChanged = { canGoBack = it },
+                                onPageFinished = { webViewViewModel.notifyPageFinished() },
+                            )
+
+                            addJavascriptInterface(object {
+                                @JavascriptInterface
+                                fun onEvent(eventName: String, dataJson: String) {
+                                    Log.d("WebView", "Event received: $eventName - $dataJson")
+                                    val storage = ManagerLocalStorage(context)
+                                    when (eventName) {
+                                        "user_logged_in" -> {
+                                            if (storage.getToken() != "") {
+                                                // Post to main thread to access WebView
+                                                webViewViewModel.viewModelScope.launch {
+                                                    FirebaseService().sendRegistration(context)
+                                                }
+                                            }
+                                            if (!hasRequestedPermissionBefore(context)) {
+                                                webViewViewModel.viewModelScope.launch {
+                                                    goOnboarding()
+                                                }
                                             }
                                         }
-                                        if (!hasRequestedPermissionBefore(context)) {
-                                            Handler(Looper.getMainLooper()).post {
-                                                goOnboarding()
+
+                                        "notification_permission_requested" -> {
+                                            // Trigger notification permission request
+                                            webViewViewModel.viewModelScope.launch {
+                                                webViewViewModel.triggerNotificationPermissionRequest()
                                             }
                                         }
-                                    }
 
-                                    "notification_permission_requested" -> {
-                                        // Trigger notification permission request
-                                        Handler(Looper.getMainLooper()).post {
-                                            webViewViewModel.triggerNotificationPermissionRequest()
-                                        }
-                                    }
-
-                                    "notification_permission_removed" -> {
-                                        // Open system settings to let user revoke permission
-                                        Handler(Looper.getMainLooper()).post {
-                                            webViewViewModel.openNotificationSettings()
+                                        "notification_permission_removed" -> {
+                                            // Open system settings to let user revoke permission
+                                            webViewViewModel.viewModelScope.launch {
+                                                webViewViewModel.openNotificationSettings()
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        }, "NativeBridge")
-                        loadUrl(webViewViewModel.currentUrl)
+                            }, "NativeBridge")
+                            loadUrl(webViewViewModel.currentUrl)
+                        }
+                    },
+                    update = { webView ->
+                        if (webView.url != webViewViewModel.currentUrl) {
+                            webView.loadUrl(webViewViewModel.currentUrl)
+                        }
                     }
-                },
-                update = { webView ->
-                    if (webView.url != webViewViewModel.currentUrl) {
-                        webView.loadUrl(webViewViewModel.currentUrl)
-                    }
-                }
-            )
+                )
             }
 
             // Download logs button - appears only on contact page
