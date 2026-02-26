@@ -48,6 +48,7 @@ fun WebViewScreen(
     goSettings: () -> Unit,
     downloadLogsViewModel: DownloadLogsViewModel = viewModel()
 ) {
+    val TAG = "WebViewScreen"
     var hasBackBar by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
@@ -125,6 +126,7 @@ fun WebViewScreen(
                         settings.allowFileAccess = true
                         settings.allowContentAccess = true
                         settings.domStorageEnabled = true
+                        Log.d(TAG, "Creating MainWebViewClient with baseURL ${baseUrl}")
                         webViewClient = MainWebViewClient(
                             baseUrl = baseUrl,
                             onBackBarChanged = { hasBackBar = it },
