@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -30,7 +28,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.R
 import fr.gouv.ami.api.baseUrl
-import fr.gouv.ami.components.BackBar
 import fr.gouv.ami.components.DownloadLogsButton
 import fr.gouv.ami.components.DownloadLogsViewModel
 import fr.gouv.ami.components.InformationBanner
@@ -40,21 +37,24 @@ import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.utils.ManagerLocalStorage
 import fr.gouv.ami.ui.theme.AMITheme
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
     goSettings: () -> Unit,
     goOnboarding: () -> Unit,
-    downloadLogsViewModel: DownloadLogsViewModel = viewModel()
+    downloadLogsViewModel: DownloadLogsViewModel = viewModel(),
+    startUrl: String = baseUrl
 ) {
     var hasBackBar by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
     var canGoBack by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        webViewViewModel.currentUrl = startUrl
+    }
 
     LaunchedEffect(Unit) {
         webViewViewModel.refreshView.collect {
@@ -113,19 +113,6 @@ fun WebViewScreen(
                     )
                 }
 
-                if (hasBackBar) {
-                    BackBar {
-                        webViewViewModel.onBackPressed()
-                    }
-                }
-
-                // Progress bar just above the Webview
-                LinearProgressIndicator(
-                    modifier = Modifier
-                        .alpha(if (isLoading) 1f else 0f)
-                        .fillMaxWidth()
-                )
-
                 AndroidView(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -152,7 +139,7 @@ fun WebViewScreen(
                                 onLoadingChanged = { isLoading = it },
                                 onCanGoBackChanged = { canGoBack = it },
                                 onPageFinished = { webViewViewModel.notifyPageFinished() },
-                                onSslError = { webViewViewModel.showSSLErrorBanner() },
+                                onSslError = { webViewViewModel.showSSLErrorBanner() }
                             )
 
                             addJavascriptInterface(object {
