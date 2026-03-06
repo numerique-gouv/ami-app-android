@@ -56,6 +56,7 @@ class FirebaseService : FirebaseMessagingService() {
                 if (cookie.contains("token")) {
                     bearer = cookie.split("\"")[1]
                     Log.d(TAG, "bearer: $bearer")
+                    managerStorage.saveBearer(bearer)
                     break
                 }
             }
