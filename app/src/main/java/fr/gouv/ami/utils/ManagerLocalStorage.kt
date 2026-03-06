@@ -51,6 +51,10 @@ class ManagerLocalStorage(private val context: Context) {
         return encryptedSharedPreferences.getString(BEARER_TOKEN, null)
     }
 
+    fun clearBearer() {
+        encryptedSharedPreferences.edit().remove(BEARER_TOKEN).apply()
+    }
+
     /**
      * Gets or creates a unique device ID based on Android ID.
      * The Android ID is unique per device + app combination and persists across app updates.

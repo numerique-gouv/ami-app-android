@@ -43,6 +43,7 @@ import kotlinx.coroutines.launch
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
     goSettings: () -> Unit,
+    goAuth: () -> Unit,
     goOnboarding: () -> Unit,
     downloadLogsViewModel: DownloadLogsViewModel = viewModel(),
     startUrl: String = baseUrl
@@ -162,6 +163,13 @@ fun WebViewScreen(
                                             }
                                         }
 
+                                        "user_logged_out" -> {
+                                            webViewViewModel.viewModelScope.launch {
+                                                storage.clearBearer()
+                                                goAuth()
+                                            }
+                                        }
+
                                         "notification_permission_requested" -> {
                                             // Trigger notification permission request
                                             webViewViewModel.viewModelScope.launch {
@@ -219,6 +227,7 @@ fun PreviewWebViewScreenLight() {
         WebViewScreen(
             webViewViewModel = viewModel(),
             goSettings = {},
+            goAuth = {},
             goOnboarding = {})
     }
 }
@@ -230,6 +239,7 @@ fun PreviewWebViewScreenDark() {
         WebViewScreen(
             webViewViewModel = viewModel(),
             goSettings = {},
+            goAuth = {},
             goOnboarding = {})
     }
 }

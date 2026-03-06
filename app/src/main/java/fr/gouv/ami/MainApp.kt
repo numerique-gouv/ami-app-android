@@ -101,7 +101,10 @@ fun HomeApp(navController: NavHostController = rememberNavController()) {
                     navController.navigate(Screen.Onboarding.name)
                 },
                 webViewViewModel = webViewViewModel,
-                startUrl = url
+                goAuth = {
+                    navController.navigate(Screen.FranceConnection.name)
+                },
+                startUrl = url,
             )
         }
 
