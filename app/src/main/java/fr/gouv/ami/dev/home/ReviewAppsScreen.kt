@@ -88,7 +88,7 @@ fun ReviewAppsScreen(onSelectedReviewApp: () -> Unit) {
 @Composable
 fun PreviewReleasePickerScreenLight() {
     AMITheme {
-        ReviewAppsScreen {}
+        ReviewAppsScreen() {}
     }
 }
 
