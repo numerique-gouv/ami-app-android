@@ -32,4 +32,5 @@ private val retrofit: Retrofit
 
 private var _apiService: ApiService? = null
 val apiService: ApiService
+    // Warning: this needs to be better handled the day we want to change baseURL on the fly.
     get() = _apiService ?: retrofit.create(ApiService::class.java).also { _apiService = it }

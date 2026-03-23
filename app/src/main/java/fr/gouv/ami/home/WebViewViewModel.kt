@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
 class WebViewViewModel : BaseViewModel() {
-    val TAG = "WebViewViewModel"
+    private val TAG = this::class.java.simpleName
     var currentUrl by mutableStateOf(baseUrl)
     var lastUrl by mutableStateOf(baseUrl) //not used for now
 
