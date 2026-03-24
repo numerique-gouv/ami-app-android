@@ -33,7 +33,8 @@ class FirebaseService : FirebaseMessagingService() {
     private val TAG = this::class.java.simpleName
 
     companion object {
-        val IS_NOTIFIED = "isNotified"
+        val APP_URL = "app_url"
+        val NOTIFICATION_TITLE = "title"
     }
 
     val CHANNEL_NAME = "firebase channel"
@@ -80,18 +81,18 @@ class FirebaseService : FirebaseMessagingService() {
         createNotificationChannel()
 
         Log.d(TAG, message.notification?.title ?: "message reçu")
-        val messageBody = message.notification
+        val notification = message.notification
 
         val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra(IS_NOTIFIED, true)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            message.data.forEach { (key, value) -> putExtra(key, value) }
         }
         val pendingIntent: PendingIntent =
             PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(messageBody?.title)
-            .setContentText(messageBody?.body)
+            .setContentTitle(notification?.title)
+            .setContentText(notification?.body)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

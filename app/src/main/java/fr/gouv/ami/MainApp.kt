@@ -1,5 +1,6 @@
 package fr.gouv.ami
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -22,13 +23,18 @@ enum class Screen {
 }
 
 @Composable
-fun HomeApp(navController: NavHostController = rememberNavController()) {
+fun HomeApp(navController: NavHostController = rememberNavController(), pendingUrl: String? = null) {
 
     val TAG = object {}.javaClass.enclosingClass?.simpleName ?: "AMI"
     var webViewViewModel = viewModel<WebViewViewModel>()
 
+    if (pendingUrl != null) {
+        Log.d(TAG, "App has been opened from clicking on a push notification.")
+        webViewViewModel.currentUrl = pendingUrl
+    }
+
     var startDestinationScreen = Screen.Home.name
-    if (BuildConfig.FLAVOR == "staging") {
+    if (BuildConfig.FLAVOR == "staging" && pendingUrl == null) {
         startDestinationScreen = Screen.ReviewApp.name
     }
 
