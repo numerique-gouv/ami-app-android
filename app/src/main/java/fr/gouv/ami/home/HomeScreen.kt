@@ -12,19 +12,20 @@ import fr.gouv.ami.ui.theme.AMITheme
 fun HomeScreen(
     webViewViewModel: WebViewViewModel,
     goSettings: () -> Unit,
+    goFranceConnect: () -> Unit,
     goOnboarding: () -> Unit
 ) {
 
     /** UI **/
 
-    WebViewScreen(webViewViewModel, goSettings = goSettings, goOnboarding = goOnboarding)
+    WebViewScreen(webViewViewModel, goSettings = goSettings, goFranceConnect = goFranceConnect, goOnboarding = goOnboarding)
 }
 
 @Preview
 @Composable
 fun PreviewHomeScreenLight() {
     AMITheme {
-        HomeScreen(viewModel(), goSettings = {}, goOnboarding = {})
+        HomeScreen(viewModel(), goSettings = {}, goFranceConnect = {}, goOnboarding = {})
     }
 }
 
@@ -32,6 +33,6 @@ fun PreviewHomeScreenLight() {
 @Composable
 fun PreviewHomeScreenDark() {
     AMITheme {
-        HomeScreen(viewModel(), goSettings = {}, goOnboarding = {})
+        HomeScreen(viewModel(), goSettings = {}, goFranceConnect = {}, goOnboarding = {})
     }
 }

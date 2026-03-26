@@ -3,6 +3,7 @@ package fr.gouv.ami.home
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.content.res.Configuration
+import android.webkit.CookieManager
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.imePadding
@@ -48,6 +49,7 @@ import kotlinx.coroutines.withContext
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
     goSettings: () -> Unit,
+    goFranceConnect: () -> Unit,
     goOnboarding: () -> Unit,
     downloadLogsViewModel: DownloadLogsViewModel = viewModel()
 ) {
@@ -147,7 +149,33 @@ fun WebViewScreen(
                                     {
                                         if (it.contains("settings")) {
                                             goSettings()
+                                        } else if (it == baseUrl) {
+                                            val cookieManager = CookieManager.getInstance()
+                                            val cookies = cookieManager.getCookie(baseUrl)
+                                            val managerStorage = ManagerLocalStorage(context)
+                                            if (!cookies.isNullOrEmpty() && !managerStorage.getToken().isNullOrEmpty()) {
+                                                val values = cookies.split(";")
+                                                var bearer: String? = null
+                                                for (cookie in values) {
+                                                    if (cookie.contains("token")) {
+                                                        bearer = cookie.split("\"")[1]
+                                                        Log.d(TAG, "bearer: $bearer")
+                                                        break
+                                                    }
+                                                }
+                                                if (bearer != null) {
+                                                    Log.d(TAG, "Bearer is present, user is logged in, display the connected homepage")
+                                                    webViewViewModel.onUrlChanged(it)
+                                                } else {
+                                                    Log.d(TAG, "Bearer is absent, user is logged off, display the FranceConnect screen")
+                                                    goFranceConnect()
+                                                }
+                                            } else {
+                                                Log.d(TAG, "No cookies, so no bearer, user is logged off, display the FranceConnect screen")
+                                                goFranceConnect()
+                                            }
                                         } else {
+                                            Log.d(TAG, "Navigating to $it")
                                             webViewViewModel.onUrlChanged(it)
                                         }
                                     },
@@ -234,6 +262,7 @@ fun PreviewWebViewScreenLight() {
         WebViewScreen(
             webViewViewModel = viewModel(),
             goSettings = {},
+            goFranceConnect = {},
             goOnboarding = {})
     }
 }
@@ -245,6 +274,7 @@ fun PreviewWebViewScreenDark() {
         WebViewScreen(
             webViewViewModel = viewModel(),
             goSettings = {},
+            goFranceConnect = {},
             goOnboarding = {})
     }
 }
