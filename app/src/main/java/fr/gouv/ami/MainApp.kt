@@ -118,7 +118,7 @@ fun HomeApp(navController: NavHostController = rememberNavController()) {
         composable(route = Screen.FranceConnection.name) {
             FranceConnexionScreen(
                 onFcClick = {
-                    val url = "$baseUrl/login-france-connect"
+                    val url = "${baseUrl}login-france-connect"
                     navController.navigate(
                         route = "${Screen.Home.name}?url=${Uri.encode(url)}"
                     )
