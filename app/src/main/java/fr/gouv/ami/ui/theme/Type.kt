@@ -33,33 +33,84 @@ val MarianneFamily = FontFamily(
     )
 )
 
-// Set of Material typography styles to start with
 val Typography = Typography(
-    bodyLarge = TextStyle(
+    /** Display **/
+    displayLarge = TextStyle( // XL
         fontFamily = MarianneFamily,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
+        fontWeight = FontWeight.Bold,
+        fontSize = 72.sp
     ),
-    labelLarge = TextStyle(
+    displayMedium = TextStyle( // LG
         fontFamily = MarianneFamily,
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Normal
-    )
-    /* Other default text styles to override
-    titleLarge = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Bold,
+        fontSize = 64.sp
+    ),
+    displaySmall = TextStyle( // MD
+        fontFamily = MarianneFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 56.sp
+    ),
+
+    /** Headline **/
+    headlineLarge = TextStyle( // H1
+        fontFamily = MarianneFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 32.sp
+    ),
+    headlineMedium = TextStyle( // H2
+        fontFamily = MarianneFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 28.sp
+    ),
+    headlineSmall = TextStyle( // H3
+        fontFamily = MarianneFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 24.sp
+    ),
+
+    /** Title **/
+    titleLarge = TextStyle( // H4
+        fontFamily = MarianneFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp
+    ),
+    titleMedium = TextStyle( // H5
+        fontFamily = MarianneFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp
+    ),
+    titleSmall = TextStyle( // H6
+        fontFamily = MarianneFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 18.sp
+    ),
+
+    /** Body **/
+    bodyLarge = TextStyle( // XL
+        fontFamily = MarianneFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.sp
+        fontSize = 20.sp
     ),
-    labelSmall = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
+    bodyMedium = TextStyle( // LG
+        fontFamily = MarianneFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 18.sp
+    ),
+    bodySmall = TextStyle( // MD
+        fontFamily = MarianneFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp
+    ),
+
+    /** Label **/
+    labelLarge = TextStyle( // SM
+        fontFamily = MarianneFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp
+    ),
+    labelSmall = TextStyle( // XS
+        fontFamily = MarianneFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp
     )
-    */
 )
