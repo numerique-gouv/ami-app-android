@@ -28,7 +28,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import fr.gouv.ami.BuildConfig
 import fr.gouv.ami.R
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
@@ -147,7 +146,6 @@ fun WebViewScreen(
                             Log.d(TAG, "Creating MainWebViewClient with baseURL ${baseUrl}")
                             webViewClient = MainWebViewClient(
                                 baseUrl = baseUrl,
-                                bypassSslErrors = BuildConfig.DEBUG,
                                 onBackBarChanged = { hasBackBar = it },
                                 onUrlChanged =
                                     {
