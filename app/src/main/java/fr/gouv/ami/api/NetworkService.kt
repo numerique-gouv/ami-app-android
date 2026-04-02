@@ -6,6 +6,10 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 var baseUrl: String = BuildConfig.BASE_URL
     set(value) {
@@ -14,11 +18,30 @@ var baseUrl: String = BuildConfig.BASE_URL
         _apiService = null
     }
 
-private val client = OkHttpClient.Builder()
-    .addInterceptor(HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
-    })
-    .build()
+private fun buildOkHttpClient(): OkHttpClient {
+    val builder = OkHttpClient.Builder()
+        .addInterceptor(HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        })
+
+    if (BuildConfig.DEBUG) {
+        val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) = Unit
+            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) = Unit
+            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+        })
+        val sslContext = SSLContext.getInstance("SSL").apply {
+            init(null, trustAllCerts, java.security.SecureRandom())
+        }
+        builder
+            .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+            .hostnameVerifier { _, _ -> true }
+    }
+
+    return builder.build()
+}
+
+private val client = buildOkHttpClient()
 
 private var _retrofit: Retrofit? = null
 private val retrofit: Retrofit
