@@ -74,7 +74,8 @@ android {
             versionNameSuffix = "-local"
 
             // Load from local.properties if available, otherwise use default
-            val localBaseUrl = localProperties.getProperty("local.base.url", "https://10.0.2.2:5173")
+            // val localBaseUrl = localProperties.getProperty("local.base.url", "https://10.0.2.2:5173")
+            val localBaseUrl = localProperties.getProperty("local.base.url", "https://192.168.1.55:5173")
 
             buildConfigField("String", "BASE_URL", "\"$localBaseUrl\"")
             resValue("string", "app_name", "AMI Local")

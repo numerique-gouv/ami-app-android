@@ -17,7 +17,6 @@ import android.webkit.WebViewClient
 
 class MainWebViewClient(
     private val baseUrl: String,
-    private val bypassSslErrors: Boolean = false,
     private val onBackBarChanged: (Boolean) -> Unit,
     private val onUrlChanged: (String) -> Unit,
     private val onLoadingChanged: (Boolean) -> Unit,
@@ -82,10 +81,7 @@ class MainWebViewClient(
 
     override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
         Log.w("WebView", "SSL Error on URL: ${error.url} - Error type: ${error.primaryError}")
-        if (bypassSslErrors) {
-            Log.w("WebView", "Bypassing SSL error (debug/local build)")
-            handler.proceed()
-        } else {
+        if (!handler.handleSslError()) {
             handler.cancel()
             onSslError()
         }
