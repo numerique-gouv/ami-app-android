@@ -74,6 +74,7 @@ fun ReviewAppsScreen(onSelectedReviewApp: () -> Unit) {
                             content = review.description ?: ""
                         ) {
                             baseUrl = review.url
+                            Log.d(TAG, "Review app '${review.title}' selected with url: ${review.url}")
                             onSelectedReviewApp()
                         }
                     }
@@ -95,6 +96,6 @@ fun PreviewReleasePickerScreenLight() {
 @Composable
 fun PreviewReleasePickerScreenDark() {
     AMITheme {
-        ReviewAppsScreen() {}
+        ReviewAppsScreen {}
     }
 }

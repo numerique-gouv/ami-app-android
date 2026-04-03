@@ -7,19 +7,30 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 
-var baseUrl = BuildConfig.BASE_URL
+var baseUrl: String = BuildConfig.BASE_URL
+    set(value) {
+        field = value
+        _retrofit = null
+        _apiService = null
+    }
 
-val client = OkHttpClient.Builder()
+private val client = OkHttpClient.Builder()
     .addInterceptor(HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     })
     .build()
 
-val retrofit = Retrofit.Builder()
-    .baseUrl(baseUrl)
-    .addConverterFactory(ScalarsConverterFactory.create())
-    .client(client)
-    .addConverterFactory(GsonConverterFactory.create())
-    .build()
+private var _retrofit: Retrofit? = null
+private val retrofit: Retrofit
+    get() = _retrofit ?: Retrofit.Builder()
+        .baseUrl(baseUrl)
+        .addConverterFactory(ScalarsConverterFactory.create())
+        .client(client)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+        .also { _retrofit = it }
 
-val apiService = retrofit.create(ApiService::class.java)
+private var _apiService: ApiService? = null
+val apiService: ApiService
+    // Warning: this needs to be better handled the day we want to change baseURL on the fly.
+    get() = _apiService ?: retrofit.create(ApiService::class.java).also { _apiService = it }

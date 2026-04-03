@@ -37,7 +37,7 @@ enum class Screen {
 }
 
 @Composable
-fun HomeApp(navController: NavHostController = rememberNavController()) {
+fun HomeApp(navController: NavHostController = rememberNavController(), pendingUrl: String? = null) {
 
     val TAG = object {}.javaClass.enclosingClass?.simpleName ?: "AMI"
     val webViewViewModel = viewModel<WebViewViewModel>()
@@ -68,6 +68,11 @@ fun HomeApp(navController: NavHostController = rememberNavController()) {
         }
     }
 
+    if (pendingUrl != null) {
+        Log.d(TAG, "App has been opened from clicking on a push notification.")
+        webViewViewModel.currentUrl = pendingUrl
+    }
+
     val connexionDestination =
         if (isConnected)
             Screen.Home.name
@@ -75,7 +80,8 @@ fun HomeApp(navController: NavHostController = rememberNavController()) {
             Screen.FranceConnection.name
 
     var startDestinationScreen = connexionDestination
-    if (BuildConfig.FLAVOR == "staging") {
+
+    if (BuildConfig.FLAVOR == "staging" && pendingUrl == null) {
         startDestinationScreen = Screen.ReviewApp.name
     }
 
@@ -112,6 +118,9 @@ fun HomeApp(navController: NavHostController = rememberNavController()) {
         composable(route = Screen.ReviewApp.name) {
             ReviewAppsScreen(
                 onSelectedReviewApp = {
+                    // We need to update the `currentUrl` here, as it was initialized with the
+                    // baseUrl from the config, before we even selected the review app.
+                    webViewViewModel.currentUrl = baseUrl
                     navController.navigate(connexionDestination)
                 }
             )
