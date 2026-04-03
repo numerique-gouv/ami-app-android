@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import fr.gouv.ami.R
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
@@ -40,9 +41,7 @@ import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.utils.ManagerLocalStorage
 import fr.gouv.ami.ui.theme.AMITheme
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun WebViewScreen(
@@ -132,6 +131,7 @@ fun WebViewScreen(
                         .fillMaxWidth()
                         .weight(1f),
                     factory = { it ->
+                        val swipeRefreshLayout = SwipeRefreshLayout(context)
                         WebView(it).apply {
                             webViewRef.value = this
 
@@ -153,7 +153,10 @@ fun WebViewScreen(
                                     },
                                 onLoadingChanged = { isLoading = it },
                                 onCanGoBackChanged = { canGoBack = it },
-                                onPageFinished = { webViewViewModel.notifyPageFinished() },
+                                onPageFinished = {
+                                    webViewViewModel.notifyPageFinished()
+                                    //swipeRefreshLayout.isRefreshing = false
+                                },
                                 onSslError = { webViewViewModel.showSSLErrorBanner() },
                             )
 
@@ -195,10 +198,17 @@ fun WebViewScreen(
                             }, "NativeBridge")
                             loadUrl(webViewViewModel.currentUrl)
                         }
+                        swipeRefreshLayout.addView(webViewRef.value)
+
+                        swipeRefreshLayout.setOnRefreshListener {
+                            webViewViewModel.requestRefresh()
+                        }
+
+                        swipeRefreshLayout
                     },
                     update = { webView ->
-                        if (webView.url != webViewViewModel.currentUrl) {
-                            webView.loadUrl(webViewViewModel.currentUrl)
+                        if (webViewRef.value?.url != webViewViewModel.currentUrl) {
+                            webViewRef.value?.loadUrl(webViewViewModel.currentUrl)
                         }
                     }
                 )
