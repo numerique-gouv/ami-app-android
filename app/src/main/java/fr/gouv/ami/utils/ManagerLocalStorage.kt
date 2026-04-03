@@ -12,6 +12,7 @@ class ManagerLocalStorage(private val context: Context) {
     private val TAG = this::class.java.simpleName
     private val FIREBASE_TOKEN = "firebase_token"
     private val DEVICE_ID = "device_id"
+    private val BEARER_TOKEN = "bearer_token"
 
     private lateinit var masterKey: MasterKey
     private lateinit var encryptedSharedPreferences: EncryptedSharedPreferences
@@ -40,6 +41,18 @@ class ManagerLocalStorage(private val context: Context) {
 
     fun getToken(): String? {
         return encryptedSharedPreferences.getString(FIREBASE_TOKEN, null)
+    }
+
+    fun saveBearer(token: String) {
+        encryptedSharedPreferences.edit().putString(BEARER_TOKEN, token)?.apply()
+    }
+
+    fun getBearer(): String? {
+        return encryptedSharedPreferences.getString(BEARER_TOKEN, null)
+    }
+
+    fun clearBearer() {
+        encryptedSharedPreferences.edit().remove(BEARER_TOKEN).apply()
     }
 
     /**

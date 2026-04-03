@@ -6,7 +6,6 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
-import retrofit2.http.Path
 
 interface ApiService {
 
@@ -20,5 +19,12 @@ interface ApiService {
 
     @GET("/dev-utils/review-apps")
     suspend fun getReviewApps(): Response<MutableList<Review>>
+
+    /** Authentication **/
+
+    @GET("/check-auth")
+    suspend fun checkAuth(
+        @Header("Authorization") token: String
+    ): Response<AuthenticationOutput>
 
 }

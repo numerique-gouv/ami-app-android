@@ -40,22 +40,26 @@ import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.utils.ManagerLocalStorage
 import fr.gouv.ami.ui.theme.AMITheme
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
     goSettings: () -> Unit,
+    goAuth: () -> Unit,
     goOnboarding: () -> Unit,
-    downloadLogsViewModel: DownloadLogsViewModel = viewModel()
+    downloadLogsViewModel: DownloadLogsViewModel = viewModel(),
+    startUrl: String = baseUrl
 ) {
     val TAG = "WebViewScreen"
     var hasBackBar by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
     var canGoBack by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        webViewViewModel.currentUrl = startUrl
+    }
 
     LaunchedEffect(Unit) {
         webViewViewModel.refreshView.collect {
@@ -154,7 +158,7 @@ fun WebViewScreen(
                                 onLoadingChanged = { isLoading = it },
                                 onCanGoBackChanged = { canGoBack = it },
                                 onPageFinished = { webViewViewModel.notifyPageFinished() },
-                                onSslError = { webViewViewModel.showSSLErrorBanner() },
+                                onSslError = { webViewViewModel.showSSLErrorBanner() }
                             )
 
                             addJavascriptInterface(object {
@@ -174,6 +178,13 @@ fun WebViewScreen(
                                                 webViewViewModel.viewModelScope.launch {
                                                     goOnboarding()
                                                 }
+                                            }
+                                        }
+
+                                        "user_logged_out" -> {
+                                            webViewViewModel.viewModelScope.launch {
+                                                storage.clearBearer()
+                                                goAuth()
                                             }
                                         }
 
@@ -234,6 +245,7 @@ fun PreviewWebViewScreenLight() {
         WebViewScreen(
             webViewViewModel = viewModel(),
             goSettings = {},
+            goAuth = {},
             goOnboarding = {})
     }
 }
@@ -245,6 +257,7 @@ fun PreviewWebViewScreenDark() {
         WebViewScreen(
             webViewViewModel = viewModel(),
             goSettings = {},
+            goAuth = {},
             goOnboarding = {})
     }
 }
