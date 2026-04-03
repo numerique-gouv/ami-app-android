@@ -62,6 +62,7 @@ fun HomeApp(navController: NavHostController = rememberNavController()) {
                             TAG,
                             "Error: ${response.code()} - ${response.message()}"
                         )
+                        storage.clearBearer()
                     }
                 }
         }
