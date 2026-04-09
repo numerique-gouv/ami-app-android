@@ -17,6 +17,9 @@ class WebViewViewModel : BaseViewModel() {
     var isOnContactPage by mutableStateOf(false)
         private set
 
+    var isRefreshing by mutableStateOf(false)
+        private set
+
     private val _notificationPermissionRequested = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val notificationPermissionRequested = _notificationPermissionRequested.asSharedFlow()
 
@@ -89,5 +92,11 @@ class WebViewViewModel : BaseViewModel() {
 
     fun notifyPageFinished() {
         _pageFinished.tryEmit(Unit)
+        isRefreshing = false
+    }
+
+    override fun requestRefresh() {
+        isRefreshing = true
+        super.requestRefresh()
     }
 }

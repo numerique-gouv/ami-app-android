@@ -55,6 +55,7 @@ fun WebViewScreen(
     var isLoading by remember { mutableStateOf(false) }
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
     var canGoBack by remember { mutableStateOf(false) }
+    val swipeRefreshRef = remember { mutableStateOf<SwipeRefreshLayout?>(null) }
 
     LaunchedEffect(Unit) {
         webViewViewModel.refreshView.collect {
@@ -131,7 +132,7 @@ fun WebViewScreen(
                         .fillMaxWidth()
                         .weight(1f),
                     factory = { it ->
-                        val swipeRefreshLayout = SwipeRefreshLayout(context)
+                        swipeRefreshRef.value = SwipeRefreshLayout(context)
                         WebView(it).apply {
                             webViewRef.value = this
 
@@ -155,7 +156,6 @@ fun WebViewScreen(
                                 onCanGoBackChanged = { canGoBack = it },
                                 onPageFinished = {
                                     webViewViewModel.notifyPageFinished()
-                                    swipeRefreshLayout.isRefreshing = false
                                 },
                                 onSslError = { webViewViewModel.showSSLErrorBanner() },
                             )
@@ -198,18 +198,19 @@ fun WebViewScreen(
                             }, "NativeBridge")
                             loadUrl(webViewViewModel.currentUrl)
                         }
-                        swipeRefreshLayout.addView(webViewRef.value)
+                        swipeRefreshRef.value?.addView(webViewRef.value)
 
-                        swipeRefreshLayout.setOnRefreshListener {
+                        swipeRefreshRef.value?.setOnRefreshListener {
                             webViewViewModel.requestRefresh()
                         }
 
-                        swipeRefreshLayout
+                        swipeRefreshRef.value!!
                     },
                     update = { webView ->
                         if (webViewRef.value?.url != webViewViewModel.currentUrl) {
                             webViewRef.value?.loadUrl(webViewViewModel.currentUrl)
                         }
+                        swipeRefreshRef.value?.isRefreshing = webViewViewModel.isRefreshing
                     }
                 )
             }
