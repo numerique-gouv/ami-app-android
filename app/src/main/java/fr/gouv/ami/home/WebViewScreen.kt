@@ -155,7 +155,7 @@ fun WebViewScreen(
                                 onCanGoBackChanged = { canGoBack = it },
                                 onPageFinished = {
                                     webViewViewModel.notifyPageFinished()
-                                    //swipeRefreshLayout.isRefreshing = false
+                                    swipeRefreshLayout.isRefreshing = false
                                 },
                                 onSslError = { webViewViewModel.showSSLErrorBanner() },
                             )
