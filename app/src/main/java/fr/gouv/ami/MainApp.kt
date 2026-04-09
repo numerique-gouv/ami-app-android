@@ -101,8 +101,9 @@ fun HomeApp(navController: NavHostController = rememberNavController(), pendingU
             )
 
             HomeScreen(
-                goSettings = {
-                    navController.navigate(Screen.Settings.name)
+                onNavigate = { screen ->
+                    Log.d(TAG, "Promoted page detected, navigating app to ${screen.name}")
+                    navController.navigate(screen.name)
                 },
                 goOnboarding = {
                     navController.navigate(Screen.Onboarding.name)

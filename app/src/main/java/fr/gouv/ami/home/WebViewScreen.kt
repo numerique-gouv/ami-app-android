@@ -29,7 +29,10 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.R
+import fr.gouv.ami.Screen
+import org.json.JSONArray
 import fr.gouv.ami.api.baseUrl
+import fr.gouv.ami.findNativeScreen
 import fr.gouv.ami.components.BackBar
 import fr.gouv.ami.components.DownloadLogsButton
 import fr.gouv.ami.components.DownloadLogsViewModel
@@ -37,6 +40,7 @@ import fr.gouv.ami.components.InformationBanner
 import fr.gouv.ami.components.InformationType
 import fr.gouv.ami.components.MainWebViewClient
 import fr.gouv.ami.global.BaseScreen
+import fr.gouv.ami.nativeRoutes
 import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.utils.ManagerLocalStorage
 import fr.gouv.ami.ui.theme.AMITheme
@@ -45,7 +49,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
-    goSettings: () -> Unit,
+    onNavigate: (Screen) -> Unit,
     goAuth: () -> Unit,
     goOnboarding: () -> Unit,
     downloadLogsViewModel: DownloadLogsViewModel = viewModel(),
@@ -147,17 +151,24 @@ fun WebViewScreen(
                             webViewClient = MainWebViewClient(
                                 baseUrl = baseUrl,
                                 onBackBarChanged = { hasBackBar = it },
-                                onUrlChanged =
-                                    {
-                                        if (it.contains("settings")) {
-                                            goSettings()
-                                        } else {
-                                            webViewViewModel.onUrlChanged(it)
-                                        }
-                                    },
+                                onUrlChanged = {
+                                    val screen = findNativeScreen(it)
+                                    if (screen != null) {
+                                        onNavigate(screen)
+                                    } else {
+                                        webViewViewModel.onUrlChanged(it)
+                                    }
+                                },
                                 onLoadingChanged = { isLoading = it },
                                 onCanGoBackChanged = { canGoBack = it },
-                                onPageFinished = { webViewViewModel.notifyPageFinished() },
+                                onPageFinished = {
+                                    val urls = JSONArray(nativeRoutes.keys.toList())
+                                    evaluateJavascript(
+                                        "window.NativeURLs = $urls;",
+                                        null
+                                    )
+                                    webViewViewModel.notifyPageFinished()
+                                },
                                 onSslError = { webViewViewModel.showSSLErrorBanner() }
                             )
 
@@ -199,6 +210,15 @@ fun WebViewScreen(
                                             // Open system settings to let user revoke permission
                                             webViewViewModel.viewModelScope.launch {
                                                 webViewViewModel.openNotificationSettings()
+                                            }
+                                        }
+
+                                        "navigateTo" -> {
+                                            val screen = findNativeScreen(dataJson)
+                                            if (screen != null) {
+                                                webViewViewModel.viewModelScope.launch {
+                                                    onNavigate(screen)
+                                                }
                                             }
                                         }
                                     }
@@ -244,7 +264,7 @@ fun PreviewWebViewScreenLight() {
     AMITheme {
         WebViewScreen(
             webViewViewModel = viewModel(),
-            goSettings = {},
+            onNavigate = {},
             goAuth = {},
             goOnboarding = {})
     }
@@ -256,7 +276,7 @@ fun PreviewWebViewScreenDark() {
     AMITheme {
         WebViewScreen(
             webViewViewModel = viewModel(),
-            goSettings = {},
+            onNavigate = {},
             goAuth = {},
             goOnboarding = {})
     }
