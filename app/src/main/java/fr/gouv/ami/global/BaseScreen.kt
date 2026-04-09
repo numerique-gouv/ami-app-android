@@ -3,16 +3,12 @@ package fr.gouv.ami.global
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,11 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.components.InformationBanner
-import fr.gouv.ami.components.InformationType
 import fr.gouv.ami.utils.NetworkMonitor
 import fr.gouv.ami.R
+import fr.gouv.ami.components.StatusType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,10 +67,9 @@ fun BaseScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-
             if (!isConnected)
                 InformationBanner(
-                    informationType = InformationType.Warning,
+                    informationType = StatusType.Warning,
                     title = stringResource(R.string.no_connection),
                     icon = R.drawable.ic_no_connection,
                     content = stringResource(R.string.no_connection_subtitle),

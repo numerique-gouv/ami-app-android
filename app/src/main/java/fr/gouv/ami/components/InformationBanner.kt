@@ -34,16 +34,9 @@ import fr.gouv.ami.ui.theme.OrangeInformationContent
 import fr.gouv.ami.ui.theme.RedInformationBg
 import fr.gouv.ami.ui.theme.RedInformationContent
 
-enum class InformationType {
-    Warning,
-    Information,
-    Error,
-    Validation,
-}
-
 @Composable
 fun InformationBanner(
-    informationType: InformationType,
+    informationType: StatusType,
     title: String,
     icon: Int,
     content: String? = null,
@@ -56,22 +49,22 @@ fun InformationBanner(
     var colorContent: Color
 
     when (informationType) {
-        InformationType.Information -> {
+        StatusType.Information -> {
             colorBg = BlueInformationBg
             colorContent = BlueInformationContent
         }
 
-        InformationType.Warning -> {
+        StatusType.Warning -> {
             colorBg = OrangeInformationBg
             colorContent = OrangeInformationContent
         }
 
-        InformationType.Error -> {
+        StatusType.Error -> {
             colorBg = RedInformationBg
             colorContent = RedInformationContent
         }
 
-        InformationType.Validation -> {
+        StatusType.Success -> {
             colorBg = GreenInformationBg
             colorContent = GreenInformationContent
         }
@@ -85,8 +78,12 @@ fun InformationBanner(
         horizontalArrangement = Arrangement.Start
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Row (verticalAlignment = Alignment.CenterVertically) {
-                Image(painterResource(icon), contentDescription = "banner icon", colorFilter = ColorFilter.tint(colorContent))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painterResource(icon),
+                    contentDescription = "banner icon",
+                    colorFilter = ColorFilter.tint(colorContent)
+                )
                 Text(
                     modifier = Modifier.padding(start = 8.dp),
                     text = title,
@@ -129,7 +126,7 @@ fun InformationBanner(
 fun PreviewInformationBannerWarning() {
     AMITheme {
         InformationBanner(
-            informationType = InformationType.Warning,
+            informationType = StatusType.Warning,
             icon = R.drawable.ic_information_warning,
             title = "Connexion indisponible",
             content = "Vérifiez votre connexion et réessayez.",
@@ -143,7 +140,7 @@ fun PreviewInformationBannerWarning() {
 fun PreviewInformationBannerInformation() {
     AMITheme {
         InformationBanner(
-            informationType = InformationType.Information,
+            informationType = StatusType.Information,
             title = "Nouvelle démarche disponible",
             icon = R.drawable.ic_information_information,
             content = "Vérifiez votre connexion et réessayez.",
@@ -157,7 +154,7 @@ fun PreviewInformationBannerInformation() {
 fun PreviewInformationBannerError() {
     AMITheme {
         InformationBanner(
-            informationType = InformationType.Error,
+            informationType = StatusType.Error,
             title = "Application hors-service",
             icon = R.drawable.ic_information_error,
             content = "Vérifiez votre connexion et réessayez.",
@@ -171,7 +168,7 @@ fun PreviewInformationBannerError() {
 fun PreviewInformationBannerValidation() {
     AMITheme {
         InformationBanner(
-            informationType = InformationType.Validation,
+            informationType = StatusType.Success,
             title = "Connexion rétablie",
             icon = R.drawable.ic_information_validation,
             content = "L’application est de nouveau fonctionnelle.",
