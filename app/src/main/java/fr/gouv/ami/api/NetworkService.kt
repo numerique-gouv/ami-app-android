@@ -14,11 +14,16 @@ var baseUrl: String = BuildConfig.BASE_URL
         _apiService = null
     }
 
-private val client = OkHttpClient.Builder()
-    .addInterceptor(HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
-    })
-    .build()
+private fun buildOkHttpClient(): OkHttpClient {
+    return OkHttpClient.Builder()
+        .addInterceptor(HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        })
+        .applyDebugSslConfig()
+        .build()
+}
+
+private val client = buildOkHttpClient()
 
 private var _retrofit: Retrofit? = null
 private val retrofit: Retrofit

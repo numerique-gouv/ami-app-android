@@ -81,8 +81,10 @@ class MainWebViewClient(
 
     override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
         Log.w("WebView", "SSL Error on URL: ${error.url} - Error type: ${error.primaryError}")
-        handler.cancel()
-        onSslError()
+        if (!handler.handleSslError()) {
+            handler.cancel()
+            onSslError()
+        }
     }
 }
 

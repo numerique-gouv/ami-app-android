@@ -47,8 +47,10 @@ import kotlinx.coroutines.launch
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
     goSettings: () -> Unit,
+    goAuth: () -> Unit,
     goOnboarding: () -> Unit,
-    downloadLogsViewModel: DownloadLogsViewModel = viewModel()
+    downloadLogsViewModel: DownloadLogsViewModel = viewModel(),
+    startUrl: String = baseUrl
 ) {
     val TAG = "WebViewScreen"
     var hasBackBar by remember { mutableStateOf(false) }
@@ -56,6 +58,10 @@ fun WebViewScreen(
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
     var canGoBack by remember { mutableStateOf(false) }
     val swipeRefreshRef = remember { mutableStateOf<SwipeRefreshLayout?>(null) }
+
+    LaunchedEffect(Unit) {
+        webViewViewModel.currentUrl = startUrl
+    }
 
     LaunchedEffect(Unit) {
         webViewViewModel.refreshView.collect {
@@ -180,6 +186,13 @@ fun WebViewScreen(
                                             }
                                         }
 
+                                        "user_logged_out" -> {
+                                            webViewViewModel.viewModelScope.launch {
+                                                storage.clearBearer()
+                                                goAuth()
+                                            }
+                                        }
+
                                         "notification_permission_requested" -> {
                                             // Trigger notification permission request
                                             webViewViewModel.viewModelScope.launch {
@@ -245,6 +258,7 @@ fun PreviewWebViewScreenLight() {
         WebViewScreen(
             webViewViewModel = viewModel(),
             goSettings = {},
+            goAuth = {},
             goOnboarding = {})
     }
 }
@@ -256,6 +270,7 @@ fun PreviewWebViewScreenDark() {
         WebViewScreen(
             webViewViewModel = viewModel(),
             goSettings = {},
+            goAuth = {},
             goOnboarding = {})
     }
 }
