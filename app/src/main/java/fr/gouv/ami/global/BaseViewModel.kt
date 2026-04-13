@@ -9,7 +9,7 @@ open class BaseViewModel : ViewModel() {
     private val _refreshView = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val refreshView = _refreshView.asSharedFlow()
 
-    fun requestRefresh() {
+    open fun requestRefresh() {
         _refreshView.tryEmit(Unit)
     }
 }
