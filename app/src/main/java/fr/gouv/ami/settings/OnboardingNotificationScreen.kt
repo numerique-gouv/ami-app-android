@@ -13,13 +13,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.R
 import fr.gouv.ami.components.PrimaryButton
 import fr.gouv.ami.components.SecondaryButton
-import fr.gouv.ami.components.Title
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.home.NotificationPermissionHandler
 import fr.gouv.ami.home.WebViewViewModel
@@ -44,9 +45,11 @@ fun OnboardingNotificationScreen(webViewViewModel: WebViewViewModel, onChooseCli
                 painterResource(R.drawable.img_notification),
                 contentDescription = "image de notification"
             )
-            Title(
+            Text(
                 text = stringResource(R.string.onboarding_title),
-                modifier = Modifier.padding(vertical = 16.dp)
+                modifier = Modifier.padding(vertical = 16.dp),
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
             )
             Text(
                 stringResource(R.string.onboarding_description),
