@@ -38,6 +38,7 @@ fun SnackBar(
     status: StatusType,
     title: String,
     behaviour: Behaviour,
+    onDismiss: () -> Unit = {},
     action: () -> Unit = {}
 ) {
     var backgroundColor: Color
@@ -69,8 +70,10 @@ fun SnackBar(
     LaunchedEffect(Unit) {
         if (behaviour == Behaviour.Automatic) {
             delay(3000) //3 seconds
-            action()
+        } else {
+            delay(5000) //5 seconds
         }
+        onDismiss()
     }
 
     Card(
@@ -100,7 +103,7 @@ fun SnackBar(
             )
             when (behaviour) {
                 Behaviour.Close -> {
-                    IconButton(onClick = action) {
+                    IconButton(onClick = onDismiss) {
                         Image(
                             painterResource(R.drawable.ic_close),
                             contentDescription = "close",
@@ -110,7 +113,10 @@ fun SnackBar(
                 }
 
                 Behaviour.Cancel -> {
-                    TextButton(onClick = action) {
+                    TextButton(onClick = {
+                        action()
+                        onDismiss()
+                    }) {
                         Text(
                             text = stringResource(R.string.cancel),
                             color = BlueFranceSun113

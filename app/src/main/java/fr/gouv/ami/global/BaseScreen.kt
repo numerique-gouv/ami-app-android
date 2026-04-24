@@ -23,6 +23,8 @@ import fr.gouv.ami.components.InformationBanner
 import fr.gouv.ami.utils.NetworkMonitor
 import fr.gouv.ami.R
 import fr.gouv.ami.components.StatusType
+import fr.gouv.ami.snackbar.SnackBarManager
+import fr.gouv.ami.snackbar.SnackBarStack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +37,7 @@ fun BaseScreen(
     val context = LocalContext.current
     val networkMonitor = remember { NetworkMonitor(context) }
     val isConnected by networkMonitor.isConnected.collectAsState(true)
+    val snackbars by SnackBarManager.snackbars.collectAsState()
 
     LaunchedEffect(isConnected) {
         if (isConnected) {
@@ -76,7 +79,14 @@ fun BaseScreen(
                     hasCloseIcon = false
                 )
 
-            content()
+            Box(modifier = Modifier.fillMaxSize()) {
+                content()
+
+                SnackBarStack(
+                    snackbars = snackbars,
+                    onDismiss = { SnackBarManager.remove(it) }
+                )
+            }
         }
     }
 }
