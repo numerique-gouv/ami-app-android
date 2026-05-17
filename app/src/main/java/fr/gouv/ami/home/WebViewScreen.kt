@@ -39,6 +39,7 @@ import fr.gouv.ami.components.InformationType
 import fr.gouv.ami.components.MainWebViewClient
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.notifications.FirebaseService
+import fr.gouv.ami.settings.SettingsScreen
 import fr.gouv.ami.utils.ManagerLocalStorage
 import fr.gouv.ami.ui.theme.AMITheme
 import kotlinx.coroutines.launch
@@ -58,6 +59,7 @@ fun WebViewScreen(
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
     var canGoBack by remember { mutableStateOf(false) }
     val swipeRefreshRef = remember { mutableStateOf<SwipeRefreshLayout?>(null) }
+    var displaySettings by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         webViewViewModel.currentUrl = startUrl
@@ -152,8 +154,9 @@ fun WebViewScreen(
                                 onBackBarChanged = { hasBackBar = it },
                                 onUrlChanged =
                                     {
-                                        if (it.contains("settings")) {
-                                            goSettings()
+                                        if (it.contains("/preferences/notifications")) {
+                                            displaySettings = true
+                                            webViewRef.value?.goBack()
                                         } else {
                                             webViewViewModel.onUrlChanged(it)
                                         }
@@ -220,12 +223,18 @@ fun WebViewScreen(
                         swipeRefreshRef.value!!
                     },
                     update = { webView ->
-                        if (webViewRef.value?.url != webViewViewModel.currentUrl) {
-                            webViewRef.value?.loadUrl(webViewViewModel.currentUrl)
+                        if (webViewRef.value?.url?.contains("/preference") != true) {
+                            if (webViewRef.value?.url != webViewViewModel.currentUrl) {
+                                webViewRef.value?.loadUrl(webViewViewModel.currentUrl)
+                            }
+                            swipeRefreshRef.value?.isRefreshing = webViewViewModel.isRefreshing
                         }
-                        swipeRefreshRef.value?.isRefreshing = webViewViewModel.isRefreshing
                     }
                 )
+            }
+
+            if (displaySettings) {
+                SettingsScreen(webViewViewModel) { displaySettings = false }
             }
 
             // Download logs button - appears only on contact page

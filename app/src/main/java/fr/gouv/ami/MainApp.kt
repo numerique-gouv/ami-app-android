@@ -134,14 +134,6 @@ fun HomeApp(navController: NavHostController = rememberNavController(), pendingU
                     )
                 })
         }
-        composable(route = Screen.Settings.name) {
-            SettingsScreen(
-                onBackButton = {
-                    navController.navigate(Screen.Home.name)
-                },
-                webViewViewModel = webViewViewModel
-            )
-        }
         composable(route = Screen.Onboarding.name) {
             OnboardingNotificationScreen(
                 webViewViewModel = webViewViewModel,
