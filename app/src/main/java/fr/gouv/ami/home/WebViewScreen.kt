@@ -152,7 +152,7 @@ fun WebViewScreen(
                                 onBackBarChanged = { hasBackBar = it },
                                 onUrlChanged =
                                     {
-                                        if (it.contains("settings")) {
+                                        if (it.contains("#/preferences/notifications") || it.contains("#/settings")) {
                                             goSettings()
                                         } else {
                                             webViewViewModel.onUrlChanged(it)
