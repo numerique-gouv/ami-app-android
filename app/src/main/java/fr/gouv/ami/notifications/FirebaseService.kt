@@ -22,11 +22,14 @@ import fr.gouv.ami.api.apiService
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.data.models.Subscription
 import fr.gouv.ami.data.models.SubscriptionRequest
-import fr.gouv.ami.utils.ManagerLocalStorage
+import fr.gouv.ami.utils.storage.LowStorageManager
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.UUID
 
 class FirebaseService : FirebaseMessagingService() {
 
@@ -39,44 +42,48 @@ class FirebaseService : FirebaseMessagingService() {
 
     val CHANNEL_NAME = "firebase channel"
     val CHANNEL_ID = "1000"
-
-    override fun onNewToken(token: String) {
-        Log.d(TAG, token)
-        ManagerLocalStorage(this).saveToken(token)
-        sendRegistration(this)
+    private val storageManager by lazy {
+        LowStorageManager(applicationContext)
     }
 
-    fun sendRegistration(context: Context) {
+    override fun onNewToken(token: String) {
+        Log.d(TAG, "the new firebase token is $token")
+
+        CoroutineScope(Dispatchers.IO).launch {
+            storageManager.saveFirebaseToken(token)
+            sendRegistration(token)
+        }
+    }
+
+    suspend fun sendRegistration(token: String) {
         val cookieManager = CookieManager.getInstance()
         val cookies = cookieManager.getCookie(baseUrl)
-        val managerStorage = ManagerLocalStorage(context)
-        if (!cookies.isNullOrEmpty() && !managerStorage.getToken().isNullOrEmpty()) {
+        if (!cookies.isNullOrEmpty()) {
             val values = cookies.split(";")
             var bearer: String? = null
             for (cookie in values) {
                 if (cookie.contains("token")) {
                     bearer = cookie.split("\"")[1]
                     Log.d(TAG, "bearer: $bearer")
-                    managerStorage.saveBearer(bearer)
+                    storageManager.saveBearer(bearer)
                     break
                 }
             }
             if (bearer != null) {
                 val subscription = Subscription(
-                    fcmToken = managerStorage.getToken()!!,
-                    deviceId = managerStorage.getOrCreateDeviceId(),
+                    fcmToken = token,
+                    deviceId = getOrCreateDeviceId(),
                     platform = "android",
                     appVersion = BuildConfig.VERSION_NAME,
-                    model = managerStorage.getDeviceModel()
+                    model = getDeviceModel()
                 )
-                GlobalScope.launch {
-                    withContext(Dispatchers.IO) {
-                        apiService.registrations(bearer, SubscriptionRequest(subscription))
-                    }
-                }
+
+                apiService.registrations(bearer, SubscriptionRequest(subscription))
+
             }
         }
     }
+
 
     override fun onMessageReceived(message: RemoteMessage) {
         createNotificationChannel()
@@ -129,4 +136,21 @@ class FirebaseService : FirebaseMessagingService() {
         notificationManager.createNotificationChannel(channel)
     }
 
+    suspend fun getOrCreateDeviceId(): String {
+        var deviceId = storageManager.deviceId.first()
+        if (deviceId == null) {
+            deviceId = UUID.randomUUID().toString()
+            storageManager.saveDeviceId(deviceId)
+        }
+        Log.d(TAG, "Using Android ID as device ID: $deviceId")
+        return deviceId
+    }
+
+    /**
+     * Returns the device model for display/debugging purposes.
+     * Example: "Samsung SM-G991B"
+     */
+    fun getDeviceModel(): String {
+        return "${Build.MANUFACTURER} ${Build.MODEL}"
+    }
 }
