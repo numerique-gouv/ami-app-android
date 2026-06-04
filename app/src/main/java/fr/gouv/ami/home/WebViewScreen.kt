@@ -4,12 +4,10 @@ import android.app.Activity
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.content.res.Configuration
-import android.webkit.JsPromptResult
 import android.webkit.JsResult
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,7 +34,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
-import fr.gouv.ami.BuildConfig
 import fr.gouv.ami.R
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
@@ -48,9 +45,10 @@ import fr.gouv.ami.components.MainWebViewClient
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.home.WebviewScripts.Companion.nativeInfosScript
 import fr.gouv.ami.notifications.FirebaseService
-import fr.gouv.ami.utils.ManagerLocalStorage
 import fr.gouv.ami.ui.theme.AMITheme
 import fr.gouv.ami.home.WebviewScripts.EventWebview
+import fr.gouv.ami.utils.storage.LowStorageManager
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @Composable
@@ -207,14 +205,14 @@ fun WebViewScreen(
                                 @JavascriptInterface
                                 fun onEvent(eventName: String, dataJson: String) {
                                     Log.d("WebView", "Event received: $eventName - $dataJson")
-                                    val storage = ManagerLocalStorage(context)
+                                    val storage = LowStorageManager(context)
                                     val event = EventWebview.fromValue(eventName)
                                     when (event) {
                                         EventWebview.USER_LOGGED_IN -> {
-                                            if (storage.getToken() != "") {
-                                                // Post to main thread to access WebView
-                                                webViewViewModel.viewModelScope.launch {
-                                                    FirebaseService().sendRegistration(context)
+                                            webViewViewModel.viewModelScope.launch {
+                                                val bearerToken = storage.bearerToken.first()
+                                                if (!bearerToken.isNullOrEmpty()) {
+                                                    FirebaseService().sendRegistration(bearerToken)
                                                 }
                                             }
                                             if (!hasRequestedPermissionBefore(context)) {

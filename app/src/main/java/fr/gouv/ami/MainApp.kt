@@ -24,8 +24,9 @@ import fr.gouv.ami.home.HomeScreen
 import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.settings.SettingsScreen
 import fr.gouv.ami.settings.OnboardingNotificationScreen
-import fr.gouv.ami.utils.ManagerLocalStorage
+import fr.gouv.ami.utils.storage.LowStorageManager
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 
 //list of all screens
 enum class Screen {
@@ -37,17 +38,21 @@ enum class Screen {
 }
 
 @Composable
-fun HomeApp(navController: NavHostController = rememberNavController(), pendingUrl: String? = null) {
+fun HomeApp(
+    navController: NavHostController = rememberNavController(),
+    pendingUrl: String? = null
+) {
 
     val TAG = object {}.javaClass.enclosingClass?.simpleName ?: "AMI"
     val webViewViewModel = viewModel<WebViewViewModel>()
-    val storage = ManagerLocalStorage(LocalContext.current)
+    val storage = LowStorageManager(LocalContext.current)
     var isConnected by remember {
         mutableStateOf(false)
     }
 
     LaunchedEffect(Unit) {
-        storage.getBearer()?.let { token ->
+        val token = storage.bearerToken.first()
+        if (token != null) {
             val authenticationFlow = checkAuth(token)
             authenticationFlow
                 .catch { e ->
