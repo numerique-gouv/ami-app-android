@@ -156,4 +156,11 @@ dependencies {
 
     //crypto
     implementation(libs.androidx.security.crypto)
+
+    //coroutine
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+
+    //storage
+    implementation(libs.androidx.datastore.preferences)
 }
