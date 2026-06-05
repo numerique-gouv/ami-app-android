@@ -29,6 +29,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
 import fr.gouv.ami.R
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
@@ -38,10 +40,12 @@ import fr.gouv.ami.components.InformationBanner
 import fr.gouv.ami.components.InformationType
 import fr.gouv.ami.components.MainWebViewClient
 import fr.gouv.ami.global.BaseScreen
+import fr.gouv.ami.home.WebviewScripts.Companion.nativeInfosScript
 import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.ui.theme.AMITheme
 import fr.gouv.ami.utils.storage.LowStorageManager
 import kotlinx.coroutines.flow.first
+import fr.gouv.ami.home.WebviewScripts.EventWebview
 import kotlinx.coroutines.launch
 
 @Composable
@@ -170,13 +174,26 @@ fun WebViewScreen(
                                 onSslError = { webViewViewModel.showSSLErrorBanner() },
                             )
 
+                            if (
+                                WebViewFeature.isFeatureSupported(
+                                    WebViewFeature.DOCUMENT_START_SCRIPT
+                                )
+                            ) {
+                                WebViewCompat.addDocumentStartJavaScript(
+                                    this,
+                                    nativeInfosScript(context),
+                                    setOf("*")
+                                )
+                            }
+
                             addJavascriptInterface(object {
                                 @JavascriptInterface
                                 fun onEvent(eventName: String, dataJson: String) {
                                     Log.d("WebView", "Event received: $eventName - $dataJson")
                                     val storage = LowStorageManager(context)
-                                    when (eventName) {
-                                        "user_logged_in" -> {
+                                    val event = EventWebview.fromValue(eventName)
+                                    when (event) {
+                                        EventWebview.USER_LOGGED_IN -> {
                                             // Post to main thread to access WebView
                                             webViewViewModel.viewModelScope.launch {
                                                 val bearerToken = storage.bearerToken.first()
@@ -191,26 +208,28 @@ fun WebViewScreen(
                                             }
                                         }
 
-                                        "user_logged_out" -> {
+                                        EventWebview.USER_LOGGED_OUT -> {
                                             webViewViewModel.viewModelScope.launch {
                                                 storage.clearBearer()
                                                 goAuth()
                                             }
                                         }
 
-                                        "notification_permission_requested" -> {
+                                        EventWebview.NOTIFICATION_PERMISSION_REQUESTED -> {
                                             // Trigger notification permission request
                                             webViewViewModel.viewModelScope.launch {
                                                 webViewViewModel.triggerNotificationPermissionRequest()
                                             }
                                         }
 
-                                        "notification_permission_removed" -> {
+                                        EventWebview.NOTIFICATION_PERMISSION_REMOVED -> {
                                             // Open system settings to let user revoke permission
                                             webViewViewModel.viewModelScope.launch {
                                                 webViewViewModel.openNotificationSettings()
                                             }
                                         }
+
+                                        else -> {}
                                     }
                                 }
                             }, "NativeBridge")
