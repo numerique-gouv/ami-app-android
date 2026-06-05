@@ -133,6 +133,7 @@ dependencies {
     implementation(libs.androidx.webkit)
     implementation(libs.androidx.junit.ktx)
     implementation(libs.androidx.datastore.preferences.core)
+    implementation(libs.androidx.webkit)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
