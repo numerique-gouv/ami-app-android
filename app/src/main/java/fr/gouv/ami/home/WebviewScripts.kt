@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import fr.gouv.ami.BuildConfig
 import fr.gouv.ami.R
-import fr.gouv.ami.utils.ManagerLocalStorage
+import fr.gouv.ami.notifications.FirebaseService
 
 class WebviewScripts {
 
@@ -27,8 +27,7 @@ class WebviewScripts {
         fun nativeInfosScript(
             context: Context
         ): String {
-            val managerStorage = ManagerLocalStorage(context)
-            val deviceId = managerStorage.getOrCreateDeviceId()
+            val deviceId = FirebaseService().getOrCreateDeviceId()
             Log.d(TAG, "device_id sending in nativeInfosScript is $deviceId")
 
             return """

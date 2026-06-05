@@ -209,6 +209,7 @@ fun WebViewScreen(
                                     val event = EventWebview.fromValue(eventName)
                                     when (event) {
                                         EventWebview.USER_LOGGED_IN -> {
+                                            // Post to main thread to access WebView
                                             webViewViewModel.viewModelScope.launch {
                                                 val bearerToken = storage.bearerToken.first()
                                                 if (!bearerToken.isNullOrEmpty()) {
