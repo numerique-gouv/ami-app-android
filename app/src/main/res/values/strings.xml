@@ -5,6 +5,7 @@
     <string name="back">Retour</string>
     <string name="enable">Activer</string>
     <string name="maybe_later">Peut-être plus tard</string>
+    <string name="cancel">Annuler</string>
 
     <string name="connection_lost_title">Problème de connexion Internet</string>
     <string name="connection_lost_description">Vérifiez votre réseau (données mobiles ou Wi-Fi) et relancez l\'application pour vous connecter.</string>

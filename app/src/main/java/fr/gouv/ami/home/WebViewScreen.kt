@@ -39,8 +39,8 @@ import fr.gouv.ami.components.BackBar
 import fr.gouv.ami.components.DownloadLogsButton
 import fr.gouv.ami.components.DownloadLogsViewModel
 import fr.gouv.ami.components.InformationBanner
-import fr.gouv.ami.components.InformationType
 import fr.gouv.ami.components.MainWebViewClient
+import fr.gouv.ami.components.StatusType
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.home.WebviewScripts.Companion.nativeInfosScript
 import fr.gouv.ami.notifications.FirebaseService
@@ -109,7 +109,7 @@ fun WebViewScreen(
             ) {
                 if (webViewViewModel.showNotificationPermissionGrantedBanner) {
                     InformationBanner(
-                        informationType = InformationType.Validation,
+                        informationType = StatusType.Success,
                         title = stringResource(R.string.notification_permission_granted),
                         icon = R.drawable.ic_information_validation,
                         onClose = { webViewViewModel.dismissNotificationPermissionGrantedBanner() }
@@ -118,7 +118,7 @@ fun WebViewScreen(
 
                 if (webViewViewModel.showSSLErrorBanner) {
                     InformationBanner(
-                        informationType = InformationType.Error,
+                        informationType = StatusType.Error,
                         title = stringResource(R.string.ssl_error_title),
                         icon = R.drawable.ic_information_error,
                         content = stringResource(R.string.ssl_error_description),
