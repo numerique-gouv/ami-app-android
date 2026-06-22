@@ -3,6 +3,9 @@ package fr.gouv.ami.home
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.content.res.Configuration
+import android.webkit.JsPromptResult
+import android.webkit.JsResult
+import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
@@ -153,6 +156,18 @@ fun WebViewScreen(
                             settings.allowContentAccess = true
                             settings.domStorageEnabled = true
                             Log.d(TAG, "Creating MainWebViewClient with baseURL ${baseUrl}")
+                            webChromeClient = object : WebChromeClient() {
+                                // Required for Android WebView to handle beforeunload confirmation dialogs
+                                override fun onJsBeforeUnload(
+                                    view: WebView?,
+                                    url: String?,
+                                    message: String?,
+                                    result: JsResult?
+                                ): Boolean {
+                                    Log.d(TAG, "onJsBeforeUnload is called")
+                                    return super.onJsBeforeUnload(view, url, message, result)
+                                }
+                            }
                             webViewClient = MainWebViewClient(
                                 baseUrl = baseUrl,
                                 onBackBarChanged = { hasBackBar = it },
