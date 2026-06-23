@@ -1,5 +1,6 @@
 package fr.gouv.ami.home
 
+import android.app.Activity
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.content.res.Configuration
@@ -130,7 +131,7 @@ fun WebViewScreen(
 
                 if (hasBackBar) {
                     BackBar {
-                        webViewViewModel.onBackPressed()
+                        (context as Activity).onBackPressed()
                     }
                 }
 
