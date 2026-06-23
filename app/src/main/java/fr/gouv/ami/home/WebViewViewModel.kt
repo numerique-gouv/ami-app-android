@@ -47,11 +47,6 @@ class WebViewViewModel : BaseViewModel() {
         isOnContactPage = url.contains("/#/contact")
     }
 
-    fun onBackPressed() {
-        Log.d(TAG, "onBackPressed")
-        onGoHome()
-    }
-
     fun onGoHome() {
         Log.d(TAG, "onGoHome to ${baseUrl}")
         currentUrl = baseUrl
