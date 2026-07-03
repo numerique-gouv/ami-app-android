@@ -11,8 +11,10 @@ import kotlinx.coroutines.flow.map
 class LowStorageManager(private val context: Context) {
     private val TAG = this::class.java.simpleName
 
-    private val STORAGE_NAME = "low_storage"
-    val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = STORAGE_NAME)
+    companion object {
+        private val STORAGE_NAME = "low_storage"
+        val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = STORAGE_NAME)
+    }
 
     private val FIREBASE_TOKEN = stringPreferencesKey("firebase_token")
     private val DEVICE_ID = stringPreferencesKey("device_id")
@@ -20,7 +22,7 @@ class LowStorageManager(private val context: Context) {
 
     suspend fun saveFirebaseToken(token: String) {
         context.dataStore.edit { preferences ->
-                preferences[FIREBASE_TOKEN] = token
+            preferences[FIREBASE_TOKEN] = token
         }
     }
 
