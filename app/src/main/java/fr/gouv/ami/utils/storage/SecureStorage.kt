@@ -9,70 +9,53 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class SecureStorage(val context: Context, val userStoreId: String) {
-    val Context.encryptedStorage: DataStore<Preferences> by preferencesDataStore(name = "${userStoreId}_encrypted")
-    val Context.authenticatedStorage: DataStore<Preferences> by preferencesDataStore(name = "${userStoreId}_authenticated")
+    
+    //TODO replace "userStoreId" to variable
+    companion object {
+        val Context.encryptedStorage: DataStore<Preferences> by preferencesDataStore(name = "userStoreId_encrypted")
+        val Context.authenticatedStorage: DataStore<Preferences> by preferencesDataStore(name = "userStoreId_authenticated")
+    }
+
+    private fun store(authenticationRequired: Boolean): DataStore<Preferences> {
+        return if (authenticationRequired) context.authenticatedStorage else context.encryptedStorage
+    }
 
     suspend fun <T> writeData(
         preferenceKey: Preferences.Key<T>,
         value: T,
-        requireAuthentication: Boolean
+        authenticationRequired: Boolean
     ) {
-        if (requireAuthentication) {
-            context.authenticatedStorage.edit { preferences ->
-                preferences[preferenceKey] = value
-            }
-        } else {
-            context.encryptedStorage.edit { preferences ->
-                preferences[preferenceKey] = value
-            }
+        store(authenticationRequired).edit { preferences ->
+            preferences[preferenceKey] = value
         }
     }
 
     suspend fun <T> readData(
         preferenceKey: Preferences.Key<T>,
-        requireAuthentication: Boolean
+        authenticationRequired: Boolean
     ): T? {
-        if (requireAuthentication) {
-            return context.authenticatedStorage.data
-                .map { preferences ->
-                    preferences[preferenceKey]
-                }
-                .first()
-        } else {
-            return context.encryptedStorage.data
-                .map { preferences ->
-                    preferences[preferenceKey]
-                }
-                .first()
-        }
+
+        return store(authenticationRequired).data
+            .map { preferences ->
+                preferences[preferenceKey]
+            }
+            .first()
     }
 
     suspend fun <T> deleteData(
         preferenceKey: Preferences.Key<T>,
-        requireAuthentication: Boolean
+        authenticationRequired: Boolean
     ) {
-        if (requireAuthentication) {
-            context.authenticatedStorage.edit { preferences ->
-                preferences.remove(preferenceKey)
-            }
-        } else {
-            context.encryptedStorage.edit { preferences ->
-                preferences.remove(preferenceKey)
-            }
+        store(authenticationRequired).edit { preferences ->
+            preferences.remove(preferenceKey)
         }
     }
 
-    suspend fun  deleteAll(
-        requireAuthentication: Boolean
+    suspend fun deleteAll(
+        authenticationRequired: Boolean
     ) {
-        if (requireAuthentication) {
-            context.authenticatedStorage.edit { preferences ->
-                preferences.clear()
-            }
-        } else {
-            context.encryptedStorage.edit { preferences ->
-                preferences.clear()
-            }
+        store(authenticationRequired).edit { preferences ->
+            preferences.clear()
         }
     }
 }
