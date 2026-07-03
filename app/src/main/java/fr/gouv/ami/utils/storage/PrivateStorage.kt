@@ -9,8 +9,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class PrivateStorage(val context: Context, val userStoreId: String) {
+
+    //TODO replace "userStoreId" to variable
     companion object {
-        val Context.privateStorage: DataStore<Preferences> by preferencesDataStore(name = userStoreId)
+        val Context.privateStorage: DataStore<Preferences> by preferencesDataStore(name = "userStoreId")
     }
 
     suspend fun <T> writeData(preferenceKey: Preferences.Key<T>, value: T) {
