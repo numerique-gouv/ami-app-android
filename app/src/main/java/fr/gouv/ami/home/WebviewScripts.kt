@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import fr.gouv.ami.BuildConfig
 import fr.gouv.ami.R
+import fr.gouv.ami.utils.ManagerLocalStorage
 
 class WebviewScripts {
 
@@ -21,9 +22,15 @@ class WebviewScripts {
     }
 
     companion object {
+        val TAG = this::class.java.simpleName
+
         fun nativeInfosScript(
             context: Context
         ): String {
+            val managerStorage = ManagerLocalStorage(context)
+            val deviceId = managerStorage.getOrCreateDeviceId()
+            Log.d(TAG, "device_id sending in nativeInfosScript is $deviceId")
+
             return """
         (function() {
             window.NativeInfos = window.NativeInfos || {};
@@ -35,7 +42,8 @@ class WebviewScripts {
                     version: "${BuildConfig.VERSION_NAME}",
                     build: ${BuildConfig.VERSION_CODE},
                     environment: "${BuildConfig.FLAVOR}",
-                    mode: "${BuildConfig.BUILD_TYPE}"
+                    mode: "${BuildConfig.BUILD_TYPE}",
+                    device_id: "$deviceId"
                 };
             };
         })();
