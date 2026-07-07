@@ -46,6 +46,49 @@ class WebviewScripts {
                     device_id: "$deviceId"
                 };
             };
+            
+            window.NativeInfos.displayBanner = function() {
+
+                const banner = document.createElement('native-info-banner');
+                banner.innerText = JSON.stringify(
+                    window.NativeInfos.getInfos()
+                );
+
+                banner.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    padding: 12px 16px;
+                    background-color: #007AFF;
+                    color: white;
+                    font-size: 16px;
+                    font-family: sans-serif;
+                    font-weight: 600;
+                    z-index: 999999;
+                    box-sizing: border-box;
+                    text-align: center;
+                `;
+                
+                console.log("body =", document.body);
+
+                document.body?.insertBefore(
+                    banner,
+                    document.body.firstChild
+                );
+            };
+
+            console.log('NativeInfos initialized');
+            
+            if (document.body) {
+                window.NativeInfos.displayBanner();
+            } else {
+                document.addEventListener(
+                    'DOMContentLoaded',
+                    window.NativeInfos.displayBanner,
+                    { once: true }
+                );
+            }
         })();
     """.trimIndent()
         }
