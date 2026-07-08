@@ -1,5 +1,6 @@
 package fr.gouv.ami
 
+import android.content.pm.LauncherApps
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.Composable
@@ -24,7 +25,10 @@ import fr.gouv.ami.home.HomeScreen
 import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.settings.SettingsScreen
 import fr.gouv.ami.settings.OnboardingNotificationScreen
+import fr.gouv.ami.utils.storage.ILocalStorageRepository
+import fr.gouv.ami.utils.storage.KeyStoreManager
 import fr.gouv.ami.utils.storage.LowStorageManager
+import fr.gouv.ami.utils.storage.SecureStorage
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 
@@ -49,6 +53,7 @@ fun HomeApp(
     var isConnected by remember {
         mutableStateOf(false)
     }
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         val token = storage.bearerToken.first()
@@ -71,6 +76,12 @@ fun HomeApp(
                     }
                 }
         }
+    }
+
+    LaunchedEffect(Unit) {
+        val localStorage = ILocalStorageRepository(context)
+        //localStorage.writeString("Test", "toto chiffré", KeyStoreManager.SecurityLevelType.Encrypted)
+        localStorage.writeString("Test", "toto authentifié", KeyStoreManager.SecurityLevelType.Authenticated)
     }
 
     if (pendingUrl != null) {

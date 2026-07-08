@@ -164,4 +164,5 @@ dependencies {
 
     //storage
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.biometric)
 }
