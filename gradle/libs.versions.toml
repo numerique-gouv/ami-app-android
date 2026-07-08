@@ -1,5 +1,6 @@
 [versions]
 agp = "8.13.0"
+biometric = "1.4.0-alpha07"
 coreSplashscreen = "1.2.0"
 datastorePreferencesCore = "1.2.1"
 firebaseMessaging = "25.0.1"
@@ -24,6 +25,7 @@ securityCrypto = "1.1.0"
 swiperefreshlayout = "1.2.0"
 
 [libraries]
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferencesCore" }
