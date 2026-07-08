@@ -5,6 +5,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProtocol() {
     private lateinit var privateStorage: PrivateStorage
@@ -14,6 +17,13 @@ class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProt
         val userStoreId = "tmp" //TODO à changer
         privateStorage = PrivateStorage(context, userStoreId)
         secureStorage = SecureStorage(context, userStoreId)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            secureStorage.encryptedStorageLog()
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            secureStorage.authenticatedStorageLog()
+        }
     }
 
     private suspend fun <T> writeData(
@@ -28,11 +38,11 @@ class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProt
             }
 
             KeyStoreManager.SecurityLevelType.Encrypted -> {
-                secureStorage.writeData(keyFactory(key), value, false)
+                secureStorage.writeData(stringPreferencesKey(key), value.toString(), false)
             }
 
             KeyStoreManager.SecurityLevelType.Authenticated -> {
-                secureStorage.writeData(keyFactory(key), value, true)
+                secureStorage.writeData(stringPreferencesKey(key), value.toString(), true)
             }
         }
         return true
@@ -65,43 +75,43 @@ class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProt
     private suspend fun <T> readData(
         key: String,
         keyFactory: (String) -> Preferences.Key<T>,
-        secureLevel: KeyStoreManager.SecurityLevelType
-    ): Boolean {
-        when (secureLevel) {
+        secureLevel: KeyStoreManager.SecurityLevelType,
+        converter: (String) -> T?
+    ): T? {
+         when (secureLevel) {
             KeyStoreManager.SecurityLevelType.Private -> {
-                privateStorage.readData(keyFactory(key))
+                return privateStorage.readData(keyFactory(key))
             }
 
             KeyStoreManager.SecurityLevelType.Encrypted -> {
-                secureStorage.readData(keyFactory(key), false)
+                return secureStorage.readData(stringPreferencesKey(key), false)?.let(converter)
             }
 
             KeyStoreManager.SecurityLevelType.Authenticated -> {
-                secureStorage.readData(keyFactory(key), true)
+                return secureStorage.readData(stringPreferencesKey(key), true)?.let(converter)
             }
         }
-        return true
     }
 
     override suspend fun readBool(
         key: String,
         secureLevel: KeyStoreManager.SecurityLevelType
-    ): Boolean {
-        return readData(key, ::booleanPreferencesKey, secureLevel)
+    ): Boolean? {
+        return readData(key, ::booleanPreferencesKey, secureLevel, String::toBoolean)
     }
 
     override suspend fun readInt(
         key: String,
         secureLevel: KeyStoreManager.SecurityLevelType
-    ): Boolean {
-        return readData(key, ::intPreferencesKey, secureLevel)
+    ): Int? {
+        return readData(key, ::intPreferencesKey, secureLevel, String::toInt)
     }
 
     override suspend fun readString(
         key: String,
         secureLevel: KeyStoreManager.SecurityLevelType
-    ): Boolean {
-        return readData(key, ::stringPreferencesKey, secureLevel)
+    ): String? {
+        return readData(key, ::stringPreferencesKey, secureLevel, String::toString)
     }
 
     private suspend fun <T> delete(
