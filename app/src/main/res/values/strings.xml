@@ -27,4 +27,6 @@
     <string name="franceConnexion_subtitle">FranceConnect est la solution proposée par l\'Etat pour sécuriser et simplifier la connexion à vos services en ligne.</string>
     <string name="FC_button_description">Qu\'est ce que FranceConnect ?</string>
     <string name="cannot_connect">Je n\'arrive pas à me connecter</string>
+    <string name="help_online">Faire une demande en ligne</string>
+    <string name="help_email">Envoyer un mail</string>
 </resources>

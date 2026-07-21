@@ -7,7 +7,6 @@ import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,12 +14,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -36,19 +44,22 @@ import fr.gouv.ami.R
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.ui.theme.AMITheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FranceConnexionScreen(onFcClick: () -> Unit) {
     val targetTchap = "fr.gouv.tchap.a"
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
+    val sheetState = rememberModalBottomSheetState()
+    var showBottomSheet by remember { mutableStateOf(false) }
+
     BaseScreen(viewModel = viewModel()) {
-        /*Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
-        ) {*/
-        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        ) {
             Row(
                 modifier = Modifier
                     .weight(1f)
@@ -111,7 +122,8 @@ fun FranceConnexionScreen(onFcClick: () -> Unit) {
             ) {
                 TextButton(
                     onClick = {
-                        context.openOrInstallApp(targetTchap)
+                        showBottomSheet = true
+                        //context.openOrInstallApp(targetTchap)
                     }
                 ) {
                     Text(
@@ -119,6 +131,44 @@ fun FranceConnexionScreen(onFcClick: () -> Unit) {
                         textDecoration = TextDecoration.Underline,
                         text = stringResource(R.string.cannot_connect)
                     )
+                }
+            }
+        }
+
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showBottomSheet = false },
+                sheetState = sheetState
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            modifier = Modifier.padding(end = 8.dp),
+                            painter = painterResource(R.drawable.dsfr_mail_fill),
+                            contentDescription = "image d'application",
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                        )
+                        Text(stringResource(R.string.help_online))
+                    }
+                    Row(
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            modifier = Modifier.padding(end = 8.dp),
+                            painter = painterResource(R.drawable.dsfr_edit_fill),
+                            contentDescription = "image d'application",
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                        )
+                        Text(stringResource(R.string.help_email))
+                    }
                 }
             }
         }
