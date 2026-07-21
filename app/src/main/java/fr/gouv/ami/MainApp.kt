@@ -81,7 +81,7 @@ fun HomeApp(
     LaunchedEffect(Unit) {
         val localStorage = ILocalStorageRepository(context)
         //localStorage.writeString("Test", "toto chiffré", KeyStoreManager.SecurityLevelType.Encrypted)
-        localStorage.writeString("Test", "toto authentifié", KeyStoreManager.SecurityLevelType.Authenticated)
+
     }
 
     if (pendingUrl != null) {

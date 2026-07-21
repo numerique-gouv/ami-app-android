@@ -4,10 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.webkit.CookieManager
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.home.WebViewViewModel
@@ -15,7 +15,7 @@ import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.notifications.TokenManager
 import fr.gouv.ami.ui.theme.AMITheme
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     private val TAG = this::class.java.simpleName
 
     override fun onCreate(savedInstanceState: Bundle?) {
