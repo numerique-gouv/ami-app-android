@@ -5,6 +5,7 @@
     <string name="back">Retour</string>
     <string name="enable">Activer</string>
     <string name="maybe_later">Peut-être plus tard</string>
+    <string name="commun_cancel">Annuler</string>
 
     <string name="connection_lost_title">Problème de connexion Internet</string>
     <string name="connection_lost_description">Vérifiez votre réseau (données mobiles ou Wi-Fi) et relancez l\'application pour vous connecter.</string>
@@ -28,4 +29,6 @@
     <string name="FC_button_description">Qu\'est ce que FranceConnect ?</string>
     <string name="connection_difficult">Vous n\'arrivez pas à vous connecter ?</string>
     <string name="tchap">Contactez-nous sur Tchap</string>
+
+    <string name="biometric_prompt_title">Utilisez la biométrie pour valider</string>
 </resources>

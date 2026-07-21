@@ -4,8 +4,10 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat.getString
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.fragment.app.FragmentActivity
+import fr.gouv.ami.R
 import fr.gouv.ami.utils.storage.CipherManagerImpl
 import fr.gouv.ami.utils.storage.SecureStorage
 import kotlinx.coroutines.CoroutineScope
@@ -69,10 +71,10 @@ class AmiBiometricPrompt(val context: FragmentActivity) {
 
     fun createPromptInfo(): BiometricPrompt.PromptInfo =
         BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Authenticate with biometrics")
+            .setTitle(getString(context, R.string.biometric_prompt_title))
             .setAllowedAuthenticators(BIOMETRIC_STRONG)
             .setConfirmationRequired(false)
-            .setNegativeButtonText("Cancel")
+            .setNegativeButtonText(getString(context, R.string.commun_cancel))
             .build()
 
     private fun <T> createCallbackObject(
