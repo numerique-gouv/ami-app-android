@@ -5,8 +5,6 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import androidx.annotation.RequiresApi
-import androidx.biometric.BiometricPrompt
-import androidx.fragment.app.FragmentActivity
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -15,10 +13,10 @@ import javax.crypto.spec.IvParameterSpec
 
 interface CipherManager {
     @Throws(Exception::class)
-    fun encrypt(inputText: String, authenticationRequired: Boolean): String
+    fun encrypt(inputText: String, authenticationRequired: Boolean, cipher: Cipher?): String
 
     @Throws(Exception::class)
-    fun decrypt(data: String, authenticationRequired: Boolean): String
+    fun decrypt(data: String, authenticationRequired: Boolean, cipher: Cipher?): String
 }
 
 class CipherManagerImpl : CipherManager {
@@ -36,15 +34,37 @@ class CipherManagerImpl : CipherManager {
         load(null) // With load function we initialize our keystore
     }
 
+    fun getEncryptionCipher(authenticationRequired: Boolean): Cipher {
+        return Cipher.getInstance(TRANSFORMATION).apply {
+            init(
+                Cipher.ENCRYPT_MODE,
+                getOrCreateKey(authenticationRequired)
+            )
+        }
+    }
+
+    fun getDecryptionCipher(data: String, authenticationRequired: Boolean): Cipher {
+        val cipher = Cipher.getInstance(TRANSFORMATION)
+        val encryptedDataWithIV = Base64.decode(data, Base64.DEFAULT)
+        val iv = encryptedDataWithIV.copyOfRange(0, cipher.blockSize)
+        cipher.init(
+            Cipher.DECRYPT_MODE,
+            getOrCreateKey(authenticationRequired),
+            IvParameterSpec(iv)
+        )
+        return cipher
+    }
+
+
     @RequiresApi(Build.VERSION_CODES.P)
     @Throws(Exception::class)
-    override fun encrypt(inputText: String, authenticationRequired: Boolean): String {
-        val cipher = Cipher.getInstance(TRANSFORMATION)
-        cipher.init(
-            Cipher.ENCRYPT_MODE,
-            getOrCreateKey(authenticationRequired)
-        )
+    override fun encrypt(
+        inputText: String,
+        authenticationRequired: Boolean,
+        cipher: Cipher?
+    ): String {
 
+        val cipher = cipher ?: getEncryptionCipher(authenticationRequired)
         val encryptedBytes = cipher.doFinal(inputText.toByteArray())
         val iv = cipher.iv
 
@@ -54,10 +74,23 @@ class CipherManagerImpl : CipherManager {
         return Base64.encodeToString(encryptedDataWithIV, Base64.DEFAULT)
     }
 
-    @Throws(Exception::class)
+    /*@Throws(Exception::class)
     override fun decrypt(data: String, authenticationRequired: Boolean): String {
         val encryptedDataWithIV = Base64.decode(data, Base64.DEFAULT)
         val cipher = Cipher.getInstance(TRANSFORMATION)
+        val iv = encryptedDataWithIV.copyOfRange(0, cipher.blockSize)
+        cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(authenticationRequired), IvParameterSpec(iv))
+
+        val encryptedData = encryptedDataWithIV.copyOfRange(cipher.blockSize, encryptedDataWithIV.size)
+        val decryptedBytes = cipher.doFinal(encryptedData)
+        return String(decryptedBytes, Charsets.UTF_8)
+    }*/
+
+
+    @Throws(Exception::class)
+    override fun decrypt(data: String, authenticationRequired: Boolean, cipher: Cipher?): String {
+        val encryptedDataWithIV = Base64.decode(data, Base64.DEFAULT)
+        val cipher = cipher ?: Cipher.getInstance(TRANSFORMATION)
         val iv = encryptedDataWithIV.copyOfRange(0, cipher.blockSize)
         cipher.init(
             Cipher.DECRYPT_MODE, getOrCreateKey(authenticationRequired),
