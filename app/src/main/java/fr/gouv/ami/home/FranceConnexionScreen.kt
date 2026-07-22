@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,6 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.R
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.ui.theme.AMITheme
+import fr.gouv.ami.utils.EmailManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -145,26 +147,39 @@ fun FranceConnexionScreen(onFcClick: () -> Unit) {
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
+                    //ask for help online
                     Row(
-                        modifier = Modifier.padding(vertical = 12.dp),
+                        modifier = Modifier
+                            .padding(vertical = 12.dp)
+                            .clickable(
+                                onClick = {
+                                    showBottomSheet = false
+                                }),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Image(
                             modifier = Modifier.padding(end = 8.dp),
                             painter = painterResource(R.drawable.dsfr_mail_fill),
-                            contentDescription = "image d'application",
+                            contentDescription = "online",
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                         )
                         Text(stringResource(R.string.help_online))
                     }
+                    //send an email
                     Row(
-                        modifier = Modifier.padding(vertical = 12.dp),
+                        modifier = Modifier
+                            .padding(vertical = 12.dp)
+                            .clickable(onClick = {
+                                showBottomSheet = false
+                                val emailManager = EmailManager(context)
+                                emailManager.emailTo()
+                            }),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Image(
                             modifier = Modifier.padding(end = 8.dp),
                             painter = painterResource(R.drawable.dsfr_edit_fill),
-                            contentDescription = "image d'application",
+                            contentDescription = "email",
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                         )
                         Text(stringResource(R.string.help_email))

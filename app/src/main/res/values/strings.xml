@@ -29,4 +29,6 @@
     <string name="cannot_connect">Je n\'arrive pas à me connecter</string>
     <string name="help_online">Faire une demande en ligne</string>
     <string name="help_email">Envoyer un mail</string>
+
+    <string name="email_body">Merci de ne pas effacer le texte ci-dessous. \n Mon code d\'identification : %1$s</string>
 </resources>
