@@ -159,7 +159,7 @@ fun FranceConnexionScreen(onFcClick: () -> Unit) {
                     ) {
                         Image(
                             modifier = Modifier.padding(end = 8.dp),
-                            painter = painterResource(R.drawable.dsfr_mail_fill),
+                            painter = painterResource(R.drawable.dsfr_edit_fill),
                             contentDescription = "online",
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                         )
@@ -178,7 +178,7 @@ fun FranceConnexionScreen(onFcClick: () -> Unit) {
                     ) {
                         Image(
                             modifier = Modifier.padding(end = 8.dp),
-                            painter = painterResource(R.drawable.dsfr_edit_fill),
+                            painter = painterResource(R.drawable.dsfr_mail_fill),
                             contentDescription = "email",
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                         )
