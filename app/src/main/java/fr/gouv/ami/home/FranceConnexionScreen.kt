@@ -6,29 +6,37 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Gray
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,41 +44,57 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.R
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.ui.theme.AMITheme
+import fr.gouv.ami.utils.EmailManager
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FranceConnexionScreen(onFcClick: () -> Unit) {
     val targetTchap = "fr.gouv.tchap.a"
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
+    val sheetState = rememberModalBottomSheetState()
+    var showBottomSheet by remember { mutableStateOf(false) }
+
     BaseScreen(viewModel = viewModel()) {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-
-            Column(
+            Row(
                 modifier = Modifier
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .weight(1f)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.Center
             ) {
                 Image(
                     painter = painterResource(R.drawable.ic_application),
                     contentDescription = "image d'application"
                 )
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    text = stringResource(R.string.franceConnexion_description), fontSize = 16.sp
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    textAlign = TextAlign.Center,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    text = stringResource(R.string.home_title)
                 )
                 Text(
                     modifier = Modifier.padding(
-                        vertical = 24.dp
+                        bottom = 24.dp
                     ),
                     text = stringResource(R.string.franceConnexion_subtitle),
-                    fontSize = 12.sp,
-                    color = Gray
+                    fontSize = 14.sp
                 )
                 Button(
                     onClick = onFcClick,
@@ -82,24 +106,86 @@ fun FranceConnexionScreen(onFcClick: () -> Unit) {
                     )
                 }
                 TextButton(
-                    onClick = {uriHandler.openUri("https://franceconnect.gouv.fr/")}
-                ) { Text(stringResource(R.string.FC_button_description))}
-            }
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Bottom,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(stringResource(R.string.connection_difficult))
-                TextButton(
-                    onClick = {
-                        context.openOrInstallApp(targetTchap)
-                    }
+                    onClick = { uriHandler.openUri("https://franceconnect.gouv.fr/") }
                 ) {
-                    Text(stringResource(R.string.tchap))
+                    Text(
+                        fontSize = 14.sp,
+                        textDecoration = TextDecoration.Underline,
+                        text = stringResource(R.string.FC_button_description)
+                    )
                 }
             }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Bottom
+            ) {
+                TextButton(
+                    onClick = {
+                        showBottomSheet = true
+                        //context.openOrInstallApp(targetTchap)
+                    }
+                ) {
+                    Text(
+                        fontSize = 16.sp,
+                        textDecoration = TextDecoration.Underline,
+                        text = stringResource(R.string.cannot_connect)
+                    )
+                }
+            }
+        }
 
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showBottomSheet = false },
+                sheetState = sheetState
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    //ask for help online
+                    Row(
+                        modifier = Modifier
+                            .padding(vertical = 12.dp)
+                            .clickable(
+                                onClick = {
+                                    showBottomSheet = false
+                                }),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            modifier = Modifier.padding(end = 8.dp),
+                            painter = painterResource(R.drawable.dsfr_edit_fill),
+                            contentDescription = "online",
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                        )
+                        Text(stringResource(R.string.help_online))
+                    }
+                    //send an email
+                    Row(
+                        modifier = Modifier
+                            .padding(vertical = 12.dp)
+                            .clickable(onClick = {
+                                showBottomSheet = false
+                                val emailManager = EmailManager(context)
+                                emailManager.emailTo()
+                            }),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            modifier = Modifier.padding(end = 8.dp),
+                            painter = painterResource(R.drawable.dsfr_mail_fill),
+                            contentDescription = "email",
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                        )
+                        Text(stringResource(R.string.help_email))
+                    }
+                }
+            }
         }
     }
 }
