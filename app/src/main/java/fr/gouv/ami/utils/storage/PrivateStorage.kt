@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
+import fr.gouv.ami.utils.Result
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
@@ -21,14 +22,24 @@ class PrivateStorage(val context: Context, val userStoreId: String) {
         }
     }
 
+    @Throws
     suspend fun <T> readData(
         preferenceKey: Preferences.Key<T>
-    ): T? {
-        return context.privateStorage.data
-            .map { preferences ->
-                preferences[preferenceKey]
+    ): Result<T, LocalStorageError> {
+        return try {
+            val value = context.privateStorage.data
+                .map { preferences ->
+                    preferences[preferenceKey]
+                }
+                .first()
+            if (value != null) {
+                Result.Success(value)
+            } else {
+                Result.Failure(LocalStorageError.KeyNotFound)
             }
-            .first()
+        } catch (e: Exception) {
+            Result.Failure(LocalStorageError(e))
+        }
     }
 
     suspend fun <T> deleteData(
