@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import fr.gouv.ami.utils.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,21 +30,35 @@ class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProt
         keyFactory: (String) -> Preferences.Key<T>,
         secureLevel: KeyStoreManager.SecurityLevelType,
         cipher: Cipher?,
-    ): Boolean {
-        when (secureLevel) {
-            KeyStoreManager.SecurityLevelType.Private -> {
-                privateStorage.writeData(keyFactory(key), value)
-            }
+    ): Result<Unit, LocalStorageError> {
+        try {
+            when (secureLevel) {
+                KeyStoreManager.SecurityLevelType.Private -> {
+                    privateStorage.writeData(keyFactory(key), value)
+                }
 
-            KeyStoreManager.SecurityLevelType.Encrypted -> {
-                secureStorage.writeData(stringPreferencesKey(key), value.toString(), false, cipher)
-            }
+                KeyStoreManager.SecurityLevelType.Encrypted -> {
+                    secureStorage.writeData(
+                        stringPreferencesKey(key),
+                        value.toString(),
+                        false,
+                        cipher
+                    )
+                }
 
-            KeyStoreManager.SecurityLevelType.Authenticated -> {
-                secureStorage.writeData(stringPreferencesKey(key), value.toString(), true, cipher)
+                KeyStoreManager.SecurityLevelType.Authenticated -> {
+                    secureStorage.writeData(
+                        stringPreferencesKey(key),
+                        value.toString(),
+                        true,
+                        cipher
+                    )
+                }
             }
+            return Result.Success(Unit)
+        } catch (e: Exception) {
+            return Result.Failure(LocalStorageError(e))
         }
-        return true
     }
 
     @RequiresApi(Build.VERSION_CODES.P)
@@ -52,7 +67,7 @@ class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProt
         value: Boolean,
         secureLevel: KeyStoreManager.SecurityLevelType,
         cipher: Cipher?
-    ): Boolean {
+    ): Result<Unit, LocalStorageError> {
         return writeData(key, value, ::booleanPreferencesKey, secureLevel, cipher)
     }
 
@@ -62,7 +77,7 @@ class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProt
         value: Int,
         secureLevel: KeyStoreManager.SecurityLevelType,
         cipher: Cipher?
-    ): Boolean {
+    ): Result<Unit, LocalStorageError> {
         return writeData(key, value, ::intPreferencesKey, secureLevel, cipher)
     }
 
@@ -72,7 +87,7 @@ class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProt
         value: String,
         secureLevel: KeyStoreManager.SecurityLevelType,
         cipher: Cipher?
-    ): Boolean {
+    ): Result<Unit, LocalStorageError> {
         return writeData(key, value, ::stringPreferencesKey, secureLevel, cipher)
     }
 
@@ -82,19 +97,51 @@ class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProt
         secureLevel: KeyStoreManager.SecurityLevelType,
         converter: (String) -> T?,
         cipher: Cipher?
-    ): T? {
-         when (secureLevel) {
+    ): Result<T, LocalStorageError> {
+        when (secureLevel) {
             KeyStoreManager.SecurityLevelType.Private -> {
                 return privateStorage.readData(keyFactory(key))
             }
 
             KeyStoreManager.SecurityLevelType.Encrypted -> {
-                return secureStorage.readData(stringPreferencesKey(key), false, cipher)?.let(converter)
+                val result = secureStorage.readData(
+                    stringPreferencesKey(key),
+                    false,
+                    cipher
+                )
+                return mapResult(result, converter)
             }
 
             KeyStoreManager.SecurityLevelType.Authenticated -> {
-                return secureStorage.readData(stringPreferencesKey(key), true, cipher)?.let(converter)
+
+                val result = secureStorage.readData(
+                    stringPreferencesKey(key),
+                    true,
+                    cipher
+                )
+                return mapResult(result, converter)
             }
+        }
+    }
+
+    private fun <T> mapResult(
+        result: Result<String, LocalStorageError>,
+        converter: (String) -> T?
+    ): Result<T, LocalStorageError> {
+        return when (
+            result
+        ) {
+            is Result.Success -> {
+                val converted = converter(result.value)
+
+                if (converted != null) {
+                    Result.Success(converted)
+                } else {
+                    Result.Failure(LocalStorageError.DecryptionFailed)
+                }
+            }
+
+            is Result.Failure -> result
         }
     }
 
@@ -102,7 +149,7 @@ class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProt
         key: String,
         secureLevel: KeyStoreManager.SecurityLevelType,
         cipher: Cipher?
-    ): Boolean? {
+    ): Result<Boolean, LocalStorageError> {
         return readData(key, ::booleanPreferencesKey, secureLevel, String::toBoolean, cipher)
     }
 
@@ -110,7 +157,7 @@ class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProt
         key: String,
         secureLevel: KeyStoreManager.SecurityLevelType,
         cipher: Cipher?
-    ): Int? {
+    ): Result<Int, LocalStorageError> {
         return readData(key, ::intPreferencesKey, secureLevel, String::toInt, cipher)
     }
 
@@ -118,7 +165,7 @@ class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProt
         key: String,
         secureLevel: KeyStoreManager.SecurityLevelType,
         cipher: Cipher?
-    ): String? {
+    ): Result<String, LocalStorageError> {
         return readData(key, ::stringPreferencesKey, secureLevel, String::toString, cipher)
     }
 
@@ -126,7 +173,7 @@ class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProt
         key: String,
         keyFactory: (String) -> Preferences.Key<T>,
         secureLevel: KeyStoreManager.SecurityLevelType
-    ): Boolean {
+    ) {
         when (secureLevel) {
             KeyStoreManager.SecurityLevelType.Private -> {
                 privateStorage.deleteData(keyFactory(key))
@@ -140,31 +187,30 @@ class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProt
                 secureStorage.deleteData(keyFactory(key), true)
             }
         }
-        return true
     }
 
     override suspend fun deleteBool(
         key: String,
         secureLevel: KeyStoreManager.SecurityLevelType
-    ): Boolean {
-        return delete(key, ::booleanPreferencesKey, secureLevel)
+    ) {
+        delete(key, ::booleanPreferencesKey, secureLevel)
     }
 
     override suspend fun deleteInt(
         key: String,
         secureLevel: KeyStoreManager.SecurityLevelType
-    ): Boolean {
-        return delete(key, ::intPreferencesKey, secureLevel)
+    ) {
+        delete(key, ::intPreferencesKey, secureLevel)
     }
 
     override suspend fun deleteString(
         key: String,
         secureLevel: KeyStoreManager.SecurityLevelType
-    ): Boolean {
-        return delete(key, ::stringPreferencesKey, secureLevel)
+    ) {
+        delete(key, ::stringPreferencesKey, secureLevel)
     }
 
-    override suspend fun deleteAll(secureLevel: KeyStoreManager.SecurityLevelType): Boolean {
+    override suspend fun deleteAll(secureLevel: KeyStoreManager.SecurityLevelType) {
         when (secureLevel) {
             KeyStoreManager.SecurityLevelType.Private -> {
                 privateStorage.deleteAll()
@@ -178,6 +224,5 @@ class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProt
                 secureStorage.deleteAll(true)
             }
         }
-        return true
     }
 }
