@@ -4,6 +4,7 @@ import android.app.Activity
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.content.res.Configuration
+import android.os.Bundle
 import android.webkit.JsPromptResult
 import android.webkit.JsResult
 import android.webkit.WebChromeClient
@@ -22,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,6 +70,8 @@ fun WebViewScreen(
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
     var canGoBack by remember { mutableStateOf(false) }
     val swipeRefreshRef = remember { mutableStateOf<SwipeRefreshLayout?>(null) }
+
+    val webViewStateBundle = rememberSaveable { Bundle() }
 
     LaunchedEffect(Unit) {
         webViewViewModel.currentUrl = startUrl
@@ -249,15 +253,28 @@ fun WebViewScreen(
                                     }
                                 }
                             }, "NativeBridge")
-                            loadUrl(webViewViewModel.currentUrl)
+
+                            // Restore the state and history
+                            if (webViewStateBundle.containsKey("WEBVIEW_STATE")) {
+                                restoreState(webViewStateBundle.getBundle("WEBVIEW_STATE")!!)
+                            } else {
+                                loadUrl(webViewViewModel.currentUrl)
+                            }
+                            //loadUrl(webViewViewModel.currentUrl)
                         }
-                        swipeRefreshRef.value?.addView(webViewRef.value)
+                        /*swipeRefreshRef.value?.addView(webViewRef.value)
 
                         swipeRefreshRef.value?.setOnRefreshListener {
                             webViewViewModel.requestRefresh()
                         }
 
-                        swipeRefreshRef.value!!
+                        swipeRefreshRef.value!!*/
+                    },
+                    onRelease = { releasedWebView ->
+                        // Save navigation history before the instance is destroyed
+                        val bundle = Bundle()
+                        releasedWebView.saveState(bundle)
+                        webViewStateBundle.putBundle("WEBVIEW_STATE", bundle)
                     },
                     update = { webView ->
                         if (webViewRef.value?.url != webViewViewModel.currentUrl) {
