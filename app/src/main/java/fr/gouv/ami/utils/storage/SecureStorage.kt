@@ -4,26 +4,22 @@ import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.datastore.preferences.preferencesDataStoreFile
 import fr.gouv.ami.utils.Result
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.crypto.Cipher
 
-class SecureStorage(val context: Context, val userStoreId: String) {
-
-    //TODO replace "userStoreId" to variable
-    companion object {
-        val Context.encryptedStorage: DataStore<Preferences> by preferencesDataStore(name = "userStoreId_encrypted")
-        val Context.authenticatedStorage: DataStore<Preferences> by preferencesDataStore(name = "userStoreId_authenticated")
-    }
+class SecureStorage(val encryptedStorage: DataStore<Preferences>, val authenticatedStorage: DataStore<Preferences>) {
 
     val cipherManager = CipherManagerImpl()
 
     fun store(authenticationRequired: Boolean): DataStore<Preferences> {
-        return if (authenticationRequired) context.authenticatedStorage else context.encryptedStorage
+        return if (authenticationRequired) authenticatedStorage else encryptedStorage
     }
 
     @RequiresApi(Build.VERSION_CODES.P)
