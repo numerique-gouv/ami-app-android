@@ -1,20 +1,19 @@
 package fr.gouv.ami.utils.storage
 
-import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.preferencesDataStore
-import androidx.datastore.preferences.preferencesDataStoreFile
 import fr.gouv.ami.utils.Result
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.crypto.Cipher
 
-class SecureStorage(val encryptedStorage: DataStore<Preferences>, val authenticatedStorage: DataStore<Preferences>) {
+class SecureStorage(
+    val encryptedStorage: DataStore<Preferences>,
+    val authenticatedStorage: DataStore<Preferences>
+) {
 
     val cipherManager = CipherManagerImpl()
 
