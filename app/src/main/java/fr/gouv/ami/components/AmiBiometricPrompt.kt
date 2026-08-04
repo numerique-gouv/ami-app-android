@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.fragment.app.FragmentActivity
 import fr.gouv.ami.R
 import fr.gouv.ami.utils.storage.CipherManagerImpl
+import fr.gouv.ami.utils.storage.DataStoreFactory
 import fr.gouv.ami.utils.storage.SecureStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,12 +33,12 @@ class AmiBiometricPrompt(val context: FragmentActivity) {
     fun <T> createBioPromptRead(
         preferenceKey: String,
         operation: suspend (Cipher) -> T,
+        secureStorage: SecureStorage,
         onError: () -> Unit,
         onFailure: () -> Unit,
         onSuccess: (T?) -> Unit
     ) {
         CoroutineScope(Dispatchers.Main).launch {
-            val secureStorage = SecureStorage(context, "userId")
             val data = secureStorage.store(true).data.map { preferences ->
                 preferences[stringPreferencesKey(preferenceKey)]
             }

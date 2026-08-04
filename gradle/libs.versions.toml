@@ -13,6 +13,7 @@ junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 kotlinxCoroutinesAndroid = "<version>"
 kotlinxCoroutinesCore = "<version>"
+kotlinxCoroutinesTest = "1.11.0"
 lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.8.0"
 composeBom = "2024.09.00"
@@ -24,6 +25,8 @@ roomRuntime = "2.8.3"
 securityCrypto = "1.1.0"
 swiperefreshlayout = "1.2.0"
 webkit = "1.16.0"
+junitKtx = "1.3.0"
+datastorePreferencesCoreVersion = "1.2.1"
 
 [libraries]
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
@@ -55,11 +58,14 @@ androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navig
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
 androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
+androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junitKtx" }
+androidx-datastore-preferences-core = { group = "androidx.datastore", name = "datastore-preferences-core", version.ref = "datastorePreferencesCoreVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
