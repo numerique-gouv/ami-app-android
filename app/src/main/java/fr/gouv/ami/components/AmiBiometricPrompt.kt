@@ -30,6 +30,7 @@ class AmiBiometricPrompt(val context: FragmentActivity) {
         createBiometricPrompt(cipher, operation, onError, onFailure, onSuccess)
     }
 
+    //TODO separate logic and UI
     fun <T> createBioPromptRead(
         preferenceKey: String,
         operation: suspend (Cipher) -> T,
