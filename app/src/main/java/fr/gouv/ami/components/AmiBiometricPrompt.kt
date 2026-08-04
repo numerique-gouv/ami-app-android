@@ -9,7 +9,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.fragment.app.FragmentActivity
 import fr.gouv.ami.R
 import fr.gouv.ami.utils.storage.CipherManagerImpl
-import fr.gouv.ami.utils.storage.DataStoreFactory
 import fr.gouv.ami.utils.storage.SecureStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
