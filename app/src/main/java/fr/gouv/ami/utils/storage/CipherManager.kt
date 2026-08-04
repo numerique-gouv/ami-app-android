@@ -74,19 +74,6 @@ class CipherManagerImpl : CipherManager {
         return Base64.encodeToString(encryptedDataWithIV, Base64.DEFAULT)
     }
 
-    /*@Throws(Exception::class)
-    override fun decrypt(data: String, authenticationRequired: Boolean): String {
-        val encryptedDataWithIV = Base64.decode(data, Base64.DEFAULT)
-        val cipher = Cipher.getInstance(TRANSFORMATION)
-        val iv = encryptedDataWithIV.copyOfRange(0, cipher.blockSize)
-        cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(authenticationRequired), IvParameterSpec(iv))
-
-        val encryptedData = encryptedDataWithIV.copyOfRange(cipher.blockSize, encryptedDataWithIV.size)
-        val decryptedBytes = cipher.doFinal(encryptedData)
-        return String(decryptedBytes, Charsets.UTF_8)
-    }*/
-
-
     @Throws(Exception::class)
     override fun decrypt(data: String, authenticationRequired: Boolean, cipher: Cipher?): String {
         val encryptedDataWithIV = Base64.decode(data, Base64.DEFAULT)

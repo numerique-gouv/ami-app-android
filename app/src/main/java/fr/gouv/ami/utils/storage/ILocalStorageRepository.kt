@@ -8,9 +8,6 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import fr.gouv.ami.utils.Result
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import javax.crypto.Cipher
 
 class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProtocol() {
@@ -22,8 +19,10 @@ class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProt
         privateStorage = PrivateStorage(
             DataStoreFactory.create(context, userStoreId)
         )
-        secureStorage = SecureStorage(DataStoreFactory.create(context, "${userStoreId}_encrypted"),
-            DataStoreFactory.create(context, "${userStoreId}_authenticated"))
+        secureStorage = SecureStorage(
+            DataStoreFactory.create(context, "${userStoreId}_encrypted"),
+            DataStoreFactory.create(context, "${userStoreId}_authenticated")
+        )
     }
 
     @RequiresApi(Build.VERSION_CODES.P)

@@ -14,7 +14,6 @@ import org.junit.BeforeClass
 import org.junit.Test
 import fr.gouv.ami.utils.Result
 import fr.gouv.ami.utils.storage.CipherManagerImpl
-import fr.gouv.ami.utils.storage.KeyStoreManager
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
