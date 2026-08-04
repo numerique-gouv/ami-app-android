@@ -2,22 +2,18 @@ package fr.gouv.ami.utils.storage
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.preferencesDataStore
+import androidx.datastore.preferences.preferencesDataStoreFile
 import fr.gouv.ami.utils.Result
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
-class PrivateStorage(val context: Context, val userStoreId: String) {
-
-    //TODO replace "userStoreId" to variable
-    companion object {
-        val Context.privateStorage: DataStore<Preferences> by preferencesDataStore(name = "userStoreId")
-    }
+class PrivateStorage(val dataStore: DataStore<Preferences>) {
 
     suspend fun <T> writeData(preferenceKey: Preferences.Key<T>, value: T) {
-        context.privateStorage.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[preferenceKey] = value
         }
     }
@@ -27,7 +23,7 @@ class PrivateStorage(val context: Context, val userStoreId: String) {
         preferenceKey: Preferences.Key<T>
     ): Result<T, LocalStorageError> {
         return try {
-            val value = context.privateStorage.data
+            val value = dataStore.data
                 .map { preferences ->
                     preferences[preferenceKey]
                 }
@@ -45,14 +41,27 @@ class PrivateStorage(val context: Context, val userStoreId: String) {
     suspend fun <T> deleteData(
         preferenceKey: Preferences.Key<T>
     ) {
-        context.privateStorage.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences.remove(preferenceKey)
         }
     }
 
     suspend fun deleteAll() {
-        context.privateStorage.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences.clear()
         }
     }
+}
+
+object DataStoreFactory {
+
+    fun create(
+        context: Context,
+        userStoreId: String
+    ): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create(
+            produceFile = {
+                context.preferencesDataStoreFile(userStoreId)
+            }
+        )
 }

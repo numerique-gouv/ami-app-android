@@ -90,16 +90,23 @@ class CipherManagerImpl : CipherManager {
     @Throws(Exception::class)
     override fun decrypt(data: String, authenticationRequired: Boolean, cipher: Cipher?): String {
         val encryptedDataWithIV = Base64.decode(data, Base64.DEFAULT)
-        val cipher = cipher ?: Cipher.getInstance(TRANSFORMATION)
-        val iv = encryptedDataWithIV.copyOfRange(0, cipher.blockSize)
-        cipher.init(
-            Cipher.DECRYPT_MODE, getOrCreateKey(authenticationRequired),
-            IvParameterSpec(iv)
-        )
+        var newCipher: Cipher
+        if (cipher != null) {
+            newCipher = cipher
+
+        } else {
+            newCipher = Cipher.getInstance(TRANSFORMATION)
+            val iv = encryptedDataWithIV.copyOfRange(0, newCipher.blockSize)
+            newCipher.init(
+                Cipher.DECRYPT_MODE, getOrCreateKey(authenticationRequired),
+                IvParameterSpec(iv)
+            )
+        }
+
 
         val encryptedData =
-            encryptedDataWithIV.copyOfRange(cipher.blockSize, encryptedDataWithIV.size)
-        val decryptedBytes = cipher.doFinal(encryptedData)
+            encryptedDataWithIV.copyOfRange(newCipher.blockSize, encryptedDataWithIV.size)
+        val decryptedBytes = newCipher.doFinal(encryptedData)
         return String(decryptedBytes, Charsets.UTF_8)
     }
 

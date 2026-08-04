@@ -14,13 +14,16 @@ import kotlinx.coroutines.launch
 import javax.crypto.Cipher
 
 class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProtocol() {
-    private lateinit var privateStorage: PrivateStorage
-    private lateinit var secureStorage: SecureStorage
+    private var privateStorage: PrivateStorage
+    private var secureStorage: SecureStorage
 
     init {
         val userStoreId = "tmp" //TODO à changer
-        privateStorage = PrivateStorage(context, userStoreId)
-        secureStorage = SecureStorage(context, userStoreId)
+        privateStorage = PrivateStorage(
+            DataStoreFactory.create(context, userStoreId)
+        )
+        secureStorage = SecureStorage(DataStoreFactory.create(context, "${userStoreId}_encrypted"),
+            DataStoreFactory.create(context, "${userStoreId}_authenticated"))
     }
 
     @RequiresApi(Build.VERSION_CODES.P)
