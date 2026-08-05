@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -22,14 +21,11 @@ import fr.gouv.ami.api.apiService
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.data.models.Subscription
 import fr.gouv.ami.data.models.SubscriptionRequest
+import fr.gouv.ami.utils.DeviceIdUtils
 import fr.gouv.ami.utils.storage.LowStorageManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.UUID
 
 class FirebaseService : FirebaseMessagingService() {
 
@@ -70,9 +66,10 @@ class FirebaseService : FirebaseMessagingService() {
                 }
             }
             if (bearer != null) {
+                val deviceId = DeviceIdUtils(applicationContext).getOrCreateDeviceId()
                 val subscription = Subscription(
                     fcmToken = token,
-                    deviceId = getOrCreateDeviceId(),
+                    deviceId = deviceId,
                     platform = "android",
                     appVersion = BuildConfig.VERSION_NAME,
                     model = getDeviceModel()
@@ -134,16 +131,6 @@ class FirebaseService : FirebaseMessagingService() {
         val notificationManager: NotificationManager =
             getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)
-    }
-
-    suspend fun getOrCreateDeviceId(): String {
-        var deviceId = storageManager.deviceId.first()
-        if (deviceId == null) {
-            deviceId = UUID.randomUUID().toString()
-            storageManager.saveDeviceId(deviceId)
-        }
-        Log.d(TAG, "Using Android ID as device ID: $deviceId")
-        return deviceId
     }
 
     /**
