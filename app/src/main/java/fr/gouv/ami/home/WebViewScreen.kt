@@ -50,6 +50,8 @@ import fr.gouv.ami.ui.theme.AMITheme
 import fr.gouv.ami.utils.storage.LowStorageManager
 import kotlinx.coroutines.flow.first
 import fr.gouv.ami.home.WebviewScripts.EventWebview
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
@@ -195,11 +197,14 @@ fun WebViewScreen(
                                     WebViewFeature.DOCUMENT_START_SCRIPT
                                 )
                             ) {
-                                /*WebViewCompat.addDocumentStartJavaScript(
-                                    this,
-                                    nativeInfosScript(context),
-                                    setOf("*")
-                                )*/
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    WebViewCompat.addDocumentStartJavaScript(
+                                        webViewRef.value!!,
+                                        nativeInfosScript(context),
+                                        setOf("*")
+                                    )
+                                }
+
                             }
 
                             addJavascriptInterface(object {
