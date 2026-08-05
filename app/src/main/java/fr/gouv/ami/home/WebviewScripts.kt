@@ -27,8 +27,8 @@ class WebviewScripts {
         fun nativeInfosScript(
             context: Context
         ): String {
-            val deviceId = FirebaseService().getOrCreateDeviceId()
-            Log.d(TAG, "device_id sending in nativeInfosScript is $deviceId")
+            //val deviceId = FirebaseService().getOrCreateDeviceId()
+            //Log.d(TAG, "device_id sending in nativeInfosScript is $deviceId")
 
             return """
         (function() {
@@ -42,7 +42,6 @@ class WebviewScripts {
                     build: ${BuildConfig.VERSION_CODE},
                     environment: "${BuildConfig.FLAVOR}",
                     mode: "${BuildConfig.BUILD_TYPE}",
-                    device_id: "$deviceId"
                 };
             };
         })();
