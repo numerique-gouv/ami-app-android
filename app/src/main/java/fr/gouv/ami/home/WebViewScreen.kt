@@ -194,11 +194,11 @@ fun WebViewScreen(
                                     WebViewFeature.DOCUMENT_START_SCRIPT
                                 )
                             ) {
-                                WebViewCompat.addDocumentStartJavaScript(
+                                /*WebViewCompat.addDocumentStartJavaScript(
                                     this,
                                     nativeInfosScript(context),
                                     setOf("*")
-                                )
+                                )*/
                             }
 
                             addJavascriptInterface(object {
