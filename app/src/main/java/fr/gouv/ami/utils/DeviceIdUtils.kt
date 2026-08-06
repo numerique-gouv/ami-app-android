@@ -13,7 +13,7 @@ class DeviceIdUtils(val context: Context) {
     private val DEVICE_ID_KEY = stringPreferencesKey("device_id")
     private val SETTING_STORAGE_KEY = "settings"
     private val privateStorage =
-        PrivateStorage(DataStoreFactory.create(context, SETTING_STORAGE_KEY))
+        PrivateStorage(DataStoreFactory.get(context, SETTING_STORAGE_KEY))
 
     suspend fun getOrCreateDeviceId(): String {
         val deviceIdResult = privateStorage.readData(DEVICE_ID_KEY)
