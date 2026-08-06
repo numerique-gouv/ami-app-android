@@ -52,6 +52,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun WebViewScreen(
@@ -202,8 +203,16 @@ fun WebViewScreen(
                                         nativeInfosScript(context),
                                         setOf("*")
                                     )
-                                }
 
+                                    withContext(Dispatchers.Main) {
+                                        loadUrl(webViewViewModel.currentUrl)
+                                    }
+                                }
+                            }
+                            else {
+                                // No need to wait for Coroutine to load NativeInfos JS.
+                                // Call loadURL as before. We are on Main UI Thread.
+                                loadUrl(webViewViewModel.currentUrl)
                             }
 
                             addJavascriptInterface(object {
@@ -253,7 +262,6 @@ fun WebViewScreen(
                                     }
                                 }
                             }, "NativeBridge")
-                            loadUrl(webViewViewModel.currentUrl)
                         }
                         swipeRefreshRef.value?.addView(webViewRef.value)
 
