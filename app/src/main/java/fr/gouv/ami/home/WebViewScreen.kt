@@ -32,6 +32,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import fr.gouv.ami.R
@@ -271,11 +272,16 @@ fun WebViewScreen(
 
                         swipeRefreshRef.value!!
                     },
-                    update = { webView ->
-                        if (webViewRef.value?.url != webViewViewModel.currentUrl) {
-                            webViewRef.value?.loadUrl(webViewViewModel.currentUrl)
-                        }
+                    update = { _ ->
                         swipeRefreshRef.value?.isRefreshing = webViewViewModel.isRefreshing
+
+                        // allow passkey if it is available
+                        // TODO: Why not use the closure parameter `webView`? Would avoid to test its real value.
+                        webViewRef.value?.let {
+                            run {
+                                webViewViewModel.configurePasskeys(it)
+                            }
+                        }
                     }
                 )
             }

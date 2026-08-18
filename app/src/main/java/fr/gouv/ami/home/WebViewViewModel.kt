@@ -1,9 +1,13 @@
 package fr.gouv.ami.home
 
+import android.annotation.SuppressLint
 import android.util.Log
+import android.webkit.WebView
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewFeature
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.global.BaseViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -93,5 +97,31 @@ class WebViewViewModel : BaseViewModel() {
     override fun requestRefresh() {
         isRefreshing = true
         super.requestRefresh()
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    fun configurePasskeys(webView: WebView): Boolean {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_AUTHENTICATION)) {
+            Log.e(TAG, "WebView does not support passkeys.")
+            return false
+        } else {
+            webView.settings.javaScriptEnabled = true
+
+            WebSettingsCompat.setWebAuthenticationSupport(
+                webView.settings,
+                WebSettingsCompat.WEB_AUTHENTICATION_SUPPORT_FOR_APP,
+            )
+
+            // Verify — the WebView can decline
+            Log.d(
+                "Passkeys",
+                "mode = ${WebSettingsCompat.getWebAuthenticationSupport(webView.settings)}"
+            )
+
+            // Check if getWebauthenticationSupport may have been disabled by the WebView.
+            Log.e(TAG, "getWebAuthenticationSupport result: " + WebSettingsCompat.getWebAuthenticationSupport(webView.settings))
+
+            return true
+        }
     }
 }
