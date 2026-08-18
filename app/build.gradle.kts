@@ -1,3 +1,4 @@
+import com.android.build.api.variant.BuildConfigField
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -73,11 +74,6 @@ android {
             applicationIdSuffix = ".local"
             versionNameSuffix = "-local"
 
-            // Load from local.properties if available, otherwise use default
-            // val localBaseUrl = localProperties.getProperty("local.base.url", "https://10.0.2.2:5173")
-            val localBaseUrl = localProperties.getProperty("local.base.url", "https://192.168.1.55:5173")
-
-            buildConfigField("String", "BASE_URL", "\"$localBaseUrl\"")
             resValue("string", "app_name", "AMI Local")
         }
         create("staging") {
@@ -85,21 +81,10 @@ android {
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-staging"
 
-            buildConfigField(
-                "String",
-                "BASE_URL",
-                "\"https://ami-back-staging.osc-fr1.scalingo.io\""
-            )
-
             resValue("string", "app_name", "AMI Staging")
         }
         create("prod") {
             dimension = "version"
-            buildConfigField(
-                "String",
-                "BASE_URL",
-                "\"https://ami-back-prod.osc-secnum-fr1.scalingo.io\""
-            )
         }
     }
 
@@ -114,6 +99,34 @@ android {
         compose = true
         buildConfig = true
     }
+}
+
+// Assemble pass used to inject flavored secrets from .env.${flavor} file into BuildConfig and Manifest.
+androidComponents.onVariants { variant ->
+    val flavor = variant.flavorName ?: return@onVariants
+    val envFileRef = rootProject.file("config/.env.${flavor}")
+    if (!envFileRef.exists()) return@onVariants
+
+    val props = Properties().apply { envFileRef.inputStream().use(::load) }
+    props.forEach { k, v ->
+        val key = k.toString().replace(Regex("[^A-Za-z_$0-9]"), "")
+        val value = v.toString().removeSurrounding("\"")
+        variant.buildConfigFields?.put(key, BuildConfigField("String", "\"$value\"", null))
+        variant.manifestPlaceholders.put(key, value)
+    }
+
+    val baseHost = props.getProperty("BASE_HOST_STRING") ?: error("BASE_HOST_STRING missing in config/.env.$flavor")
+    variant.buildConfigFields?.apply {
+        val unquotedBaseHost = baseHost.removeSurrounding("\"")
+        put("BASE_URL", BuildConfigField("String", "\"https://$unquotedBaseHost/\"", null))
+    }
+    val suffix = variant.name.replaceFirstChar(Char::uppercase)
+    val gen = tasks.register<GenerateNetworkSecurityConfigTask>(
+        "generate${suffix}NetworkSecurityConfig") {
+        envFile.set(envFileRef)
+    }
+
+    variant.sources.res?.addGeneratedSourceDirectory(gen, GenerateNetworkSecurityConfigTask::outputDir)
 }
 
 dependencies {
