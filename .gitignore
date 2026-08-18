@@ -1,3 +1,12 @@
+## Secrets — generated Kotlin is derived from these, never commit them
+# Anything in Config/ starting with `.env` (.env, .env.MyApp, .envrc …)
+.env*
+# …or ending in `.env` (secrets.env, prod.env …)
+*.env
+# Exception: the committed template. Must come after the rules above —
+# gitignore applies the last matching pattern.
+!.env.example
+
 *.iml
 .gradle
 /local.properties
@@ -17,3 +26,4 @@ local.properties
 keystore.properties
 keystore.jks
 /app/release
+buildSrc/build
