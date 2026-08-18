@@ -17,8 +17,7 @@ class LowStorageManager(private val context: Context) {
     }
 
     private val FIREBASE_TOKEN = stringPreferencesKey("firebase_token")
-
-    //private val DEVICE_ID = stringPreferencesKey("device_id")
+    
     private val BEARER_TOKEN = stringPreferencesKey("bearer_token")
 
     suspend fun saveFirebaseToken(token: String) {
