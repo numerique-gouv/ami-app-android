@@ -53,7 +53,6 @@ fun HomeApp(
     var isConnected by remember {
         mutableStateOf(false)
     }
-    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         val token = storage.bearerToken.first()
@@ -76,12 +75,6 @@ fun HomeApp(
                     }
                 }
         }
-    }
-
-    LaunchedEffect(Unit) {
-        val localStorage = ILocalStorageRepository(context)
-        //localStorage.writeString("Test", "toto chiffré", KeyStoreManager.SecurityLevelType.Encrypted)
-
     }
 
     if (pendingUrl != null) {

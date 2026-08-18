@@ -17,7 +17,6 @@ class LowStorageManager(private val context: Context) {
     }
 
     private val FIREBASE_TOKEN = stringPreferencesKey("firebase_token")
-    private val DEVICE_ID = stringPreferencesKey("device_id")
     private val BEARER_TOKEN = stringPreferencesKey("bearer_token")
 
     suspend fun saveFirebaseToken(token: String) {
@@ -50,15 +49,5 @@ class LowStorageManager(private val context: Context) {
         context.dataStore.edit { preferences ->
             preferences.remove(BEARER_TOKEN)
         }
-    }
-
-    suspend fun saveDeviceId(deviceId: String) {
-        context.dataStore.edit { preferences ->
-            preferences[DEVICE_ID] = deviceId
-        }
-    }
-
-    val deviceId: Flow<String?> = context.dataStore.data.map { preferences ->
-        preferences[DEVICE_ID]
     }
 }

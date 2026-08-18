@@ -29,8 +29,8 @@ class SecureStorageTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
 
             secureStorage = SecureStorage(
-                DataStoreFactory.create(context, "test_encrypted"),
-                DataStoreFactory.create(context, "test_authenticated")
+                DataStoreFactory.get(context, "test_encrypted"),
+                DataStoreFactory.get(context, "test_authenticated")
             )
         }
     }

@@ -49,7 +49,10 @@ import fr.gouv.ami.ui.theme.AMITheme
 import fr.gouv.ami.home.WebviewScripts.EventWebview
 import fr.gouv.ami.utils.storage.LowStorageManager
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun WebViewScreen(
@@ -194,11 +197,22 @@ fun WebViewScreen(
                                     WebViewFeature.DOCUMENT_START_SCRIPT
                                 )
                             ) {
-                                WebViewCompat.addDocumentStartJavaScript(
-                                    this,
-                                    nativeInfosScript(context),
-                                    setOf("*")
-                                )
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    WebViewCompat.addDocumentStartJavaScript(
+                                        webViewRef.value!!,
+                                        nativeInfosScript(context),
+                                        setOf("*")
+                                    )
+
+                                    withContext(Dispatchers.Main) {
+                                        loadUrl(webViewViewModel.currentUrl)
+                                    }
+                                }
+                            }
+                            else {
+                                // No need to wait for Coroutine to load NativeInfos JS.
+                                // Call loadURL as before. We are on Main UI Thread.
+                                loadUrl(webViewViewModel.currentUrl)
                             }
 
                             addJavascriptInterface(object {
@@ -248,7 +262,6 @@ fun WebViewScreen(
                                     }
                                 }
                             }, "NativeBridge")
-                            loadUrl(webViewViewModel.currentUrl)
                         }
                         swipeRefreshRef.value?.addView(webViewRef.value)
 

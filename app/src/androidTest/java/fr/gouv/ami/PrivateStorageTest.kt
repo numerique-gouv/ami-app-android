@@ -29,7 +29,7 @@ class PrivateStorageTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
 
             storage = PrivateStorage(
-                DataStoreFactory.create(context, "test")
+                DataStoreFactory.get(context, "test")
             )
         }
     }

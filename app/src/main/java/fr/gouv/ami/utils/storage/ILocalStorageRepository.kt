@@ -17,11 +17,11 @@ class ILocalStorageRepository(val context: Context) : LocalStorageRepositoryProt
     init {
         val userStoreId = "tmp" //TODO à changer
         privateStorage = PrivateStorage(
-            DataStoreFactory.create(context, userStoreId)
+            DataStoreFactory.get(context, userStoreId)
         )
         secureStorage = SecureStorage(
-            DataStoreFactory.create(context, "${userStoreId}_encrypted"),
-            DataStoreFactory.create(context, "${userStoreId}_authenticated")
+            DataStoreFactory.get(context, "${userStoreId}_encrypted"),
+            DataStoreFactory.get(context, "${userStoreId}_authenticated")
         )
     }
 

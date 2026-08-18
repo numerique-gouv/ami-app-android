@@ -55,13 +55,20 @@ class PrivateStorage(val dataStore: DataStore<Preferences>) {
 
 object DataStoreFactory {
 
-    fun create(
+    private val stores = mutableMapOf<String, DataStore<Preferences>>()
+
+    @Synchronized
+    fun get(
         context: Context,
         userStoreId: String
-    ): DataStore<Preferences> =
-        PreferenceDataStoreFactory.create(
-            produceFile = {
-                context.preferencesDataStoreFile(userStoreId)
-            }
-        )
+    ): DataStore<Preferences> {
+
+        return stores.getOrPut(userStoreId) {
+            PreferenceDataStoreFactory.create(
+                produceFile = {
+                    context.applicationContext.preferencesDataStoreFile(userStoreId)
+                }
+            )
+        }
+    }
 }
