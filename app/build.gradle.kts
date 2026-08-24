@@ -35,7 +35,7 @@ android {
 
     defaultConfig {
         applicationId = "fr.gouv.ami"
-        minSdk = 26
+        minSdk = 28
         targetSdk = 36
         versionCode = 6
         versionName = "0.2.2"
