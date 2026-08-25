@@ -32,6 +32,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import fr.gouv.ami.R
@@ -271,11 +272,27 @@ fun WebViewScreen(
 
                         swipeRefreshRef.value!!
                     },
-                    update = { webView ->
-                        if (webViewRef.value?.url != webViewViewModel.currentUrl) {
-                            webViewRef.value?.loadUrl(webViewViewModel.currentUrl)
-                        }
+                    update = { _ ->
                         swipeRefreshRef.value?.isRefreshing = webViewViewModel.isRefreshing
+
+                        //allow passkey if it is available
+                        run {
+                            if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_AUTHENTICATION)) {
+                                WebSettingsCompat.setWebAuthenticationSupport(
+                                    webViewRef.value?.settings!!,
+                                    WebSettingsCompat.WEB_AUTHENTICATION_SUPPORT_FOR_APP,
+                                )
+                                // Check if getWebauthenticationSupport may have been disabled by the WebView.
+                                Log.e(
+                                    TAG,
+                                    "getWebAuthenticationSupport result: " + WebSettingsCompat.getWebAuthenticationSupport(
+                                        webViewRef.value?.settings!!
+                                    ),
+                                )
+                            } else {
+                                Log.e(TAG, "WebView does not support passkeys.")
+                            }
+                        }
                     }
                 )
             }
