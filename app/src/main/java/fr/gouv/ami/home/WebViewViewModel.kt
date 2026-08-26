@@ -112,14 +112,8 @@ class WebViewViewModel : BaseViewModel() {
                 WebSettingsCompat.WEB_AUTHENTICATION_SUPPORT_FOR_APP,
             )
 
-            // Verify — the WebView can decline
-            Log.d(
-                "Passkeys",
-                "mode = ${WebSettingsCompat.getWebAuthenticationSupport(webView.settings)}"
-            )
-
-            // Check if getWebauthenticationSupport may have been disabled by the WebView.
-            Log.e(TAG, "getWebAuthenticationSupport result: " + WebSettingsCompat.getWebAuthenticationSupport(webView.settings))
+            // Check if getWebauthenticationSupport may have been disabled by the WebView
+            Log.d(TAG,"mode = ${WebSettingsCompat.getWebAuthenticationSupport(webView.settings)}")
 
             return true
         }
