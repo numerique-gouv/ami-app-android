@@ -12,7 +12,7 @@ plugins {
 
 // Create a variable called keystorePropertiesFile, and initialize it to your
 // keystore.properties file, in the rootProject folder.
-val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystorePropertiesFile = rootProject.file("upload-keystore.properties")
 
 // Initialize a new Properties() object called keystoreProperties.
 val keystoreProperties = Properties()
@@ -48,7 +48,7 @@ android {
             create("release") {
                 keyAlias = keystoreProperties["keyAlias"] as String
                 keyPassword = keystoreProperties["keyPassword"] as String
-                storeFile = file(keystoreProperties["storeFile"] as String)
+                storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
                 storePassword = keystoreProperties["storePassword"] as String
             }
         }
@@ -143,7 +143,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.swiperefreshlayout)
-    implementation(libs.androidx.webkit)
     implementation(libs.androidx.junit.ktx)
     implementation(libs.androidx.datastore.preferences.core)
     implementation(libs.androidx.webkit)
@@ -182,4 +181,9 @@ dependencies {
     //storage
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.biometric)
+
+    //passkeys
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.androidx.webkit.v1140)
 }

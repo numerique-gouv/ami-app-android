@@ -23,7 +23,7 @@
 .externalNativeBuild
 .cxx
 local.properties
-keystore.properties
-keystore.jks
+/*keystore.properties
+/*keystore.jks
 /app/release
 buildSrc/build
