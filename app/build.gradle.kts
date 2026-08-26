@@ -83,6 +83,13 @@ android {
 
             resValue("string", "app_name", "AMI Staging")
         }
+        create("preprod") {
+            dimension = "version"
+            applicationIdSuffix = ".preprod"
+            versionNameSuffix = "-preprod"
+
+            resValue("string", "app_name", "AMI Preprod")
+        }
         create("prod") {
             dimension = "version"
         }
