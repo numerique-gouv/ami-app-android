@@ -32,7 +32,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import fr.gouv.ami.R
@@ -54,6 +53,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import fr.gouv.ami.utils.DownloadUtils
 
 @Composable
 fun WebViewScreen(
@@ -193,6 +193,14 @@ fun WebViewScreen(
                                 onSslError = { webViewViewModel.showSSLErrorBanner() },
                             )
 
+                            setDownloadListener { url, userAgent, contentDisposition, mimeType, contentLength ->
+                                DownloadUtils(context).downloadFile(
+                                    url,
+                                    contentDisposition,
+                                    mimeType
+                                )
+                            }
+
                             if (
                                 WebViewFeature.isFeatureSupported(
                                     WebViewFeature.DOCUMENT_START_SCRIPT
@@ -209,8 +217,7 @@ fun WebViewScreen(
                                         loadUrl(webViewViewModel.currentUrl)
                                     }
                                 }
-                            }
-                            else {
+                            } else {
                                 // No need to wait for Coroutine to load NativeInfos JS.
                                 // Call loadURL as before. We are on Main UI Thread.
                                 loadUrl(webViewViewModel.currentUrl)
