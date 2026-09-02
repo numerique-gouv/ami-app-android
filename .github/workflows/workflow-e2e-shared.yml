@@ -1,0 +1,145 @@
+name: e2e shared
+# Logique commune aux trois cas (pr / merge / tag), résolus par le job `guard` de
+# workflow-e2e-trigger.yml : build de l'APK, déclenchement de l'e2e dans ami-system-tests,
+# commentaire de la PR si pr_number != 0, publication de l'APK/version si version_tag != ''.
+# Mirroir de ami-notifications-api/.github/workflows/workflow-e2e-webapp-shared.yml, avec
+# build + publish en plus : contrairement à la webapp, ami-app-android doit produire l'APK
+# lui-même (ami-system-tests ne build jamais d'app native, cf. son ADR CI).
+#
+# Appelé aussi bien par workflow-e2e-trigger.yml (événements réels) que par
+# workflow-e2e-manual.yml (workflow_dispatch séparé, pour des essais) — ce fichier ne sait
+# pas qui l'appelle, il ne fait qu'exécuter les inputs reçus.
+on:
+  workflow_call:
+    inputs:
+      run_android:
+        description: "nom de la suite android à lancer (test-suites.ts)"
+        type: string
+        required: true
+      run_old_device:
+        description: "appareil ancien (API 28, minSdk) si true, récent (API 36, targetSdk) si false"
+        type: boolean
+        default: true
+      pr_number:
+        description: "0 = pas de PR associée (merge/tag) → pas de commentaire de PR"
+        type: number
+        default: 0
+      source_sha:
+        description: "SHA d'ami-app-android à faire tester — vide = SHA du job build (github.sha)"
+        type: string
+        default: ''
+      checkout_ref:
+        description: "ref (branche/tag/sha) d'ami-system-tests à checkout pour avoir des tests dans sytem-tests sur la même branche que le dev en cours, main sinon"
+        type: string
+        default: main
+      version_tag:
+        description: "tag de la version, passé en argument pour être testable en manuel"
+        type: string
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version_name: ${{ steps.version.outputs.version_name }}
+      version_code: ${{ steps.version.outputs.version_code }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Écrire config/.env.staging
+        run: echo "${{ secrets.ENV_STAGING }}" > config/.env.staging
+
+      - name: Build APK staging debug
+        run: sh ./gradlew assembleStagingDebug
+
+      - name: Lire la version depuis output-metadata.json
+        id: version
+        run: |
+          META=app/build/outputs/apk/staging/debug/output-metadata.json
+          NAME=$(jq -r '.elements[0].versionName' "$META")
+          CODE=$(jq -r '.elements[0].versionCode' "$META")
+          echo "version_name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "version_code=$CODE" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-staging-debug
+          path: app/build/outputs/apk/staging/debug/app-staging-debug.apk
+          overwrite: true # un re-run garderait le même run_id → même nom d'artefact.
+
+  e2e-launch:
+    name: trigger an e2e run in ami-system-tests
+    needs: build
+    uses: numerique-gouv/ami-system-tests/.github/workflows/workflow-e2e-main.yml@main
+    with:
+      run_webapp: ''
+      run_ios: ''
+      run_android: ${{ inputs.run_android }}
+      run_old_device: ${{ inputs.run_old_device }}
+      source_repo: ${{ github.repository }}
+      source_sha: ${{ inputs.source_sha || github.sha }}
+      pr_number: ${{ inputs.pr_number }}
+      checkout_ref: ${{ inputs.checkout_ref }}
+    secrets: inherit
+
+  e2e-report:
+    name: uses output of e2e run in ami-system-tests to report in pr
+    needs: e2e-launch
+    if: ${{ always() && inputs.pr_number != 0 }}
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      checks: write
+    steps:
+      - name: Charger le rapport de test pour le mettre dans la PR
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.e2e-launch.outputs.allure_report }}
+          path: allure-report
+
+      - name: Commenter la PR d'origine
+        uses: allure-framework/allure-action@v0
+        continue-on-error: true
+        with:
+          report-directory: allure-report
+          github-token: ${{ github.token }}
+          debug: true
+          remote-href: 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts'
+
+  # Publie l'APK et la version, pour qu'ami-notifications-api puisse les récupérer.
+  publish-version:
+    needs: build
+    if: ${{ inputs.version_tag != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-staging-debug
+          path: dist
+
+      - name: Écrire version.json
+        env:
+          TAG: ${{ inputs.version_tag }}
+        run: |
+          cat > dist/version.json <<EOF
+          {
+            "versionName": "${{ needs.build.outputs.version_name }}",
+            "versionCode": ${{ needs.build.outputs.version_code }},
+            "tag": "$TAG",
+            "sha": "${{ github.sha }}"
+          }
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-staging-debug-${{ inputs.version_tag }}
+          path: dist
+          retention-days: 90
+          overwrite: true
