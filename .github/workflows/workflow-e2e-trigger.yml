@@ -12,7 +12,6 @@ permissions:
   pull-requests: write
   actions: read
 
-
 # on évite de finir le build d'un push précédent, vu qu'on vient, à priori, de push un correctif.
 concurrency:
   group: e2e-android-${{ github.event.pull_request.number || github.ref }}
