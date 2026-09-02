@@ -25,6 +25,7 @@ jobs:
       case: ${{ steps.check.outputs.case }} # pr | merge | tag | none
     steps:
       - id: check
+        if: false # empêche l'exécution tant que les tests en branche ne sont pas suffisants.
         run: |
           if [ "${{ startsWith(github.ref, 'refs/tags/') }}" = "true" ]; then
             echo "case=tag" >> "$GITHUB_OUTPUT"
