@@ -4,8 +4,6 @@ import android.app.Activity
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.content.res.Configuration
-import android.webkit.JsResult
-import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.imePadding
@@ -34,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import fr.gouv.ami.MainActivity
 import fr.gouv.ami.R
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
@@ -41,7 +40,8 @@ import fr.gouv.ami.components.DownloadLogsButton
 import fr.gouv.ami.components.DownloadLogsViewModel
 import fr.gouv.ami.components.InformationBanner
 import fr.gouv.ami.components.InformationType
-import fr.gouv.ami.components.MainWebViewClient
+import fr.gouv.ami.components.webviewClient.MainWebChromeClient
+import fr.gouv.ami.components.webviewClient.MainWebViewClient
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.home.WebviewScripts.Companion.nativeInfosScript
 import fr.gouv.ami.notifications.FirebaseService
@@ -70,6 +70,7 @@ fun WebViewScreen(
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
     var canGoBack by remember { mutableStateOf(false) }
     val swipeRefreshRef = remember { mutableStateOf<SwipeRefreshLayout?>(null) }
+    val activity = LocalContext.current as MainActivity
 
     LaunchedEffect(Unit) {
         webViewViewModel.currentUrl = startUrl
@@ -159,18 +160,7 @@ fun WebViewScreen(
                             settings.allowContentAccess = true
                             settings.domStorageEnabled = true
                             Log.d(TAG, "Creating MainWebViewClient with baseURL ${baseUrl}")
-                            webChromeClient = object : WebChromeClient() {
-                                // Required for Android WebView to handle beforeunload confirmation dialogs
-                                override fun onJsBeforeUnload(
-                                    view: WebView?,
-                                    url: String?,
-                                    message: String?,
-                                    result: JsResult?
-                                ): Boolean {
-                                    Log.d(TAG, "onJsBeforeUnload is called")
-                                    return super.onJsBeforeUnload(view, url, message, result)
-                                }
-                            }
+                            webChromeClient = MainWebChromeClient(activity)
                             webViewClient = MainWebViewClient(
                                 baseUrl = baseUrl,
                                 onBackBarChanged = { hasBackBar = it },

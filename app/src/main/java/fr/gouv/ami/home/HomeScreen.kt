@@ -19,7 +19,13 @@ fun HomeScreen(
 
     /** UI **/
 
-    WebViewScreen(webViewViewModel, goSettings,  goAuth = goAuth, goOnboarding = goOnboarding, startUrl = startUrl)
+    WebViewScreen(
+        webViewViewModel,
+        goSettings,
+        goAuth = goAuth,
+        goOnboarding = goOnboarding,
+        startUrl = startUrl
+    )
 }
 
 @Preview

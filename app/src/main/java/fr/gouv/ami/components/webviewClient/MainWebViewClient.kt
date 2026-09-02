@@ -1,10 +1,11 @@
-package fr.gouv.ami.components
+package fr.gouv.ami.components.webviewClient
 
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
+import android.graphics.Bitmap
 import android.net.Uri
 import android.net.http.SslError
 import android.os.Build
@@ -14,6 +15,7 @@ import android.webkit.SslErrorHandler
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import fr.gouv.ami.components.handleSslError
 
 class MainWebViewClient(
     private val baseUrl: String,
@@ -23,7 +25,7 @@ class MainWebViewClient(
     private val onCanGoBackChanged: (Boolean) -> Unit = {},
     private val onPageFinished: () -> Unit = {},
     private val onSslError: () -> Unit = {},
-): WebViewClient() {
+) : WebViewClient() {
     val TAG = "MainWebViewClient"
 
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
@@ -59,7 +61,7 @@ class MainWebViewClient(
     override fun onPageStarted(
         view: WebView?,
         url: String?,
-        favicon: android.graphics.Bitmap?
+        favicon: Bitmap?
     ) {
         super.onPageStarted(view, url, favicon)
         Log.d(TAG, "onPageStarted with url ${url}")
@@ -116,16 +118,26 @@ private fun launchNativeBeforeApi30(context: Context, url: String): Boolean {
     val httpsBrowserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://")).apply {
         addCategory(Intent.CATEGORY_BROWSABLE)
     }
-    val genericResolvedList = extractPackageNames(pm.queryIntentActivities(httpBrowserIntent, PackageManager.MATCH_ALL)) +
-            extractPackageNames(pm.queryIntentActivities(httpsBrowserIntent, PackageManager.MATCH_ALL))
+    val genericResolvedList =
+        extractPackageNames(pm.queryIntentActivities(httpBrowserIntent, PackageManager.MATCH_ALL)) +
+                extractPackageNames(
+                    pm.queryIntentActivities(
+                        httpsBrowserIntent,
+                        PackageManager.MATCH_ALL
+                    )
+                )
     Log.d("MainWebViewClient", "Native apps that can open any url: $genericResolvedList")
 
     // Get all apps that resolve the specific Url
     val specializedActivityIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
         addCategory(Intent.CATEGORY_BROWSABLE)
     }
-    val resolvedSpecializedList = extractPackageNames(pm.queryIntentActivities(specializedActivityIntent, 0)).toMutableSet()
-    Log.d("MainWebViewClient", "Native apps that can open the following url $url: $resolvedSpecializedList")
+    val resolvedSpecializedList =
+        extractPackageNames(pm.queryIntentActivities(specializedActivityIntent, 0)).toMutableSet()
+    Log.d(
+        "MainWebViewClient",
+        "Native apps that can open the following url $url: $resolvedSpecializedList"
+    )
 
     // Keep only the Urls that resolve the specific, but not the generic urls.
     resolvedSpecializedList.removeAll(genericResolvedList)

@@ -1,11 +1,14 @@
 package fr.gouv.ami
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.webkit.CookieManager
+import android.webkit.ValueCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
@@ -17,6 +20,32 @@ import fr.gouv.ami.ui.theme.AMITheme
 
 class MainActivity : FragmentActivity() {
     private val TAG = this::class.java.simpleName
+
+    //launcher for file chooser
+    var filePathCallback: ValueCallback<Array<Uri>>? = null
+    val filePickerLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+
+            if (result.resultCode == RESULT_OK) {
+                val data = result.data
+
+                val uris = if (data?.clipData != null) {
+                    Array(data.clipData!!.itemCount) { index ->
+                        data.clipData!!.getItemAt(index).uri
+                    }
+                } else if (data?.data != null) {
+                    arrayOf(data.data!!)
+                } else {
+                    null
+                }
+
+                filePathCallback?.onReceiveValue(uris)
+            } else {
+                filePathCallback?.onReceiveValue(null)
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -40,6 +69,7 @@ class MainActivity : FragmentActivity() {
             }
         }
     }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         val url = extractBaseUrl(intent) ?: return
