@@ -1,0 +1,74 @@
+name: e2e trigger
+# ce script réagi aux push, merge, tag et pull request pour lancer le bon jeu de tests e2e automatiquement.
+on:
+  pull_request:
+  push:
+    branches: [master]
+    tags: ['*.*.*']
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  actions: read
+
+# on évite de finir le build d'un push précédent, vu qu'on vient, à priori, de push un correctif.
+concurrency:
+  group: e2e-android-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Résout le cas (pr | merge | tag).
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      case: ${{ steps.check.outputs.case }} # pr | merge | tag | none
+    steps:
+      - id: check
+        if: true # empêche l'exécution tant que les tests en branche ne sont pas suffisants.
+        run: |
+          if [ "${{ startsWith(github.ref, 'refs/tags/') }}" = "true" ]; then
+            echo "case=tag" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "case=pr" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            echo "case=merge" >> "$GITHUB_OUTPUT"
+          else
+            echo "case=none" >> "$GITHUB_OUTPUT"
+          fi
+
+  call-pr:
+    needs: guard
+    if: needs.guard.outputs.case == 'pr'
+    uses: ./.github/workflows/workflow-e2e-shared.yml
+    with:
+      run_android: CI
+      run_old_device: false
+      pr_number: ${{ github.event.pull_request.number }}
+      source_sha: ${{ github.event.pull_request.head.sha }}
+      checkout_ref: ${{ github.head_ref }}
+    secrets: inherit
+
+  call-merge:
+    needs: guard
+    if: ${{ needs.guard.outputs.case == 'merge' }}
+    uses: ./.github/workflows/workflow-e2e-shared.yml
+    with:
+      run_android: short
+      run_old_device: false
+      source_sha: ${{ github.sha }}
+      checkout_ref: ${{ github.ref_name }}
+      # pr_number laissé au défaut 0 — pas de PR associée à un push sur master.
+    secrets: inherit
+
+  call-tag:
+    needs: guard
+    if: ${{ needs.guard.outputs.case == 'tag' }}
+    uses: ./.github/workflows/workflow-e2e-shared.yml
+    with:
+      run_android: CI
+      run_old_device: true
+      source_sha: ${{ github.sha }}
+      version_tag: ${{ github.ref_name }}
+      # pr_number laissé au défaut 0 — pas de PR associée à un tag.
+    secrets: inherit
