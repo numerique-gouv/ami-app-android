@@ -53,7 +53,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import fr.gouv.ami.utils.DownloadUtils
+import fr.gouv.ami.utils.FileUtils
 
 @Composable
 fun WebViewScreen(
@@ -184,7 +184,7 @@ fun WebViewScreen(
                             )
 
                             setDownloadListener { url, userAgent, contentDisposition, mimeType, contentLength ->
-                                DownloadUtils(context).downloadFile(
+                                FileUtils(context).downloadFile(
                                     url,
                                     contentDisposition,
                                     mimeType

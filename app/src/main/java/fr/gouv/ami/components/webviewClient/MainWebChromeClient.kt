@@ -8,6 +8,8 @@ import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import fr.gouv.ami.MainActivity
+import fr.gouv.ami.global.PermissionManager
+import fr.gouv.ami.utils.FileUtils
 
 class MainWebChromeClient(val activity: MainActivity) : WebChromeClient() {
     val TAG = this::class.java.simpleName
@@ -31,16 +33,24 @@ class MainWebChromeClient(val activity: MainActivity) : WebChromeClient() {
         Log.d(TAG, "onShowFileChooser is called")
         activity.filePathCallback = filePathCallback
 
-        val intent = fileChooserParams?.createIntent()
-            ?: Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                type = "*/*"
-                addCategory(Intent.CATEGORY_OPENABLE)
-                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+//        val intent = fileChooserParams?.createIntent()
+//            ?: Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+//                type = "*/*"
+//                addCategory(Intent.CATEGORY_OPENABLE)
+//                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+//            }
+//
+//        activity.filePickerLauncher.launch(intent)
+
+        PermissionManager(activity).requestCameraPermission { granted ->
+            if (granted) {
+                activity.cameraImageUri = FileUtils(activity).createCameraImageUri()
+                activity.cameraLauncher.launch(activity.cameraImageUri!!)
             }
-
-
-        activity.filePickerLauncher.launch(intent)
+        }
 
         return true
     }
+
+
 }

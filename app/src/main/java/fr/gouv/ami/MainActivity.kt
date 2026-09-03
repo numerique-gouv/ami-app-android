@@ -21,6 +21,10 @@ import fr.gouv.ami.ui.theme.AMITheme
 class MainActivity : FragmentActivity() {
     private val TAG = this::class.java.simpleName
 
+    companion object {
+        val REQUEST_CAMERA_CODE = 1476
+    }
+
     //launcher for file chooser
     var filePathCallback: ValueCallback<Array<Uri>>? = null
     val filePickerLauncher =
@@ -45,6 +49,37 @@ class MainActivity : FragmentActivity() {
             } else {
                 filePathCallback?.onReceiveValue(null)
             }
+        }
+
+    //launcher for camera
+    var cameraImageUri: Uri? = null
+    val cameraLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.TakePicture()
+        ) { success ->
+
+            val callback = filePathCallback
+            filePathCallback = null
+
+            if (success && cameraImageUri != null) {
+                callback?.onReceiveValue(
+                    arrayOf(cameraImageUri!!)
+                )
+            } else {
+                callback?.onReceiveValue(null)
+            }
+
+            cameraImageUri = null
+        }
+
+    //permission launcher
+    var onPermissionResult: ((Boolean) -> Unit)? = null
+    val permissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            onPermissionResult?.invoke(granted)
+            onPermissionResult = null
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {

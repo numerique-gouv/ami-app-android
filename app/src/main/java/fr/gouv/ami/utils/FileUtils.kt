@@ -2,12 +2,16 @@ package fr.gouv.ami.utils
 
 import android.app.DownloadManager
 import android.content.Context
+import android.net.Uri
 import android.os.Environment
 import android.widget.Toast
+import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import fr.gouv.ami.BuildConfig
 import fr.gouv.ami.R
+import java.io.File
 
-class DownloadUtils(val context: Context) {
+class FileUtils(val context: Context) {
     fun downloadFile(url: String, contentDisposition: String, mimeType: String) {
         val request = DownloadManager.Request(url.toUri())
 
@@ -35,5 +39,25 @@ class DownloadUtils(val context: Context) {
         } else {
             url.substringAfterLast("/")
         }
+    }
+
+    fun createCameraImageUri(): Uri {
+        val cameraDir = File(context.cacheDir, "camera")
+        if (!cameraDir.exists()) {
+            cameraDir.mkdirs()
+        }
+
+        val file = File.createTempFile(
+            "photo_",
+            ".jpg",
+            cameraDir
+        )
+
+        return FileProvider.getUriForFile(
+            context,
+            "${BuildConfig.APPLICATION_ID}.fileprovider",
+            file
+        )
+
     }
 }
