@@ -21,6 +21,8 @@
 
     <string name="download_logs">Télécharger les logs</string>
     <string name="download_started">Téléchargement en cours</string>
+    <string name="download_menu_file">Sélectionner un fichier</string>
+    <string name="download_menu_camera">Prendre une photo</string>
 
     <string name="ssl_error_title">Erreur de certificat</string>
     <string name="ssl_error_description">Le certificat n\'est pas reconnu.</string>

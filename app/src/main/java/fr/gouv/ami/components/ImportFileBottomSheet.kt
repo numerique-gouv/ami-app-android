@@ -11,8 +11,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import fr.gouv.ami.R
 import fr.gouv.ami.ui.theme.AMITheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,14 +37,16 @@ fun ImportFileBottomSheet(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(modifier = Modifier
-                .clickable { onFileSelected() }
-                .padding(bottom = 8.dp),
-                text = "Selectionner un fichier")
-            Text(modifier = Modifier
-                .clickable { onCameraSelected() }
-                .padding(vertical = 8.dp),
-                text = "Prendre une photo")
+            Text(
+                modifier = Modifier
+                    .clickable { onFileSelected() }
+                    .padding(bottom = 8.dp),
+                text = stringResource(R.string.download_menu_file))
+            Text(
+                modifier = Modifier
+                    .clickable { onCameraSelected() }
+                    .padding(vertical = 8.dp),
+                text = stringResource(R.string.download_menu_camera))
         }
     }
 }
