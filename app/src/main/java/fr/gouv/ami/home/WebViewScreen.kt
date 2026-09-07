@@ -1,6 +1,7 @@
 package fr.gouv.ami.home
 
 import android.app.Activity
+import android.content.Intent
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.content.res.Configuration
@@ -12,7 +13,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,11 +41,13 @@ import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
 import fr.gouv.ami.components.DownloadLogsButton
 import fr.gouv.ami.components.DownloadLogsViewModel
+import fr.gouv.ami.components.ImportFileBottomSheet
 import fr.gouv.ami.components.InformationBanner
 import fr.gouv.ami.components.InformationType
 import fr.gouv.ami.components.webviewClient.MainWebChromeClient
 import fr.gouv.ami.components.webviewClient.MainWebViewClient
 import fr.gouv.ami.global.BaseScreen
+import fr.gouv.ami.global.PermissionManager
 import fr.gouv.ami.home.WebviewScripts.Companion.nativeInfosScript
 import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.ui.theme.AMITheme
@@ -55,6 +60,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import fr.gouv.ami.utils.FileUtils
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
@@ -106,6 +112,8 @@ fun WebViewScreen(
     /** UI **/
 
     val context = LocalContext.current
+    val sheetState = rememberModalBottomSheetState()
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     BaseScreen(viewModel = webViewViewModel) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -160,7 +168,9 @@ fun WebViewScreen(
                             settings.allowContentAccess = true
                             settings.domStorageEnabled = true
                             Log.d(TAG, "Creating MainWebViewClient with baseURL ${baseUrl}")
-                            webChromeClient = MainWebChromeClient(activity)
+                            webChromeClient = MainWebChromeClient(
+                                activity = activity,
+                                visibilityModalFilesChanged = { showBottomSheet = true })
                             webViewClient = MainWebViewClient(
                                 baseUrl = baseUrl,
                                 onBackBarChanged = { hasBackBar = it },
@@ -281,6 +291,36 @@ fun WebViewScreen(
                         }
                     }
                 )
+            }
+
+            //bottom sheet for import files
+            if (showBottomSheet) {
+                ImportFileBottomSheet(
+                    sheetState,
+                    onDismissRequest = {
+                        showBottomSheet = false
+                        activity.cancelFileChooser()
+                    },
+                    onFileSelected = {
+                        showBottomSheet = false
+                        val intent = activity.fileChooserParams?.createIntent()
+                            ?: Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                                type = "*/*"
+                                addCategory(Intent.CATEGORY_OPENABLE)
+                                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                            }
+
+                        activity.filePickerLauncher.launch(intent)
+                    },
+                    onCameraSelected = {
+                        showBottomSheet = false
+                        PermissionManager(activity).requestCameraPermission { granted ->
+                            if (granted) {
+                                activity.cameraImageUri = FileUtils(activity).createCameraImageUri()
+                                activity.cameraLauncher.launch(activity.cameraImageUri!!)
+                            }
+                        }
+                    })
             }
 
             // Download logs button - appears only on contact page

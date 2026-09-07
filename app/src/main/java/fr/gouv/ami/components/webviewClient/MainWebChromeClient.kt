@@ -1,6 +1,5 @@
 package fr.gouv.ami.components.webviewClient
 
-import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.webkit.JsResult
@@ -8,10 +7,11 @@ import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import fr.gouv.ami.MainActivity
-import fr.gouv.ami.global.PermissionManager
-import fr.gouv.ami.utils.FileUtils
 
-class MainWebChromeClient(val activity: MainActivity) : WebChromeClient() {
+class MainWebChromeClient(
+    val activity: MainActivity,
+    val visibilityModalFilesChanged: (Boolean) -> Unit
+) : WebChromeClient() {
     val TAG = this::class.java.simpleName
 
     // Required for Android WebView to handle beforeunload confirmation dialogs
@@ -31,26 +31,11 @@ class MainWebChromeClient(val activity: MainActivity) : WebChromeClient() {
         fileChooserParams: FileChooserParams?
     ): Boolean {
         Log.d(TAG, "onShowFileChooser is called")
+
         activity.filePathCallback = filePathCallback
-
-//        val intent = fileChooserParams?.createIntent()
-//            ?: Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-//                type = "*/*"
-//                addCategory(Intent.CATEGORY_OPENABLE)
-//                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-//            }
-//
-//        activity.filePickerLauncher.launch(intent)
-
-        PermissionManager(activity).requestCameraPermission { granted ->
-            if (granted) {
-                activity.cameraImageUri = FileUtils(activity).createCameraImageUri()
-                activity.cameraLauncher.launch(activity.cameraImageUri!!)
-            }
-        }
+        activity.fileChooserParams = fileChooserParams
+        visibilityModalFilesChanged(true)
 
         return true
     }
-
-
 }

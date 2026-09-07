@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.ValueCallback
+import android.webkit.WebChromeClient.FileChooserParams
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,12 +22,9 @@ import fr.gouv.ami.ui.theme.AMITheme
 class MainActivity : FragmentActivity() {
     private val TAG = this::class.java.simpleName
 
-    companion object {
-        val REQUEST_CAMERA_CODE = 1476
-    }
-
     //launcher for file chooser
     var filePathCallback: ValueCallback<Array<Uri>>? = null
+    var fileChooserParams: FileChooserParams? = null
     val filePickerLauncher =
         registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -128,5 +126,12 @@ class MainActivity : FragmentActivity() {
             return baseUrl
         }
         return null
+    }
+
+    fun cancelFileChooser() {
+        filePathCallback?.onReceiveValue(null)
+
+        filePathCallback = null
+        fileChooserParams = null
     }
 }
