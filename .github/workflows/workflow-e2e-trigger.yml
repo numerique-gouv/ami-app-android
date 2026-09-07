@@ -17,6 +17,7 @@ concurrency:
   group: e2e-android-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+
 jobs:
   # Résout le cas (pr | merge | tag).
   guard:
