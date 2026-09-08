@@ -36,7 +36,7 @@ class FileUtils(val context: Context) {
         return if (contentDisposition != null && contentDisposition.contains("filename=")) {
             contentDisposition.substringAfter("filename=").substringBefore(";").replace("\"", "")
         } else {
-            uri.toString().substringAfterLast("/")
+            uri.lastPathSegment ?: "fichier"
         }
     }
 
