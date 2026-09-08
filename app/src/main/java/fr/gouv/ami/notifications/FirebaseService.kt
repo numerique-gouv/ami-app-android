@@ -38,15 +38,12 @@ class FirebaseService : FirebaseMessagingService() {
 
     val CHANNEL_NAME = "firebase channel"
     val CHANNEL_ID = "1000"
-    private val storageManager by lazy {
-        LowStorageManager(applicationContext)
-    }
 
     override fun onNewToken(token: String) {
         Log.d(TAG, "the new firebase token is $token")
 
         CoroutineScope(Dispatchers.IO).launch {
-            storageManager.saveFcmToken(token)
+            LowStorageManager(applicationContext).saveFcmToken(token)
             sendRegistration(token)
         }
     }
@@ -61,12 +58,12 @@ class FirebaseService : FirebaseMessagingService() {
                 if (cookie.contains("token")) {
                     bearer = cookie.split("\"")[1]
                     Log.d(TAG, "bearer: $bearer")
-                    storageManager.saveBearer(bearer)
+                    LowStorageManager(this).saveBearer(bearer)
                     break
                 }
             }
             if (bearer != null) {
-                val deviceId = DeviceIdUtils(applicationContext).getOrCreateDeviceId()
+                val deviceId = DeviceIdUtils(this).getOrCreateDeviceId()
                 val subscription = Subscription(
                     fcmToken = fcmToken,
                     deviceId = deviceId,
