@@ -6,17 +6,16 @@ import android.net.Uri
 import android.os.Environment
 import android.widget.Toast
 import androidx.core.content.FileProvider
-import androidx.core.net.toUri
 import fr.gouv.ami.BuildConfig
 import fr.gouv.ami.R
 import java.io.File
 
 class FileUtils(val context: Context) {
-    fun downloadFile(url: String, contentDisposition: String, mimeType: String) {
-        val request = DownloadManager.Request(url.toUri())
+    fun downloadFile(uri: Uri, contentDisposition: String, mimeType: String) {
+        val request = DownloadManager.Request(uri)
 
-        // Extract filename from contentDisposition or URL
-        val filename = getFileName(contentDisposition, url)
+        // Extract filename from contentDisposition or Uri
+        val filename = getFileName(contentDisposition, uri)
 
         request.apply {
             setTitle(filename)
@@ -33,11 +32,11 @@ class FileUtils(val context: Context) {
     }
 
 
-    fun getFileName(contentDisposition: String?, url: String): String {
+    private fun getFileName(contentDisposition: String?, uri: Uri): String {
         return if (contentDisposition != null && contentDisposition.contains("filename=")) {
             contentDisposition.substringAfter("filename=").substringBefore(";").replace("\"", "")
         } else {
-            url.substringAfterLast("/")
+            uri.toString().substringAfterLast("/")
         }
     }
 
