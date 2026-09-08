@@ -46,12 +46,12 @@ class FirebaseService : FirebaseMessagingService() {
         Log.d(TAG, "the new firebase token is $token")
 
         CoroutineScope(Dispatchers.IO).launch {
-            storageManager.saveFirebaseToken(token)
+            storageManager.saveFcmToken(token)
             sendRegistration(token)
         }
     }
 
-    suspend fun sendRegistration(token: String) {
+    suspend fun sendRegistration(fcmToken: String) {
         val cookieManager = CookieManager.getInstance()
         val cookies = cookieManager.getCookie(baseUrl)
         if (!cookies.isNullOrEmpty()) {
@@ -68,7 +68,7 @@ class FirebaseService : FirebaseMessagingService() {
             if (bearer != null) {
                 val deviceId = DeviceIdUtils(applicationContext).getOrCreateDeviceId()
                 val subscription = Subscription(
-                    fcmToken = token,
+                    fcmToken = fcmToken,
                     deviceId = deviceId,
                     platform = "android",
                     appVersion = BuildConfig.VERSION_NAME,

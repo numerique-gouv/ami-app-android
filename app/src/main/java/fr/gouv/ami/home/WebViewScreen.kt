@@ -32,7 +32,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import fr.gouv.ami.R
@@ -49,7 +48,6 @@ import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.ui.theme.AMITheme
 import fr.gouv.ami.home.WebviewScripts.EventWebview
 import fr.gouv.ami.utils.storage.LowStorageManager
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -209,8 +207,7 @@ fun WebViewScreen(
                                         loadUrl(webViewViewModel.currentUrl)
                                     }
                                 }
-                            }
-                            else {
+                            } else {
                                 // No need to wait for Coroutine to load NativeInfos JS.
                                 // Call loadURL as before. We are on Main UI Thread.
                                 loadUrl(webViewViewModel.currentUrl)
@@ -226,9 +223,9 @@ fun WebViewScreen(
                                         EventWebview.USER_LOGGED_IN -> {
                                             // Post to main thread to access WebView
                                             webViewViewModel.viewModelScope.launch {
-                                                val bearerToken = storage.bearerToken.first()
-                                                if (!bearerToken.isNullOrEmpty()) {
-                                                    FirebaseService().sendRegistration(bearerToken)
+                                                val fcmToken = storage.getFcmToken()
+                                                if (!fcmToken.isNullOrEmpty()) {
+                                                    FirebaseService().sendRegistration(fcmToken)
                                                 }
                                             }
                                             if (!hasRequestedPermissionBefore(context)) {
