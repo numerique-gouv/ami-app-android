@@ -1,6 +1,5 @@
 package fr.gouv.ami
 
-import android.content.pm.LauncherApps
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.Composable
@@ -25,12 +24,8 @@ import fr.gouv.ami.home.HomeScreen
 import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.settings.SettingsScreen
 import fr.gouv.ami.settings.OnboardingNotificationScreen
-import fr.gouv.ami.utils.storage.ILocalStorageRepository
-import fr.gouv.ami.utils.storage.KeyStoreManager
 import fr.gouv.ami.utils.storage.LowStorageManager
-import fr.gouv.ami.utils.storage.SecureStorage
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
 
 //list of all screens
 enum class Screen {
@@ -55,7 +50,7 @@ fun HomeApp(
     }
 
     LaunchedEffect(Unit) {
-        val token = storage.bearerToken.first()
+        val token = storage.getBearerToken()
         if (token != null) {
             val authenticationFlow = checkAuth(token)
             authenticationFlow

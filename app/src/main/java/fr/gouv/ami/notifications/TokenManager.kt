@@ -13,17 +13,16 @@ class TokenManager() {
 
     private val TAG = this::class.java.simpleName
 
-    fun saveFirebaseToken(context: Context) {
-        Log.d(TAG, "saveFirebaseToken")
+    fun saveFcmToken(context: Context) {
         FirebaseMessaging.getInstance().token
             .addOnCompleteListener(OnCompleteListener { task ->
                 if (!task.isSuccessful) {
                     return@OnCompleteListener
                 }
                 if (task.result != null) {
-                    Log.d(TAG, "save ${task.result!!}")
+                    Log.d(TAG, "save fcm token : ${task.result!!}")
                     CoroutineScope(Dispatchers.IO).launch {
-                        LowStorageManager(context).saveFirebaseToken(task.result)
+                        LowStorageManager(context).saveFcmToken(task.result)
                     }
                 }
             })

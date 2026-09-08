@@ -16,21 +16,21 @@ class LowStorageManager(private val context: Context) {
         val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = STORAGE_NAME)
     }
 
-    private val FIREBASE_TOKEN = stringPreferencesKey("firebase_token")
+    private val FCM_TOKEN = stringPreferencesKey("fcm_token")
     private val BEARER_TOKEN = stringPreferencesKey("bearer_token")
 
-    suspend fun saveFirebaseToken(token: String) {
+    suspend fun saveFcmToken(token: String) {
         context.dataStore.edit { preferences ->
-            preferences[FIREBASE_TOKEN] = token
+            preferences[FCM_TOKEN] = token
         }
     }
 
-    val firebaseToken: Flow<String?> = context.dataStore.data.map { preferences ->
-        preferences[FIREBASE_TOKEN]
+    val fcmToken: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[FCM_TOKEN]
     }
 
-    suspend fun getFirebaseToken(): String? =
-        firebaseToken.first()
+    suspend fun getFcmToken(): String? =
+        fcmToken.first()
 
     suspend fun saveBearer(token: String) {
         context.dataStore.edit { preferences ->
