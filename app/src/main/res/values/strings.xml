@@ -2,7 +2,7 @@
     <string name="app_name">AMI</string>
     <string name="staging">Staging</string>
     <string name="reviewApp_title">Choix de la review</string>
-    <string name="back">Retour</string>
+    <string name="back_ami">AMI</string>
     <string name="enable">Activer</string>
     <string name="maybe_later">Peut-être plus tard</string>
     <string name="commun_cancel">Annuler</string>

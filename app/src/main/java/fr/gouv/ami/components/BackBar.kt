@@ -27,17 +27,23 @@ fun BackBar(action: () -> Unit) {
         /*contentColor = MaterialTheme.colorScheme.onPrimary,
         color = MaterialTheme.colorScheme.primary*/
     ) {
-        Row(modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically) {
-            Button(onClick = action,
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.onPrimary)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(
+                onClick = action,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "back",
+                    contentDescription = "back to ami",
                 )
             }
-            Text(stringResource(R.string.back))
+            Text(stringResource(R.string.back_ami))
         }
     }
 }
@@ -46,7 +52,7 @@ fun BackBar(action: () -> Unit) {
 @Composable
 fun PreviewBackBarLight() {
     AMITheme {
-        BackBar(){}
+        BackBar() {}
     }
 }
 
@@ -54,6 +60,6 @@ fun PreviewBackBarLight() {
 @Composable
 fun PreviewBackBarDark() {
     AMITheme {
-        BackBar(){}
+        BackBar() {}
     }
 }
