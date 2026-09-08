@@ -9,7 +9,7 @@ class PermissionManager(
     private val activity: MainActivity
 ) {
 
-    fun hasCameraPermission(): Boolean {
+    private fun hasCameraPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
             activity,
             Manifest.permission.CAMERA
