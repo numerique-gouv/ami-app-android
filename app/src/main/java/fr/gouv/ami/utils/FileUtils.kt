@@ -9,6 +9,8 @@ import androidx.core.content.FileProvider
 import fr.gouv.ami.BuildConfig
 import fr.gouv.ami.R
 import java.io.File
+import java.net.URLDecoder
+import java.nio.charset.Charset
 
 class FileUtils(val context: Context) {
     fun downloadFile(uri: Uri, contentDisposition: String, mimeType: String) {
@@ -33,11 +35,56 @@ class FileUtils(val context: Context) {
 
 
     private fun getFileName(contentDisposition: String?, uri: Uri): String {
-        return if (contentDisposition != null && contentDisposition.contains("filename=")) {
-            contentDisposition.substringAfter("filename=").substringBefore(";").replace("\"", "")
-        } else {
-            uri.lastPathSegment ?: "fichier"
+        return contentDisposition?.let { content ->
+            extractFileName(content)
         }
+            ?: uri.lastPathSegment
+            ?: "fichier"
+    }
+
+    private fun extractFileName(contentDisposition: String): String? {
+
+        //format is filename*=
+        val filenameStarRegex = Regex(
+            """filename\*\s*=\s*([^']*)'[^']*'(?:"([^"]+)"|([^;]+))""",
+            RegexOption.IGNORE_CASE
+        )
+
+        filenameStarRegex.find(contentDisposition)?.let { match ->
+            if (match.groupValues.size >= 3) {
+                val charsetName = match.groupValues[1]
+                //groups[2] is filename*="..."
+                //groups[3] is filename*=...
+                val encodedFilename =
+                    match.groups[2]?.value
+                        ?: match.groups[3]?.value
+
+                val charset = runCatching {
+                    Charset.forName(charsetName)
+                }.getOrElse {
+                    Charsets.UTF_8
+                }
+
+                return URLDecoder
+                    .decode(encodedFilename, charset.name())
+                    .trim()
+            }
+        }
+
+        // format is filename=
+        val filenameRegex = Regex(
+            """filename\s*=\s*(?:"([^"]+)"|([^;]+))""",
+            RegexOption.IGNORE_CASE
+        )
+
+        filenameRegex.find(contentDisposition)?.let { match ->
+            //groups[1] is filename="..."
+            //groups[2] is filename=...
+            return (match.groups[1]?.value ?: match.groups[2]?.value)
+                ?.trim()
+        }
+
+        return null
     }
 
     fun createCameraImageUri(): Uri {
