@@ -87,7 +87,7 @@ class MainActivity : FragmentActivity() {
         // Initialize CookieManager before creating WebView to ensure cookies are properly restored
         val cookieManager = CookieManager.getInstance()
         cookieManager.setAcceptCookie(true)
-        TokenManager().saveFirebaseToken(applicationContext)
+        TokenManager().saveFcmToken(applicationContext)
 
         val url = extractBaseUrl(intent)
         Log.d(TAG, "onCreate: baseUrl from the intent: $url")

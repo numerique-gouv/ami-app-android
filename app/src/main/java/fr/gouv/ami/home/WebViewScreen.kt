@@ -243,9 +243,9 @@ fun WebViewScreen(
                                         EventWebview.USER_LOGGED_IN -> {
                                             // Post to main thread to access WebView
                                             webViewViewModel.viewModelScope.launch {
-                                                val bearerToken = storage.bearerToken.first()
-                                                if (!bearerToken.isNullOrEmpty()) {
-                                                    FirebaseService().sendRegistration(bearerToken)
+                                                val fcmToken = storage.getFcmToken()
+                                                if (!fcmToken.isNullOrEmpty()) {
+                                                    FirebaseService().sendRegistration(fcmToken)
                                                 }
                                             }
                                             if (!hasRequestedPermissionBefore(context)) {
