@@ -5,7 +5,8 @@
     <string name="back">Retour</string>
     <string name="enable">Activer</string>
     <string name="maybe_later">Peut-être plus tard</string>
-    <string name="commun_cancel">Annuler</string>
+    <string name="common_cancel">Annuler</string>
+    <string name="allow_camera">Autoriser la caméra</string>
 
     <string name="connection_lost_title">Problème de connexion Internet</string>
     <string name="connection_lost_description">Vérifiez votre réseau (données mobiles ou Wi-Fi) et relancez l\'application pour vous connecter.</string>
