@@ -1,20 +1,26 @@
 package fr.gouv.ami.home
 
+import android.Manifest
 import android.app.Activity
+import android.content.Intent
+import android.content.res.Configuration
+import android.net.Uri
+import android.provider.Settings
 import android.util.Log
 import android.webkit.JavascriptInterface
-import android.content.res.Configuration
-import android.webkit.JsResult
-import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,33 +32,44 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import fr.gouv.ami.MainActivity
 import fr.gouv.ami.R
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
 import fr.gouv.ami.components.DownloadLogsButton
 import fr.gouv.ami.components.DownloadLogsViewModel
+import fr.gouv.ami.components.ImportFileBottomSheet
 import fr.gouv.ami.components.InformationBanner
 import fr.gouv.ami.components.InformationType
-import fr.gouv.ami.components.MainWebViewClient
+import fr.gouv.ami.components.PrimaryButton
+import fr.gouv.ami.components.SecondaryButton
+import fr.gouv.ami.components.webviewClient.MainWebChromeClient
+import fr.gouv.ami.components.webviewClient.MainWebViewClient
 import fr.gouv.ami.global.BaseScreen
+import fr.gouv.ami.global.PermissionManager
 import fr.gouv.ami.home.WebviewScripts.Companion.nativeInfosScript
+import fr.gouv.ami.home.WebviewScripts.EventWebview
 import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.ui.theme.AMITheme
-import fr.gouv.ami.home.WebviewScripts.EventWebview
+import fr.gouv.ami.utils.FileUtils
 import fr.gouv.ami.utils.storage.LowStorageManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
@@ -68,6 +85,7 @@ fun WebViewScreen(
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
     var canGoBack by remember { mutableStateOf(false) }
     val swipeRefreshRef = remember { mutableStateOf<SwipeRefreshLayout?>(null) }
+    val activity = LocalContext.current as MainActivity
 
     LaunchedEffect(Unit) {
         webViewViewModel.currentUrl = startUrl
@@ -103,6 +121,9 @@ fun WebViewScreen(
     /** UI **/
 
     val context = LocalContext.current
+    val sheetState = rememberModalBottomSheetState()
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var showPermissionAlert by remember { mutableStateOf(false) }
 
     BaseScreen(viewModel = webViewViewModel) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -157,18 +178,9 @@ fun WebViewScreen(
                             settings.allowContentAccess = true
                             settings.domStorageEnabled = true
                             Log.d(TAG, "Creating MainWebViewClient with baseURL ${baseUrl}")
-                            webChromeClient = object : WebChromeClient() {
-                                // Required for Android WebView to handle beforeunload confirmation dialogs
-                                override fun onJsBeforeUnload(
-                                    view: WebView?,
-                                    url: String?,
-                                    message: String?,
-                                    result: JsResult?
-                                ): Boolean {
-                                    Log.d(TAG, "onJsBeforeUnload is called")
-                                    return super.onJsBeforeUnload(view, url, message, result)
-                                }
-                            }
+                            webChromeClient = MainWebChromeClient(
+                                activity = activity,
+                                visibilityModalFilesChanged = { showBottomSheet = true })
                             webViewClient = MainWebViewClient(
                                 baseUrl = baseUrl,
                                 onBackBarChanged = { hasBackBar = it },
@@ -190,6 +202,14 @@ fun WebViewScreen(
                                 },
                                 onSslError = { webViewViewModel.showSSLErrorBanner() },
                             )
+
+                            setDownloadListener { url, userAgent, contentDisposition, mimeType, contentLength ->
+                                FileUtils(context).downloadFile(
+                                    url.toUri(),
+                                    contentDisposition,
+                                    mimeType
+                                )
+                            }
 
                             if (
                                 WebViewFeature.isFeatureSupported(
@@ -281,6 +301,72 @@ fun WebViewScreen(
                         }
                     }
                 )
+            }
+
+            //bottom sheet for import files
+            if (showBottomSheet) {
+                ImportFileBottomSheet(
+                    sheetState,
+                    onDismissRequest = {
+                        showBottomSheet = false
+                        activity.cancelFileChooser()
+                    },
+                    onFileSelected = {
+                        showBottomSheet = false
+                        val intent = activity.fileChooserParams?.createIntent()
+                            ?: Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                                type = "*/*"
+                                addCategory(Intent.CATEGORY_OPENABLE)
+                                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                            }
+
+                        activity.filePickerLauncher.launch(intent)
+                    },
+                    onCameraSelected = {
+                        PermissionManager(activity).requestCameraPermission { granted ->
+                            if (granted) {
+                                showBottomSheet = false
+                                activity.cameraImageUri = FileUtils(activity).createCameraImageUri()
+                                activity.cameraLauncher.launch(activity.cameraImageUri!!)
+                            } else {
+                                //if permission is denied, the bottomsheet remains visible and an alertDialog is displayed
+                                activity.cancelFileChooser()
+                                if (!ActivityCompat.shouldShowRequestPermissionRationale(
+                                        activity,
+                                        Manifest.permission.CAMERA
+                                    )
+                                ) {
+                                    showPermissionAlert = true
+                                }
+                            }
+                        }
+                    })
+            }
+
+            if (showPermissionAlert) {
+                AlertDialog(
+                    onDismissRequest = { showPermissionAlert = false },
+                    confirmButton = {
+                        PrimaryButton(
+                            text = stringResource(R.string.allow_camera),
+                            onClick = {
+                                showPermissionAlert = false
+                                val intent = Intent(
+                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                    Uri.fromParts("package", context.packageName, null)
+                                )
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                context.startActivity(intent)
+                            })
+                    },
+                    dismissButton = {
+                        SecondaryButton(
+                            text = stringResource(R.string.common_cancel),
+                            onClick = { showPermissionAlert = false })
+                    },
+                    text = {
+                        Text("Vous devez autoriser la caméra pour prendre une photo")
+                    })
             }
 
             // Download logs button - appears only on contact page
