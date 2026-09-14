@@ -35,4 +35,6 @@
     <string name="tchap">Contactez-nous sur Tchap</string>
 
     <string name="biometric_prompt_title">Utilisez la biométrie pour valider</string>
+
+    <string name="allow_camera_modal">Vous devez autoriser la caméra pour prendre une photo</string>
 </resources>

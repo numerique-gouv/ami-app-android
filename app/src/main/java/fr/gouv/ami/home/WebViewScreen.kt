@@ -366,7 +366,7 @@ fun WebViewScreen(
                             onClick = { showPermissionAlert = false })
                     },
                     text = {
-                        Text("Vous devez autoriser la caméra pour prendre une photo")
+                        Text(stringResource(R.string.allow_camera_modal))
                     })
             }
 
