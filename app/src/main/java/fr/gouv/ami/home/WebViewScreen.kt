@@ -180,7 +180,8 @@ fun WebViewScreen(
                             Log.d(TAG, "Creating MainWebViewClient with baseURL ${baseUrl}")
                             webChromeClient = MainWebChromeClient(
                                 activity = activity,
-                                visibilityModalFilesChanged = { showBottomSheet = true })
+                                visibilityModalFilesChanged = { visibility ->
+                                    showBottomSheet = visibility })
                             webViewClient = MainWebViewClient(
                                 baseUrl = baseUrl,
                                 onBackBarChanged = { hasBackBar = it },
