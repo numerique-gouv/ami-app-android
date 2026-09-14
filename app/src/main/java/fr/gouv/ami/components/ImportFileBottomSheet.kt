@@ -1,5 +1,6 @@
 package fr.gouv.ami.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
@@ -14,6 +16,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,7 +52,8 @@ fun ImportFileBottomSheet(
             ) {
                 Image(
                     painter = painterResource(R.drawable.dsfr_file_download_line),
-                    contentDescription = "Sélectionner un fichier"
+                    contentDescription = "Sélectionner un fichier",
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
                 )
                 Text(
                     modifier = Modifier
@@ -66,7 +70,8 @@ fun ImportFileBottomSheet(
             ) {
                 Image(
                     painter = painterResource(R.drawable.dsfr_camera_fill),
-                    contentDescription = "Prendre une photo"
+                    contentDescription = "Prendre une photo",
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
                 )
                 Text(
                     modifier = Modifier
@@ -82,6 +87,19 @@ fun ImportFileBottomSheet(
 @Composable
 @Preview
 fun PreviewImportFileBottomSheet() {
+    AMITheme() {
+        ImportFileBottomSheet(
+            sheetState = rememberModalBottomSheetState(),
+            onDismissRequest = {},
+            onFileSelected = {},
+            onCameraSelected = {})
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun PreviewImportFileBottomSheetDark() {
     AMITheme() {
         ImportFileBottomSheet(
             sheetState = rememberModalBottomSheetState(),
