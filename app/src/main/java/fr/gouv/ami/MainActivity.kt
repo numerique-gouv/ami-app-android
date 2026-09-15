@@ -1,11 +1,15 @@
 package fr.gouv.ami
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.webkit.CookieManager
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient.FileChooserParams
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
@@ -17,6 +21,64 @@ import fr.gouv.ami.ui.theme.AMITheme
 
 class MainActivity : FragmentActivity() {
     private val TAG = this::class.java.simpleName
+
+    //launcher for file chooser
+    var filePathCallback: ValueCallback<Array<Uri>>? = null
+    var fileChooserParams: FileChooserParams? = null
+    val filePickerLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+
+            if (result.resultCode == RESULT_OK) {
+                val data = result.data
+
+                val uris = if (data?.clipData != null) {
+                    Array(data.clipData!!.itemCount) { index ->
+                        data.clipData!!.getItemAt(index).uri
+                    }
+                } else if (data?.data != null) {
+                    arrayOf(data.data!!)
+                } else {
+                    null
+                }
+
+                filePathCallback?.onReceiveValue(uris)
+            } else {
+                filePathCallback?.onReceiveValue(null)
+            }
+        }
+
+    //launcher for camera
+    var cameraImageUri: Uri? = null
+    val cameraLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.TakePicture()
+        ) { success ->
+
+            val callback = filePathCallback
+            filePathCallback = null
+
+            if (success && cameraImageUri != null) {
+                callback?.onReceiveValue(
+                    arrayOf(cameraImageUri!!)
+                )
+            } else {
+                callback?.onReceiveValue(null)
+            }
+
+            cameraImageUri = null
+        }
+
+    //permission launcher
+    var onPermissionResult: ((Boolean) -> Unit)? = null
+    val permissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            onPermissionResult?.invoke(granted)
+            onPermissionResult = null
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -64,5 +126,12 @@ class MainActivity : FragmentActivity() {
             return baseUrl
         }
         return null
+    }
+
+    fun cancelFileChooser() {
+        filePathCallback?.onReceiveValue(null)
+
+        filePathCallback = null
+        fileChooserParams = null
     }
 }

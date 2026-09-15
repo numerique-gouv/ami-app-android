@@ -75,7 +75,7 @@ class AmiBiometricPrompt(val context: FragmentActivity) {
             .setTitle(getString(context, R.string.biometric_prompt_title))
             .setAllowedAuthenticators(BIOMETRIC_STRONG)
             .setConfirmationRequired(false)
-            .setNegativeButtonText(getString(context, R.string.commun_cancel))
+            .setNegativeButtonText(getString(context, R.string.common_cancel))
             .build()
 
     private fun <T> createCallbackObject(
