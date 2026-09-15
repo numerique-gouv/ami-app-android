@@ -132,7 +132,7 @@ fun WebViewScreen(
 
                 if (hasBackBar) {
                     BackBar {
-                        (context as Activity).onBackPressed()
+                        webViewRef.value?.loadUrl(baseUrl)
                     }
                 }
 
