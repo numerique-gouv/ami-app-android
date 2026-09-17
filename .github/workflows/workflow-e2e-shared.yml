@@ -57,7 +57,11 @@ jobs:
         run: echo "${{ secrets.ENV_STAGING }}" > config/.env.staging
 
       - name: Build APK staging debug
-        run: sh ./gradlew assembleStagingDebug
+        # --build-cache : réutilise les sorties de tâches (compilation, etc.) d'un run à
+        # l'autre via ~/.gradle/caches/build-cache-1, déjà sauvegardé par setup-gradle.
+        # --configuration-cache : réutilise le résultat de la phase de configuration Gradle.
+        # --parallel : exécute app/buildSrc en parallèle quand c'est possible.
+        run: sh ./gradlew assembleStagingDebug --build-cache --configuration-cache --parallel
 
       - name: Lire la version depuis output-metadata.json
         id: version
