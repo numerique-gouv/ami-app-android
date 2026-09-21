@@ -78,7 +78,6 @@ jobs:
           path: app/build/outputs/apk/staging/debug/app-staging-debug.apk
           overwrite: true # un re-run garderait le même run_id → même nom d'artefact.
 
-
   e2e-launch:
     name: trigger an e2e run in ami-system-tests
     needs: build
