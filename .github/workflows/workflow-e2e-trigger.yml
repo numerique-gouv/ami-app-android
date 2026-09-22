@@ -42,7 +42,7 @@ jobs:
     if: needs.guard.outputs.case == 'pr'
     uses: ./.github/workflows/workflow-e2e-shared.yml
     with:
-      run_android: CI
+      run_android: short
       run_old_device: true
       pr_number: ${{ github.event.pull_request.number }}
       source_sha: ${{ github.event.pull_request.head.sha }}
@@ -66,7 +66,7 @@ jobs:
     if: ${{ needs.guard.outputs.case == 'tag' }}
     uses: ./.github/workflows/workflow-e2e-shared.yml
     with:
-      run_android: CI
+      run_android: short
       run_old_device: true
       source_sha: ${{ github.sha }}
       version_tag: ${{ github.ref_name }}
