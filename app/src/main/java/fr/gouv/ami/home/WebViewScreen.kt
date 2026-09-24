@@ -1,7 +1,6 @@
 package fr.gouv.ami.home
 
 import android.Manifest
-import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
@@ -27,13 +25,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.core.net.toUri
@@ -46,8 +42,6 @@ import fr.gouv.ami.MainActivity
 import fr.gouv.ami.R
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
-import fr.gouv.ami.components.DownloadLogsButton
-import fr.gouv.ami.components.DownloadLogsViewModel
 import fr.gouv.ami.components.ImportFileBottomSheet
 import fr.gouv.ami.components.InformationBanner
 import fr.gouv.ami.components.InformationType
@@ -65,7 +59,6 @@ import fr.gouv.ami.utils.FileUtils
 import fr.gouv.ami.utils.storage.LowStorageManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -76,7 +69,6 @@ fun WebViewScreen(
     goSettings: () -> Unit,
     goAuth: () -> Unit,
     goOnboarding: () -> Unit,
-    downloadLogsViewModel: DownloadLogsViewModel = viewModel(),
     startUrl: String = baseUrl
 ) {
     val TAG = "WebViewScreen"
@@ -181,7 +173,8 @@ fun WebViewScreen(
                             webChromeClient = MainWebChromeClient(
                                 activity = activity,
                                 visibilityModalFilesChanged = { visibility ->
-                                    showBottomSheet = visibility })
+                                    showBottomSheet = visibility
+                                })
                             webViewClient = MainWebViewClient(
                                 baseUrl = baseUrl,
                                 onBackBarChanged = { hasBackBar = it },
@@ -369,26 +362,6 @@ fun WebViewScreen(
                         Text(stringResource(R.string.allow_camera_modal))
                     })
             }
-
-            // Download logs button - appears only on contact page
-            DownloadLogsButton(
-                visible = webViewViewModel.isOnContactPage,
-                onClick = {
-                    // Fetch user_fc_hash from localStorage before sharing logs
-                    webViewRef.value?.evaluateJavascript("localStorage.getItem('user_fc_hash')") { result ->
-                        // Result comes as JSON string: "\"value\"" or "null"
-                        val userFcHash = result
-                            ?.trim()
-                            ?.removeSurrounding("\"")
-                            ?.takeIf { it != "null" }
-                        downloadLogsViewModel.shareLogs(context, userFcHash)
-                    } ?: downloadLogsViewModel.shareLogs(context)
-                },
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 24.dp)
-            )
         }
     }
 }
