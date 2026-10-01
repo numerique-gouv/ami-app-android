@@ -2,11 +2,13 @@ package fr.gouv.ami.components.webviewClient
 
 import android.net.Uri
 import android.util.Log
+import android.webkit.GeolocationPermissions
 import android.webkit.JsResult
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import fr.gouv.ami.MainActivity
+import fr.gouv.ami.global.PermissionManager
 
 class MainWebChromeClient(
     val activity: MainActivity,
@@ -38,4 +40,17 @@ class MainWebChromeClient(
 
         return true
     }
+
+    override fun onGeolocationPermissionsShowPrompt(
+        origin: String?,
+        callback: GeolocationPermissions.Callback?
+    ) {
+        Log.d(TAG, "onGelocationPermission $origin")
+        PermissionManager(activity).requestLocationPermission { granted ->
+            Log.d(TAG, "granted : $granted")
+            callback?.invoke(origin, granted, false)
+        }
+        super.onGeolocationPermissionsShowPrompt(origin, callback)
+    }
+
 }

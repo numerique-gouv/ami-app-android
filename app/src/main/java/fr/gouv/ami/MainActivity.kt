@@ -71,13 +71,22 @@ class MainActivity : FragmentActivity() {
         }
 
     //permission launcher
-    var onPermissionResult: ((Boolean) -> Unit)? = null
-    val permissionLauncher =
+    var onPermissionCameraResult: ((Boolean) -> Unit)? = null
+    val permissionCameraLauncher =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { granted ->
-            onPermissionResult?.invoke(granted)
-            onPermissionResult = null
+            onPermissionCameraResult?.invoke(granted)
+            onPermissionCameraResult = null
+        }
+
+    var onPermissionLocationResult: ((Boolean) -> Unit)? = null
+    val permissionLocationLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            onPermissionLocationResult?.invoke(granted)
+            onPermissionLocationResult = null
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
