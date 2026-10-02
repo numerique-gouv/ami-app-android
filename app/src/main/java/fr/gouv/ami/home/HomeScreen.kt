@@ -5,26 +5,21 @@ import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.gouv.ami.Screen
 import fr.gouv.ami.ui.theme.AMITheme
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun HomeScreen(
     webViewViewModel: WebViewViewModel,
-    goSettings: () -> Unit,
-    goAuth: () -> Unit,
-    goOnboarding: () -> Unit,
-    startUrl: String
+    navigate: (Screen) -> Unit,
 ) {
 
     /** UI **/
 
     WebViewScreen(
         webViewViewModel,
-        goSettings,
-        goAuth = goAuth,
-        goOnboarding = goOnboarding,
-        startUrl = startUrl
+        navigate = navigate
     )
 }
 
@@ -32,7 +27,7 @@ fun HomeScreen(
 @Composable
 fun PreviewHomeScreenLight() {
     AMITheme {
-        HomeScreen(viewModel(), goSettings = {}, goAuth = {}, goOnboarding = {}, startUrl = "")
+        HomeScreen(viewModel(), navigate = {})
     }
 }
 
@@ -40,6 +35,6 @@ fun PreviewHomeScreenLight() {
 @Composable
 fun PreviewHomeScreenDark() {
     AMITheme {
-        HomeScreen(viewModel(), goSettings = {}, goAuth = {}, goOnboarding = {}, startUrl = "")
+        HomeScreen(viewModel(), navigate = {})
     }
 }

@@ -7,13 +7,16 @@ import android.net.Uri
 import android.provider.Settings
 import android.util.Log
 import android.webkit.JavascriptInterface
+import android.view.ViewGroup
+import android.webkit.JsResult
+import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
@@ -40,6 +43,7 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import fr.gouv.ami.MainActivity
 import fr.gouv.ami.R
+import fr.gouv.ami.Screen
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.components.BackBar
 import fr.gouv.ami.components.ImportFileBottomSheet
@@ -47,8 +51,8 @@ import fr.gouv.ami.components.InformationBanner
 import fr.gouv.ami.components.InformationType
 import fr.gouv.ami.components.PrimaryButton
 import fr.gouv.ami.components.SecondaryButton
-import fr.gouv.ami.components.webviewClient.MainWebChromeClient
 import fr.gouv.ami.components.webviewClient.MainWebViewClient
+import fr.gouv.ami.data.models.UrlAliases
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.global.PermissionManager
 import fr.gouv.ami.home.WebviewScripts.Companion.nativeInfosScript
@@ -57,36 +61,151 @@ import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.ui.theme.AMITheme
 import fr.gouv.ami.utils.FileUtils
 import fr.gouv.ami.utils.storage.LowStorageManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
-    goSettings: () -> Unit,
-    goAuth: () -> Unit,
-    goOnboarding: () -> Unit,
-    startUrl: String = baseUrl
+    navigate: (Screen) -> Unit
 ) {
     val TAG = "WebViewScreen"
     var hasBackBar by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
-    val webViewRef = remember { mutableStateOf<WebView?>(null) }
-    var canGoBack by remember { mutableStateOf(false) }
     val swipeRefreshRef = remember { mutableStateOf<SwipeRefreshLayout?>(null) }
     val activity = LocalContext.current as MainActivity
 
     LaunchedEffect(Unit) {
-        webViewViewModel.currentUrl = startUrl
+        if (webViewViewModel.webView == null) {
+            webViewViewModel.webView = WebView(activity).apply {
+
+                settings.javaScriptEnabled = true
+                settings.allowFileAccess = true
+                settings.allowContentAccess = true
+                settings.domStorageEnabled = true
+                Log.d(TAG, "Creating MainWebViewClient with baseURL ${baseUrl}")
+                webChromeClient = object : WebChromeClient() {
+                    // Required for Android WebView to handle beforeunload confirmation dialogs
+                    override fun onJsBeforeUnload(
+                        view: WebView?,
+                        url: String?,
+                        message: String?,
+                        result: JsResult?
+                    ): Boolean {
+                        Log.d(TAG, "onJsBeforeUnload is called")
+                        return super.onJsBeforeUnload(view, url, message, result)
+                    }
+                }
+                webViewClient = MainWebViewClient(
+                    baseUrl = webViewViewModel.currentUrl,
+                    webViewModel = webViewViewModel,
+                    onBackBarChanged = { hasBackBar = it },
+                    onUrlChanged =
+                        {
+                            webViewViewModel.onUrlChanged(it)
+                        },
+                    onLoadingChanged = { isLoading = it },
+                    onCanGoBackChanged = { webViewViewModel.canGoBack = it },
+                    onPageFinished = {
+                        webViewViewModel.notifyPageFinished()
+                    },
+                    onSslError = { webViewViewModel.showSSLErrorBanner() },
+                    navigate = navigate
+                )
+
+                if (
+                    WebViewFeature.isFeatureSupported(
+                        WebViewFeature.DOCUMENT_START_SCRIPT
+                    )
+                ) {
+                    WebViewCompat.addDocumentStartJavaScript(
+                        this,
+                        nativeInfosScript(context),
+                        setOf("*")
+                    )
+                }
+
+                setDownloadListener { url, userAgent, contentDisposition, mimeType, contentLength ->
+                    FileUtils(context).downloadFile(
+                        url.toUri(),
+                        contentDisposition,
+                        mimeType
+                    )
+                }
+
+                addJavascriptInterface(object {
+                    @JavascriptInterface
+                    fun onEvent(eventName: String, dataJson: String) {
+                        Log.d("WebView", "Event received: $eventName - $dataJson")
+                        val storage = LowStorageManager(context)
+                        val event = EventWebview.fromValue(eventName)
+                        when (event) {
+                            EventWebview.USER_LOGGED_IN -> {
+                                // Post to main thread to access WebView
+                                webViewViewModel.viewModelScope.launch {
+                                    val fcmToken = storage.getFcmToken()
+                                    if (!fcmToken.isNullOrEmpty()) {
+                                        FirebaseService().sendRegistration(fcmToken)
+                                    }
+                                }
+                                //We're letting the web app handle the onboarding screen for now
+                                /*if (!hasRequestedPermissionBefore(context)) {
+                                    webViewViewModel.viewModelScope.launch {
+                                        navigate(Screen.Onboarding)
+                                    }
+                                }*/
+                            }
+
+                            EventWebview.USER_LOGGED_OUT -> {
+                                webViewViewModel.viewModelScope.launch {
+                                    storage.clearBearer()
+                                    navigate(Screen.FranceConnection)
+                                }
+                            }
+
+                            EventWebview.NOTIFICATION_PERMISSION_REQUESTED -> {
+                                // Trigger notification permission request
+                                webViewViewModel.viewModelScope.launch {
+                                    webViewViewModel.triggerNotificationPermissionRequest()
+                                }
+                            }
+
+                            EventWebview.NOTIFICATION_PERMISSION_REMOVED -> {
+                                // Open system settings to let user revoke permission
+                                webViewViewModel.viewModelScope.launch {
+                                    webViewViewModel.openNotificationSettings()
+                                }
+                            }
+
+                            EventWebview.WEBAPP_BRIDGE_READY -> {
+                                Log.d(TAG, "webapp bridge is ready")
+                                webViewViewModel.webView?.post {
+                                    evaluateJavascript(
+                                        "window.WebAppBridge.getUrlAliases();",
+                                        { result ->
+                                            val aliasesJson = Json.decodeFromString<String>(result)
+                                            webViewViewModel.aliases =
+                                                Json.decodeFromString<Array<UrlAliases>>(
+                                                    aliasesJson
+                                                )
+                                        })
+                                }
+                            }
+
+                            else -> {}
+                        }
+                    }
+                }, "NativeBridge")
+                loadUrl(webViewViewModel.currentUrl)
+            }
+        }
     }
 
     LaunchedEffect(Unit) {
         webViewViewModel.refreshView.collect {
-            //webViewRef.value?.reload() doesn't work, the history is lost
-            webViewRef.value?.evaluateJavascript(
+            //webViewViewModel.webView?.reload() doesn't work, the history is lost
+            webViewViewModel.webView?.evaluateJavascript(
                 "window.location.reload();",
                 null
             )
@@ -95,7 +214,7 @@ fun WebViewScreen(
 
     LaunchedEffect(Unit) {
         webViewViewModel.executeJavaScript.collect { script ->
-            webViewRef.value?.evaluateJavascript(script, null)
+            webViewViewModel.webView?.evaluateJavascript(script, null)
             Log.d("WebView", "Executed JavaScript: $script")
         }
     }
@@ -106,8 +225,8 @@ fun WebViewScreen(
     We thus need to check it in MainWebViewClient.doUpdateVisitedHistory using a callback to update
     the `canGoBack` state here.
      **/
-    BackHandler(enabled = canGoBack) {
-        webViewRef.value?.goBack()
+    BackHandler(enabled = webViewViewModel.canGoBack) {
+        webViewViewModel.webView?.goBack()
     }
 
     /** UI **/
@@ -145,7 +264,7 @@ fun WebViewScreen(
 
                 if (hasBackBar) {
                     BackBar {
-                        webViewRef.value?.loadUrl(baseUrl)
+                        webViewViewModel.webView?.loadUrl(baseUrl)
                     }
                 }
 
@@ -156,145 +275,38 @@ fun WebViewScreen(
                         .fillMaxWidth()
                 )
 
-                AndroidView(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    factory = { it ->
-                        swipeRefreshRef.value = SwipeRefreshLayout(context)
-                        WebView(it).apply {
-                            webViewRef.value = this
-
-                            settings.javaScriptEnabled = true
-                            settings.allowFileAccess = true
-                            settings.allowContentAccess = true
-                            settings.domStorageEnabled = true
-                            Log.d(TAG, "Creating MainWebViewClient with baseURL ${baseUrl}")
-                            webChromeClient = MainWebChromeClient(
-                                activity = activity,
-                                visibilityModalFilesChanged = { visibility ->
-                                    showBottomSheet = visibility
-                                })
-                            webViewClient = MainWebViewClient(
-                                baseUrl = baseUrl,
-                                onBackBarChanged = { hasBackBar = it },
-                                onUrlChanged =
-                                    {
-                                        if (it.endsWith("#/preferences/notifications") || it.endsWith(
-                                                "#/settings"
-                                            )
-                                        ) {
-                                            goSettings()
-                                        } else {
-                                            webViewViewModel.onUrlChanged(it)
-                                        }
-                                    },
-                                onLoadingChanged = { isLoading = it },
-                                onCanGoBackChanged = { canGoBack = it },
-                                onPageFinished = {
-                                    webViewViewModel.notifyPageFinished()
-                                },
-                                onSslError = { webViewViewModel.showSSLErrorBanner() },
+                if (webViewViewModel.webView != null) {
+                    AndroidView(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        factory = {
+                            swipeRefreshRef.value = SwipeRefreshLayout(context)
+                            webViewViewModel.webView!!
+                            (webViewViewModel.webView!!.parent as? ViewGroup)?.removeView(
+                                webViewViewModel.webView!!
                             )
 
-                            setDownloadListener { url, userAgent, contentDisposition, mimeType, contentLength ->
-                                FileUtils(context).downloadFile(
-                                    url.toUri(),
-                                    contentDisposition,
-                                    mimeType
-                                )
+                            swipeRefreshRef.value?.addView(webViewViewModel.webView)
+                            swipeRefreshRef.value?.setOnRefreshListener {
+                                webViewViewModel.requestRefresh()
                             }
 
-                            if (
-                                WebViewFeature.isFeatureSupported(
-                                    WebViewFeature.DOCUMENT_START_SCRIPT
-                                )
-                            ) {
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    WebViewCompat.addDocumentStartJavaScript(
-                                        webViewRef.value!!,
-                                        nativeInfosScript(context),
-                                        setOf("*")
-                                    )
+                            swipeRefreshRef.value!!
+                        },
+                        update = {
+                            swipeRefreshRef.value?.isRefreshing = webViewViewModel.isRefreshing
 
-                                    withContext(Dispatchers.Main) {
-                                        loadUrl(webViewViewModel.currentUrl)
-                                    }
+                            // allow passkey if it is available
+                            // TODO: Why not use the closure parameter `webView`? Would avoid to test its real value.
+                            webViewViewModel.webView?.let {
+                                run {
+                                    webViewViewModel.configurePasskeys(it)
                                 }
-                            } else {
-                                // No need to wait for Coroutine to load NativeInfos JS.
-                                // Call loadURL as before. We are on Main UI Thread.
-                                loadUrl(webViewViewModel.currentUrl)
-                            }
-
-                            addJavascriptInterface(object {
-                                @JavascriptInterface
-                                fun onEvent(eventName: String, dataJson: String) {
-                                    Log.d("WebView", "Event received: $eventName - $dataJson")
-                                    val storage = LowStorageManager(context)
-                                    val event = EventWebview.fromValue(eventName)
-                                    when (event) {
-                                        EventWebview.USER_LOGGED_IN -> {
-                                            // Post to main thread to access WebView
-                                            webViewViewModel.viewModelScope.launch {
-                                                val fcmToken = storage.getFcmToken()
-                                                if (!fcmToken.isNullOrEmpty()) {
-                                                    FirebaseService().sendRegistration(fcmToken)
-                                                }
-                                            }
-                                            if (!hasRequestedPermissionBefore(context)) {
-                                                webViewViewModel.viewModelScope.launch {
-                                                    goOnboarding()
-                                                }
-                                            }
-                                        }
-
-                                        EventWebview.USER_LOGGED_OUT -> {
-                                            webViewViewModel.viewModelScope.launch {
-                                                storage.clearBearer()
-                                                goAuth()
-                                            }
-                                        }
-
-                                        EventWebview.NOTIFICATION_PERMISSION_REQUESTED -> {
-                                            // Trigger notification permission request
-                                            webViewViewModel.viewModelScope.launch {
-                                                webViewViewModel.triggerNotificationPermissionRequest()
-                                            }
-                                        }
-
-                                        EventWebview.NOTIFICATION_PERMISSION_REMOVED -> {
-                                            // Open system settings to let user revoke permission
-                                            webViewViewModel.viewModelScope.launch {
-                                                webViewViewModel.openNotificationSettings()
-                                            }
-                                        }
-
-                                        else -> {}
-                                    }
-                                }
-                            }, "NativeBridge")
-                        }
-                        swipeRefreshRef.value?.addView(webViewRef.value)
-
-                        swipeRefreshRef.value?.setOnRefreshListener {
-                            webViewViewModel.requestRefresh()
-                        }
-
-                        swipeRefreshRef.value!!
-                    },
-                    update = { _ ->
-                        swipeRefreshRef.value?.isRefreshing = webViewViewModel.isRefreshing
-
-                        // allow passkey if it is available
-                        // TODO: Why not use the closure parameter `webView`? Would avoid to test its real value.
-                        webViewRef.value?.let {
-                            run {
-                                webViewViewModel.configurePasskeys(it)
                             }
                         }
-                    }
-                )
+                    )
+                }
             }
 
             //bottom sheet for import files
@@ -372,9 +384,7 @@ fun PreviewWebViewScreenLight() {
     AMITheme {
         WebViewScreen(
             webViewViewModel = viewModel(),
-            goSettings = {},
-            goAuth = {},
-            goOnboarding = {})
+            navigate = {})
     }
 }
 
@@ -384,8 +394,6 @@ fun PreviewWebViewScreenDark() {
     AMITheme {
         WebViewScreen(
             webViewViewModel = viewModel(),
-            goSettings = {},
-            goAuth = {},
-            goOnboarding = {})
+            navigate = {})
     }
 }

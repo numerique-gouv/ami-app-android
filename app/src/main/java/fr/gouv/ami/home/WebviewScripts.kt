@@ -4,7 +4,10 @@ import android.content.Context
 import android.util.Log
 import fr.gouv.ami.BuildConfig
 import fr.gouv.ami.R
+import fr.gouv.ami.navigation.PromotedUrls
 import fr.gouv.ami.utils.DeviceIdUtils
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class WebviewScripts {
 
@@ -12,7 +15,8 @@ class WebviewScripts {
         USER_LOGGED_IN("user_logged_in"),
         USER_LOGGED_OUT("user_logged_out"),
         NOTIFICATION_PERMISSION_REQUESTED("notification_permission_requested"),
-        NOTIFICATION_PERMISSION_REMOVED("notification_permission_removed");
+        NOTIFICATION_PERMISSION_REMOVED("notification_permission_removed"),
+        WEBAPP_BRIDGE_READY("webappBridgeReady");
 
 
         companion object {
@@ -29,6 +33,7 @@ class WebviewScripts {
         ): String {
             val deviceId = DeviceIdUtils(context).getOrCreateDeviceId()
             Log.d(TAG, "device_id sending in nativeInfosScript is $deviceId")
+            val urls = Json.encodeToString(PromotedUrls.promoted)
 
             return """
         (function() {
@@ -42,7 +47,8 @@ class WebviewScripts {
                     build: ${BuildConfig.VERSION_CODE},
                     environment: "${BuildConfig.FLAVOR}",
                     mode: "${BuildConfig.BUILD_TYPE}",
-                    device_id: "$deviceId"
+                    device_id: "$deviceId",
+                    promoted_url_aliases: ${Json.encodeToString(urls)}
                 };
             };
         })();

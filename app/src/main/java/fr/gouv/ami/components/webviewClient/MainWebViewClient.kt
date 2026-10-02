@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.graphics.Bitmap
-import android.net.Uri
 import android.net.http.SslError
 import android.os.Build
 import android.util.Log
@@ -15,31 +14,58 @@ import android.webkit.SslErrorHandler
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.annotation.RequiresApi
+import fr.gouv.ami.Screen
 import fr.gouv.ami.components.handleSslError
+import fr.gouv.ami.home.WebViewViewModel
+import fr.gouv.ami.navigation.NavigatorMapping
+import fr.gouv.ami.navigation.PromotedUrls
+import androidx.core.net.toUri
 
 class MainWebViewClient(
     private val baseUrl: String,
+    private val webViewModel: WebViewViewModel,
     private val onBackBarChanged: (Boolean) -> Unit,
     private val onUrlChanged: (String) -> Unit,
     private val onLoadingChanged: (Boolean) -> Unit,
     private val onCanGoBackChanged: (Boolean) -> Unit = {},
     private val onPageFinished: () -> Unit = {},
     private val onSslError: () -> Unit = {},
+    private val navigate: (Screen) -> Unit = {}
 ) : WebViewClient() {
     val TAG = "MainWebViewClient"
 
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+
+
+        Log.d(TAG, "shouldOverrideUrlLoading is called from ${request?.url?.toString()}")
+
+        val urlAlias = webViewModel.aliases.firstOrNull {
+            request?.url.toString().endsWith(it.pattern)
+        }
+        urlAlias?.let {
+            if (request?.url.toString().endsWith(urlAlias.pattern)) {
+                view?.goBack()
+                PromotedUrls.from(urlAlias.alias)?.let { alias ->
+                    Log.d(TAG, "navigate to native screen $alias with url ${urlAlias.pattern}")
+                    val screen = NavigatorMapping.resolve(alias)
+                    navigate(screen ?: Screen.Home)
+                }
+
+                return true
+            }
+        }
+
         // Show loader immediately on link click (before onPageStarted)
         onLoadingChanged(true)
-
         // Try launching the URL in an external app, in case it's a deeplink.
         val url = request?.url?.toString() ?: return false
         val context = view?.context ?: return false
 
-        if (Build.VERSION.SDK_INT >= 30) {
-            return launchNativeApi30(context, url)
+        return if (Build.VERSION.SDK_INT >= 30) {
+            launchNativeApi30(context, url)
         } else {
-            return launchNativeBeforeApi30(context, url)
+            launchNativeBeforeApi30(context, url)
         }
     }
 
@@ -48,13 +74,15 @@ class MainWebViewClient(
         url: String?,
         isReload: Boolean
     ) {
-        Log.d(TAG, "UpdateVisitedHistory: baseUrl is: ${baseUrl}, url visited: ${url}")
+        Log.d(TAG, "UpdateVisitedHistory: baseUrl is: ${baseUrl}, url visited: $url")
         if (!url.isNullOrEmpty()) {
             onBackBarChanged(!url.contains(baseUrl))
             onUrlChanged(url)
             Log.d("HomeScreen", url)
         }
-        view?.let { onCanGoBackChanged(it.canGoBack()) }
+        view?.let {
+            onCanGoBackChanged(it.canGoBack())
+        }
         super.doUpdateVisitedHistory(view, url, isReload)
     }
 
@@ -64,7 +92,7 @@ class MainWebViewClient(
         favicon: Bitmap?
     ) {
         super.onPageStarted(view, url, favicon)
-        Log.d(TAG, "onPageStarted with url ${url}")
+        Log.d(TAG, "onPageStarted with url $url")
         onLoadingChanged(true)
     }
 
@@ -90,9 +118,10 @@ class MainWebViewClient(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.R)
 private fun launchNativeApi30(context: Context, url: String): Boolean {
     Log.d("MainWebViewClient", "API at of after 30")
-    val nativeAppIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+    val nativeAppIntent = Intent(Intent.ACTION_VIEW, url.toUri()).apply {
         addCategory(Intent.CATEGORY_BROWSABLE)
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         addFlags(Intent.FLAG_ACTIVITY_REQUIRE_NON_BROWSER)
@@ -112,10 +141,10 @@ private fun launchNativeBeforeApi30(context: Context, url: String): Boolean {
     val pm = context.packageManager
 
     // Get all Apps that resolve a generic url (both http:// and https://)
-    val httpBrowserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("http://")).apply {
+    val httpBrowserIntent = Intent(Intent.ACTION_VIEW, "http://".toUri()).apply {
         addCategory(Intent.CATEGORY_BROWSABLE)
     }
-    val httpsBrowserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://")).apply {
+    val httpsBrowserIntent = Intent(Intent.ACTION_VIEW, "https://".toUri()).apply {
         addCategory(Intent.CATEGORY_BROWSABLE)
     }
     val genericResolvedList =
@@ -129,7 +158,7 @@ private fun launchNativeBeforeApi30(context: Context, url: String): Boolean {
     Log.d("MainWebViewClient", "Native apps that can open any url: $genericResolvedList")
 
     // Get all apps that resolve the specific Url
-    val specializedActivityIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+    val specializedActivityIntent = Intent(Intent.ACTION_VIEW, url.toUri()).apply {
         addCategory(Intent.CATEGORY_BROWSABLE)
     }
     val resolvedSpecializedList =

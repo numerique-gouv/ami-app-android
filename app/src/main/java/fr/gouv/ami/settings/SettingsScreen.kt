@@ -34,7 +34,10 @@ import fr.gouv.ami.home.isPermissionGranted
 import fr.gouv.ami.ui.theme.AMITheme
 
 @Composable
-fun SettingsScreen(webViewViewModel: WebViewViewModel, onBackButton: () -> Unit) {
+fun SettingsScreen(
+    webViewViewModel: WebViewViewModel,
+    onBackButton: () -> Unit,
+) {
 
     NotificationPermissionHandler(webViewViewModel)
     val context = LocalContext.current
@@ -98,7 +101,7 @@ fun SettingsScreen(webViewViewModel: WebViewViewModel, onBackButton: () -> Unit)
 @Composable
 fun PreviewSettingsScreenLight() {
     AMITheme {
-        SettingsScreen(viewModel()) {}
+        SettingsScreen(viewModel(), onBackButton = {})
     }
 }
 
@@ -106,6 +109,6 @@ fun PreviewSettingsScreenLight() {
 @Composable
 fun PreviewSettingsScreenDark() {
     AMITheme {
-        SettingsScreen(viewModel()) {}
+        SettingsScreen(viewModel(), onBackButton = {})
     }
 }

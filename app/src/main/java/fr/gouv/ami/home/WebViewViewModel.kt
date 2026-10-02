@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import fr.gouv.ami.api.baseUrl
+import fr.gouv.ami.data.models.UrlAliases
 import fr.gouv.ami.global.BaseViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -17,9 +18,14 @@ class WebViewViewModel : BaseViewModel() {
     private val TAG = this::class.java.simpleName
     var currentUrl by mutableStateOf(baseUrl)
     var lastUrl by mutableStateOf(baseUrl) //not used for now
+    var canGoBack by mutableStateOf(false)
 
     var isRefreshing by mutableStateOf(false)
         private set
+
+    var webView by mutableStateOf<WebView?>(null)
+
+    var aliases by mutableStateOf(emptyArray<UrlAliases>())
 
     private val _notificationPermissionRequested = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val notificationPermissionRequested = _notificationPermissionRequested.asSharedFlow()
@@ -109,7 +115,7 @@ class WebViewViewModel : BaseViewModel() {
             )
 
             // Check if getWebauthenticationSupport may have been disabled by the WebView
-            Log.d(TAG,"mode = ${WebSettingsCompat.getWebAuthenticationSupport(webView.settings)}")
+            Log.d(TAG, "mode = ${WebSettingsCompat.getWebAuthenticationSupport(webView.settings)}")
 
             return true
         }
