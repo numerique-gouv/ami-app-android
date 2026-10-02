@@ -145,7 +145,8 @@ fun WebViewScreen(
 
                 if (hasBackBar) {
                     BackBar {
-                        webViewRef.value?.loadUrl(baseUrl)
+                        Log.d(TAG, "base url for backbar is $baseUrl")
+                        webViewRef.value?.loadUrl("${baseUrl}#/back")
                     }
                 }
 
