@@ -58,8 +58,18 @@ class MainWebViewClient(
 
         // Show loader immediately on link click (before onPageStarted)
         onLoadingChanged(true)
+
+        val uri = request?.url ?: return false
+
+        // Rewrite the URL if that's necessary
+        val updatedUri = WebviewUrlRewriter.rewrite(uri)
+        if (updatedUri != null) {
+            view?.loadUrl(updatedUri.toString())
+            return true
+        }
+
         // Try launching the URL in an external app, in case it's a deeplink.
-        val url = request?.url?.toString() ?: return false
+        val url = uri.toString()
         val context = view?.context ?: return false
 
         return if (Build.VERSION.SDK_INT >= 30) {
@@ -130,7 +140,7 @@ private fun launchNativeApi30(context: Context, url: String): Boolean {
         context.startActivity(nativeAppIntent)
         Log.d("MainWebViewClient", "Found a native app, launching it")
         true
-    } catch (e: ActivityNotFoundException) {
+    } catch (_: ActivityNotFoundException) {
         Log.d("MainWebViewClient", "Didn't find a native app")
         false
     }
