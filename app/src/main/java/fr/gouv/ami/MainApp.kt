@@ -110,7 +110,10 @@ fun HomeApp(
                 navigate = { screen ->
                     navController.navigate(screen.name)
                 },
-                webViewType = WebViewType.HOME
+                webViewType = WebViewType.HOME,
+                backButton = {
+                    navController.popBackStack()
+                }
             )
         }
 

@@ -14,7 +14,6 @@ import android.webkit.SslErrorHandler
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.annotation.RequiresApi
 import fr.gouv.ami.Screen
 import fr.gouv.ami.components.handleSslError
 import fr.gouv.ami.home.WebViewViewModel
@@ -25,7 +24,6 @@ import androidx.core.net.toUri
 class AMIWebViewClient(
     private val baseUrl: String,
     private val webViewModel: WebViewViewModel,
-    private val onBackBarChanged: (Boolean) -> Unit,
     private val onUrlChanged: (String) -> Unit,
     private val onLoadingChanged: (Boolean) -> Unit,
     private val onCanGoBackChanged: (Boolean) -> Unit = {},
@@ -76,7 +74,6 @@ class AMIWebViewClient(
     ) {
         Log.d(TAG, "UpdateVisitedHistory: baseUrl is: ${baseUrl}, url visited: $url")
         if (!url.isNullOrEmpty()) {
-            onBackBarChanged(!url.contains(baseUrl))
             onUrlChanged(url)
             Log.d("HomeScreen", url)
         }
@@ -146,7 +143,12 @@ class AMIWebViewClient(
             addCategory(Intent.CATEGORY_BROWSABLE)
         }
         val genericResolvedList =
-            extractPackageNames(pm.queryIntentActivities(httpBrowserIntent, PackageManager.MATCH_ALL)) +
+            extractPackageNames(
+                pm.queryIntentActivities(
+                    httpBrowserIntent,
+                    PackageManager.MATCH_ALL
+                )
+            ) +
                     extractPackageNames(
                         pm.queryIntentActivities(
                             httpsBrowserIntent,
@@ -160,7 +162,12 @@ class AMIWebViewClient(
             addCategory(Intent.CATEGORY_BROWSABLE)
         }
         val resolvedSpecializedList =
-            extractPackageNames(pm.queryIntentActivities(specializedActivityIntent, 0)).toMutableSet()
+            extractPackageNames(
+                pm.queryIntentActivities(
+                    specializedActivityIntent,
+                    0
+                )
+            ).toMutableSet()
         Log.d(
             TAG,
             "Native apps that can open the following url $url: $resolvedSpecializedList"

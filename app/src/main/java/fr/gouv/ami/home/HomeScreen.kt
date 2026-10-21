@@ -16,7 +16,8 @@ import fr.gouv.ami.webview.WebViewType
 fun HomeScreen(
     webViewViewModel: WebViewViewModel,
     navigate: (Screen) -> Unit,
-    webViewType: WebViewType
+    webViewType: WebViewType,
+    backButton: () -> Unit
 ) {
 
     /** UI **/
@@ -29,7 +30,8 @@ fun HomeScreen(
 
         WebViewType.SERVICE -> ServiceWebView(
             webViewViewModel,
-            navigate)
+            navigate,
+            backButton)
 
         WebViewType.CONNEXION -> {}
     }
@@ -40,7 +42,7 @@ fun HomeScreen(
 @Composable
 fun PreviewHomeScreenLight() {
     AMITheme {
-        HomeScreen(webViewViewModel = viewModel(), navigate = {}, webViewType = WebViewType.HOME)
+        HomeScreen(webViewViewModel = viewModel(), navigate = {}, webViewType = WebViewType.HOME, backButton = {})
     }
 }
 
@@ -48,6 +50,6 @@ fun PreviewHomeScreenLight() {
 @Composable
 fun PreviewHomeScreenDark() {
     AMITheme {
-        HomeScreen(webViewViewModel = viewModel(), navigate = {}, webViewType = WebViewType.HOME)
+        HomeScreen(webViewViewModel = viewModel(), navigate = {}, webViewType = WebViewType.HOME, backButton = {})
     }
 }
