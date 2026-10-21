@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 class WebViewViewModel : BaseViewModel() {
     private val TAG = this::class.java.simpleName
     var currentUrl by mutableStateOf(baseUrl)
-    var lastUrl by mutableStateOf(baseUrl) //not used for now
     var canGoBack by mutableStateOf(false)
 
     var isRefreshing by mutableStateOf(false)
@@ -47,9 +46,6 @@ class WebViewViewModel : BaseViewModel() {
 
     fun onUrlChanged(url: String) {
         Log.d(TAG, "onUrlChanged to url ${url}")
-        if (currentUrl.contains(baseUrl)) {
-            lastUrl = currentUrl
-        }
         currentUrl = url
     }
 

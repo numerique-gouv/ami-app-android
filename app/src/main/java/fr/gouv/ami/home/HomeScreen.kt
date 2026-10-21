@@ -6,29 +6,41 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.Screen
-import fr.gouv.ami.components.webview.WebViewScreen
 import fr.gouv.ami.ui.theme.AMITheme
+import fr.gouv.ami.webview.HomeWebView
+import fr.gouv.ami.webview.ServiceWebView
+import fr.gouv.ami.webview.WebViewType
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun HomeScreen(
     webViewViewModel: WebViewViewModel,
     navigate: (Screen) -> Unit,
+    webViewType: WebViewType
 ) {
 
     /** UI **/
 
-    WebViewScreen(
-        webViewViewModel,
-        navigate = navigate
-    )
+    when (webViewType) {
+        WebViewType.HOME -> HomeWebView(
+            webViewViewModel,
+            navigate
+        )
+
+        WebViewType.SERVICE -> ServiceWebView(
+            webViewViewModel,
+            navigate)
+
+        WebViewType.CONNEXION -> {}
+    }
+
 }
 
 @Preview
 @Composable
 fun PreviewHomeScreenLight() {
     AMITheme {
-        HomeScreen(viewModel(), navigate = {})
+        HomeScreen(webViewViewModel = viewModel(), navigate = {}, webViewType = WebViewType.HOME)
     }
 }
 
@@ -36,6 +48,6 @@ fun PreviewHomeScreenLight() {
 @Composable
 fun PreviewHomeScreenDark() {
     AMITheme {
-        HomeScreen(viewModel(), navigate = {})
+        HomeScreen(webViewViewModel = viewModel(), navigate = {}, webViewType = WebViewType.HOME)
     }
 }

@@ -25,6 +25,7 @@ import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.settings.SettingsScreen
 import fr.gouv.ami.settings.OnboardingNotificationScreen
 import fr.gouv.ami.utils.storage.LowStorageManager
+import fr.gouv.ami.webview.WebViewType
 import kotlinx.coroutines.flow.catch
 
 //list of all screens
@@ -108,7 +109,8 @@ fun HomeApp(
                 webViewViewModel = webViewViewModel,
                 navigate = { screen ->
                     navController.navigate(screen.name)
-                }
+                },
+                webViewType = WebViewType.HOME
             )
         }
 
