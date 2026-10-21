@@ -1,4 +1,4 @@
-package fr.gouv.ami.home
+package fr.gouv.ami.components.webview
 
 import android.Manifest
 import android.content.Intent
@@ -51,10 +51,11 @@ import fr.gouv.ami.components.InformationBanner
 import fr.gouv.ami.components.InformationType
 import fr.gouv.ami.components.PrimaryButton
 import fr.gouv.ami.components.SecondaryButton
-import fr.gouv.ami.components.webviewClient.MainWebViewClient
+import fr.gouv.ami.components.webview.webviewClient.AMIWebViewClient
 import fr.gouv.ami.data.models.UrlAliases
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.global.PermissionManager
+import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.home.WebviewScripts.Companion.nativeInfosScript
 import fr.gouv.ami.home.WebviewScripts.EventWebview
 import fr.gouv.ami.notifications.FirebaseService
@@ -84,7 +85,7 @@ fun WebViewScreen(
                 settings.allowFileAccess = true
                 settings.allowContentAccess = true
                 settings.domStorageEnabled = true
-                Log.d(TAG, "Creating MainWebViewClient with baseURL ${baseUrl}")
+                Log.d(TAG, "Creating AMIWebViewClient with baseURL ${baseUrl}")
                 webChromeClient = object : WebChromeClient() {
                     // Required for Android WebView to handle beforeunload confirmation dialogs
                     override fun onJsBeforeUnload(
@@ -97,7 +98,7 @@ fun WebViewScreen(
                         return super.onJsBeforeUnload(view, url, message, result)
                     }
                 }
-                webViewClient = MainWebViewClient(
+                webViewClient = AMIWebViewClient(
                     baseUrl = webViewViewModel.currentUrl,
                     webViewModel = webViewViewModel,
                     onBackBarChanged = { hasBackBar = it },
@@ -222,7 +223,7 @@ fun WebViewScreen(
     /** Handle back button for WebView navigation
     We can't just check webView.canGoBack() here as it would only be done during recomposition,
     which doesn't seem to happen when navigating in the webview.
-    We thus need to check it in MainWebViewClient.doUpdateVisitedHistory using a callback to update
+    We thus need to check it in AMIWebViewClient.doUpdateVisitedHistory using a callback to update
     the `canGoBack` state here.
      **/
     BackHandler(enabled = webViewViewModel.canGoBack) {
