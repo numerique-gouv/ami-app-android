@@ -95,22 +95,35 @@ fun HomeApp(
         startDestination = startDestinationScreen
     ) {
         composable(
-            route = "${Screen.Home.name}?url={url}",
-            arguments = listOf(navArgument("url") {
-                type = NavType.StringType
-                nullable = true
-            })
+            route = "${Screen.Home.name}?url={url}&webViewType={webViewType}",
+            arguments = listOf(
+                navArgument("url") {
+                    type = NavType.StringType
+                    this.nullable = true
+                },
+                navArgument("webViewType") {
+                    type = NavType.StringType
+                    nullable = true
+                })
+
         ) { backStackEntry ->
             val url = Uri.decode(
                 backStackEntry.arguments?.getString("url") ?: baseUrl
             )
+
+            val webviewType = WebViewType.valueOf(
+                Uri.decode(
+                    backStackEntry.arguments?.getString("webViewType") ?: WebViewType.HOME.name
+                )
+            )
+
 
             HomeScreen(
                 webViewViewModel = webViewViewModel,
                 navigate = { screen ->
                     navController.navigate(screen.name)
                 },
-                webViewType = WebViewType.HOME,
+                webViewType = webviewType,
                 backButton = {
                     navController.popBackStack()
                 }
