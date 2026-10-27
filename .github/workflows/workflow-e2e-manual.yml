@@ -1,6 +1,6 @@
 name: e2e manual trigger
 #   - pr_number != 0 → simule un événement pull_request avec ce numéro (pr_number transmis
-#     tel quel à workflow-e2e-shared.yml, qui déclenchera le commentaire Allure).
+#     tel quel à workflow-e2e-shared.yml, qui déclenchera le commentaire de PR via workflow-e2e-main.yml).
 #   - tag non vide   → simule un événement de tag avec ce nom, transmis comme version_tag
 #     (remplace github.ref_name — un workflow_dispatch n'a jamais de vrai tag — et déclenche
 #     à lui seul la publication de l'APK + version.json, cf. workflow-e2e-shared.yml).
@@ -9,13 +9,13 @@ on:
   workflow_dispatch:
     inputs:
       run_android:
-        description: "nom de la suite android à lancer (test-suites.ts), ex: short, CI, all"
+        description: "nom de la suite android à lancer (test-suites.ts), ex: mobile_short, mobile_ci, mobile_all"
         type: string
-        default: CI
-      run_old_device:
-        description: "appareil ancien (API 28, minSdk) si true, récent (API 36, targetSdk) si false"
-        type: boolean
-        default: false
+        default: mobile_ci
+      android_device:
+        description: "AVD Android au format pixel_<profil>_api<niveau> : pixel_2_api30 = appareil ancien, pixel_8_api36 = récent (targetSdk)"
+        type: string
+        default: pixel_8_api36
       pr_number:
         description: "!= 0 : simule un événement pull_request avec ce numéro"
         type: number
@@ -33,7 +33,6 @@ permissions:
   contents: read
   checks: write
   pull-requests: write
-  actions: read
 
 jobs:
   e2e:
@@ -41,7 +40,7 @@ jobs:
     uses: ./.github/workflows/workflow-e2e-shared.yml
     with:
       run_android: ${{ inputs.run_android }}
-      run_old_device: ${{ inputs.run_old_device }}
+      android_device: ${{ inputs.android_device }}
       # tag renseigné → pas de PR associée, même si pr_number a aussi été rempli par erreur.
       pr_number: ${{ inputs.tag == '' && fromJSON(inputs.pr_number) || 0 }}
       source_sha: ${{ github.sha }}

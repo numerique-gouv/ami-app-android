@@ -1,7 +1,8 @@
 name: e2e shared
 # Logique commune aux trois cas (pr / merge / tag), résolus par le job `guard` de
 # workflow-e2e-trigger.yml : build de l'APK, déclenchement de l'e2e dans ami-system-tests,
-# commentaire de la PR si pr_number != 0, publication de l'APK/version si version_tag != ''.
+# publication de l'APK/version si version_tag != ''. Le reporting (check « e2e (ami-system-tests) » sur le commit testé et commentaire
+# UNIQUE de la PR si pr_number != 0, JUnit/artefacts par plateforme) est fait par le job `report` de workflow-e2e-main.yml : ce fichier n'a plus de job de rapport.
 # Mirroir de ami-notifications-api/.github/workflows/workflow-e2e-webapp-shared.yml, avec
 # build + publish en plus : contrairement à la webapp, ami-app-android doit produire l'APK
 # lui-même (ami-system-tests ne build jamais d'app native, cf. son ADR CI).
@@ -13,13 +14,13 @@ on:
   workflow_call:
     inputs:
       run_android:
-        description: "nom de la suite android à lancer (test-suites.ts)"
+        description: "nom de la suite android à lancer (test-suites.ts : mobile_ci, mobile_short, mobile_all…)"
         type: string
         required: true
-      run_old_device:
-        description: "appareil ancien (API 28, minSdk) si true, récent (API 36, targetSdk) si false"
-        type: boolean
-        default: true
+      android_device:
+        description: "AVD Android au format pixel_<profil>_api<niveau> : pixel_2_api30 = appareil ancien, pixel_8_api36 = récent (targetSdk)"
+        type: string
+        default: pixel_2_api30
       pr_number:
         description: "0 = pas de PR associée (merge/tag) → pas de commentaire de PR"
         type: number
@@ -37,24 +38,31 @@ on:
         type: string
         default: ''
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       version_name: ${{ steps.version.outputs.version_name }}
       version_code: ${{ steps.version.outputs.version_code }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
         with:
           distribution: temurin
           java-version: '17'
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
 
       - name: Écrire config/.env.staging
-        run: echo "${{ secrets.ENV_STAGING }}" > config/.env.staging
+        env:
+          ENV_STAGING: ${{ secrets.ENV_STAGING }}
+        run: printf '%s\n' "$ENV_STAGING" > config/.env.staging
 
       - name: Build APK staging debug
         # --build-cache : réutilise les sorties de tâches (compilation, etc.) d'un run à
@@ -72,7 +80,7 @@ jobs:
           echo "version_name=$NAME" >> "$GITHUB_OUTPUT"
           echo "version_code=$CODE" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: app-staging-debug
           path: app/build/outputs/apk/staging/debug/app-staging-debug.apk
@@ -81,49 +89,35 @@ jobs:
   e2e-launch:
     name: trigger an e2e run in ami-system-tests
     needs: build
+    # TANT QUE les changements d'ami-system-tests (job report, suites mobile_*, sorties) ne sont pas fusionnés dans master/main, cette ref
+    # est la branche qui les porte ; à repointer vers main une fois fusionnés.
     uses: numerique-gouv/ami-system-tests/.github/workflows/workflow-e2e-main.yml@10-ci-api-ios-android-wip
+    # Le workflow appelé ne peut pas dépasser ces permissions : checks (check du commit testé) et pull-requests (commentaire unique).
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     with:
       run_webapp: ''
       run_ios: ''
       run_android: ${{ inputs.run_android }}
-      run_old_device: ${{ inputs.run_old_device }}
+      android_device: ${{ inputs.android_device }}
       source_repo: ${{ github.repository }}
       source_sha: ${{ inputs.source_sha || github.sha }}
       pr_number: 0 # les tests android tournent toujours sur l'env staging
+      comment_pr_number: ${{ inputs.pr_number }} # mais le résultat est rapporté sur la PR d'origine (0 = pas de commentaire)
       checkout_ref: ${{ inputs.checkout_ref }}
     secrets: inherit
-
-  e2e-report:
-    name: uses output of e2e run in ami-system-tests to report in pr
-    needs: e2e-launch
-    if: ${{ always() && inputs.pr_number != 0 }}
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-      checks: write
-    steps:
-      - name: Charger le rapport de test pour le mettre dans la PR
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.e2e-launch.outputs.allure_report }}
-          path: allure-report
-
-      - name: Commenter la PR d'origine
-        uses: allure-framework/allure-action@v0
-        continue-on-error: true
-        with:
-          report-directory: allure-report
-          github-token: ${{ github.token }}
-          debug: true
-          remote-href: 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts'
 
   # Publie l'APK et la version, pour qu'ami-notifications-api puisse les récupérer.
   publish-version:
     needs: build
     if: ${{ inputs.version_tag != '' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: app-staging-debug
           path: dist
@@ -131,17 +125,20 @@ jobs:
       - name: Écrire version.json
         env:
           TAG: ${{ inputs.version_tag }}
+          VERSION_NAME: ${{ needs.build.outputs.version_name }}
+          VERSION_CODE: ${{ needs.build.outputs.version_code }}
+          COMMIT_SHA: ${{ github.sha }}
         run: |
           cat > dist/version.json <<EOF
           {
-            "versionName": "${{ needs.build.outputs.version_name }}",
-            "versionCode": ${{ needs.build.outputs.version_code }},
+            "versionName": "$VERSION_NAME",
+            "versionCode": $VERSION_CODE,
             "tag": "$TAG",
-            "sha": "${{ github.sha }}"
+            "sha": "$COMMIT_SHA"
           }
           EOF
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: app-staging-debug-${{ inputs.version_tag }}
           path: dist
