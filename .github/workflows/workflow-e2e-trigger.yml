@@ -39,6 +39,7 @@ jobs:
             echo "case=none" >> "$GITHUB_OUTPUT"
           fi
 
+  # PR : non-régression fonctionnelle des actions usagers sur appareil RÉCENT, avec l'APK que cette PR vient de builder.
   call-pr:
     needs: guard
     if: needs.guard.outputs.case == 'pr'
@@ -48,13 +49,14 @@ jobs:
       checks: write
       pull-requests: write
     with:
-      run_android: mobile_ci
-      android_device: pixel_2_api30
+      run_android: mobile_nonreg
+      android_device: pixel_8_api36
       pr_number: ${{ github.event.pull_request.number }}
       source_sha: ${{ github.event.pull_request.head.sha }}
       checkout_ref: ${{ github.head_ref }}
     secrets: inherit
 
+  # Merge : les mêmes tests sur appareil récent…
   call-merge:
     needs: guard
     if: ${{ needs.guard.outputs.case == 'merge' }}
@@ -64,11 +66,28 @@ jobs:
       checks: write
       pull-requests: write
     with:
-      run_android: mobile_ci
+      run_android: mobile_nonreg
       android_device: pixel_8_api36
       source_sha: ${{ github.sha }}
       checkout_ref: ${{ github.ref_name }}
       # pr_number laissé au défaut 0 — pas de PR associée à un push sur master.
+    secrets: inherit
+
+  # … ET sur un VIEIL appareil, en plus (second check « old-device »). Rebuild l'APK : le workflow partagé build à chaque appel.
+  call-merge-old-android:
+    needs: guard
+    if: ${{ needs.guard.outputs.case == 'merge' }}
+    uses: ./.github/workflows/workflow-e2e-shared.yml
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    with:
+      run_android: mobile_nonreg
+      android_device: pixel_2_api30
+      report_label: old-device
+      source_sha: ${{ github.sha }}
+      checkout_ref: ${{ github.ref_name }}
     secrets: inherit
 
   call-tag:
