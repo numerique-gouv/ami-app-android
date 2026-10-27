@@ -39,7 +39,7 @@ jobs:
             echo "case=none" >> "$GITHUB_OUTPUT"
           fi
 
-  # PR : non-régression fonctionnelle des actions usagers sur appareil ANCIEN (pixel_2_api30), avec l'APK que cette PR vient de builder.
+  # PR : mobile_all (tous les tests mobiles) sur appareil ANCIEN (pixel_2_api30), avec l'APK que cette PR vient de builder.
   call-pr:
     needs: guard
     if: needs.guard.outputs.case == 'pr'
@@ -49,7 +49,7 @@ jobs:
       checks: write
       pull-requests: write
     with:
-      run_android: mobile_nonreg
+      run_android: mobile_all
       android_device: pixel_2_api30
       pr_number: ${{ github.event.pull_request.number }}
       source_sha: ${{ github.event.pull_request.head.sha }}
@@ -58,7 +58,7 @@ jobs:
       checkout_ref: 77-migre-vers-wdio-10
     secrets: inherit
 
-  # Merge : UN SEUL passage de non-régression, sur l'appareil RÉCENT (pixel_8_api36).
+  # Merge : mobile_all, UN SEUL passage, sur l'appareil RÉCENT (pixel_8_api36) : vieux (PR) VS jeune (merge).
   call-merge:
     needs: guard
     if: ${{ needs.guard.outputs.case == 'merge' }}
@@ -68,7 +68,7 @@ jobs:
       checks: write
       pull-requests: write
     with:
-      run_android: mobile_nonreg
+      run_android: mobile_all
       android_device: pixel_8_api36
       source_sha: ${{ github.sha }}
       # PROVISOIRE (voir call-pr) ; à terme : ${{ github.ref_name }}.
@@ -85,7 +85,7 @@ jobs:
       checks: write
       pull-requests: write
     with:
-      run_android: mobile_ci
+      run_android: mobile_all
       android_device: pixel_2_api30
       source_sha: ${{ github.sha }}
       version_tag: ${{ github.ref_name }}
