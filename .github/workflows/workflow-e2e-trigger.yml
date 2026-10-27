@@ -53,7 +53,9 @@ jobs:
       android_device: pixel_2_api30
       pr_number: ${{ github.event.pull_request.number }}
       source_sha: ${{ github.event.pull_request.head.sha }}
-      checkout_ref: ${{ github.head_ref }}
+      # PROVISOIRE, le temps de la mise au point : la ref d'ami-system-tests est celle de `uses` dans workflow-e2e-shared.yml
+      # (77-migre-vers-wdio-10). À terme : ${{ github.head_ref }} (même branche que le dev en cours, main sinon).
+      checkout_ref: 77-migre-vers-wdio-10
     secrets: inherit
 
   # Merge : UN SEUL passage de non-régression, sur l'appareil RÉCENT (pixel_8_api36).
@@ -69,7 +71,8 @@ jobs:
       run_android: mobile_nonreg
       android_device: pixel_8_api36
       source_sha: ${{ github.sha }}
-      checkout_ref: ${{ github.ref_name }}
+      # PROVISOIRE (voir call-pr) ; à terme : ${{ github.ref_name }}.
+      checkout_ref: 77-migre-vers-wdio-10
       # pr_number laissé au défaut 0 — pas de PR associée à un push sur master.
     secrets: inherit
 

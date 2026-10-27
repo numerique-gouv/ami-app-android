@@ -34,9 +34,9 @@ on:
         type: string
         default: ''
       checkout_ref:
-        description: "ref (branche/tag/sha) d'ami-system-tests à checkout pour avoir des tests dans sytem-tests sur la même branche que le dev en cours, main sinon"
+        description: "ref (branche/tag/sha) d'ami-system-tests à checkout ; PROVISOIRE : 77-migre-vers-wdio-10 (la même que `uses` ci-dessous), à repasser sur main à la fusion"
         type: string
-        default: main
+        default: 77-migre-vers-wdio-10
       version_tag:
         description: "tag de la version, passé en argument pour être testable en manuel"
         type: string
