@@ -95,7 +95,7 @@ jobs:
     needs: build
     # TANT QUE les changements d'ami-system-tests (job report, suites mobile_*, sorties) ne sont pas fusionnés dans master/main, cette ref
     # est la branche qui les porte ; à repointer vers main une fois fusionnés.
-    uses: numerique-gouv/ami-system-tests/.github/workflows/workflow-e2e-main.yml@10-ci-api-ios-android-wip
+    uses: numerique-gouv/ami-system-tests/.github/workflows/workflow-e2e-main.yml@77-migre-vers-wdio-10
     # Le workflow appelé ne peut pas dépasser ces permissions : checks (check du commit testé) et pull-requests (commentaire unique).
     permissions:
       contents: read
@@ -103,7 +103,6 @@ jobs:
       pull-requests: write
     with:
       run_webapp: ''
-      run_ios: ''
       run_android: ${{ inputs.run_android }}
       android_device: ${{ inputs.android_device }}
       report_label: ${{ inputs.report_label }}
