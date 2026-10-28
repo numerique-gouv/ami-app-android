@@ -52,7 +52,6 @@ import fr.gouv.ami.components.PrimaryButton
 import fr.gouv.ami.components.SecondaryButton
 import fr.gouv.ami.components.webview.webviewClient.AMIWebViewClient
 import fr.gouv.ami.data.models.UrlAliases
-import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.global.PermissionManager
 import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.home.WebviewScripts.Companion.nativeInfosScript
@@ -61,6 +60,7 @@ import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.ui.theme.AMITheme
 import fr.gouv.ami.utils.FileUtils
 import fr.gouv.ami.utils.storage.LowStorageManager
+import fr.gouv.ami.webview.WebViewType
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
@@ -68,7 +68,7 @@ import kotlinx.serialization.json.Json
 @Composable
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
-    navigate: (Screen) -> Unit
+    navigate: (Screen, WebViewType, String?) -> Unit
 ) {
     val TAG = "WebViewScreen"
     var isLoading by remember { mutableStateOf(false) }
@@ -83,7 +83,10 @@ fun WebViewScreen(
                 settings.allowFileAccess = true
                 settings.allowContentAccess = true
                 settings.domStorageEnabled = true
-                Log.d(TAG, "Creating AMIWebViewClient with baseURL ${baseUrl}")
+                Log.d(
+                    TAG,
+                    "Creating AMIWebViewClient with baseURL ${baseUrl} and currentUrl is ${webViewViewModel.currentUrl}"
+                )
                 webChromeClient = object : WebChromeClient() {
                     // Required for Android WebView to handle beforeunload confirmation dialogs
                     override fun onJsBeforeUnload(
@@ -158,7 +161,11 @@ fun WebViewScreen(
                             EventWebview.USER_LOGGED_OUT -> {
                                 webViewViewModel.viewModelScope.launch {
                                     storage.clearBearer()
-                                    navigate(Screen.FranceConnection)
+                                    navigate(
+                                        Screen.FranceConnection,
+                                        WebViewType.HOME,
+                                        webViewViewModel.currentUrl
+                                    )
                                 }
                             }
 
@@ -376,7 +383,7 @@ fun PreviewWebViewScreenLight() {
     AMITheme {
         WebViewScreen(
             webViewViewModel = viewModel(),
-            navigate = {})
+            navigate = { _, _, _ -> })
     }
 }
 
@@ -386,6 +393,6 @@ fun PreviewWebViewScreenDark() {
     AMITheme {
         WebViewScreen(
             webViewViewModel = viewModel(),
-            navigate = {})
+            navigate = { _, _, _ -> })
     }
 }

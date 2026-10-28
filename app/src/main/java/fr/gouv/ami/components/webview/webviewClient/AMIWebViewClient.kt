@@ -20,6 +20,7 @@ import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.navigation.NavigatorMapping
 import fr.gouv.ami.navigation.PromotedUrls
 import androidx.core.net.toUri
+import fr.gouv.ami.webview.WebViewType
 
 class AMIWebViewClient(
     private val baseUrl: String,
@@ -29,7 +30,7 @@ class AMIWebViewClient(
     private val onCanGoBackChanged: (Boolean) -> Unit = {},
     private val onPageFinished: () -> Unit = {},
     private val onSslError: () -> Unit = {},
-    private val navigate: (Screen) -> Unit = {}
+    private val navigate: (Screen, WebViewType, String?) -> Unit = { _, _, _ -> }
 ) : WebViewClient() {
     val TAG = "AMIWebViewClient"
 
@@ -47,11 +48,21 @@ class AMIWebViewClient(
                 PromotedUrls.from(urlAlias.alias)?.let { alias ->
                     Log.d(TAG, "navigate to native screen $alias with url ${urlAlias.pattern}")
                     val screen = NavigatorMapping.resolve(alias)
-                    navigate(screen ?: Screen.Home)
+                    navigate(screen ?: Screen.Home, WebViewType.HOME, null)
                 }
 
                 return true
             }
+        }
+        if (!request?.url.toString()
+                .contains(baseUrl) && webViewModel.webViewType != WebViewType.SERVICE
+        ) {
+            Log.d(
+                TAG,
+                "L'url ne contient pas le baseurl and l'url de destination est ${request?.url.toString()}"
+            )
+            navigate(Screen.Home, WebViewType.SERVICE, request?.url.toString())
+            return true
         }
 
         // Show loader immediately on link click (before onPageStarted)
