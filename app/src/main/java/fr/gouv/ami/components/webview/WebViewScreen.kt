@@ -1,4 +1,4 @@
-package fr.gouv.ami.home
+package fr.gouv.ami.components.webview
 
 import android.Manifest
 import android.content.Intent
@@ -45,22 +45,22 @@ import fr.gouv.ami.MainActivity
 import fr.gouv.ami.R
 import fr.gouv.ami.Screen
 import fr.gouv.ami.api.baseUrl
-import fr.gouv.ami.components.BackBar
 import fr.gouv.ami.components.ImportFileBottomSheet
 import fr.gouv.ami.components.InformationBanner
 import fr.gouv.ami.components.InformationType
 import fr.gouv.ami.components.PrimaryButton
 import fr.gouv.ami.components.SecondaryButton
-import fr.gouv.ami.components.webviewClient.MainWebViewClient
+import fr.gouv.ami.components.webview.webviewClient.AMIWebViewClient
 import fr.gouv.ami.data.models.UrlAliases
-import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.global.PermissionManager
+import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.home.WebviewScripts.Companion.nativeInfosScript
 import fr.gouv.ami.home.WebviewScripts.EventWebview
 import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.ui.theme.AMITheme
 import fr.gouv.ami.utils.FileUtils
 import fr.gouv.ami.utils.storage.LowStorageManager
+import fr.gouv.ami.webview.WebViewType
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
@@ -68,10 +68,9 @@ import kotlinx.serialization.json.Json
 @Composable
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
-    navigate: (Screen) -> Unit
+    navigate: (Screen, WebViewType, String?) -> Unit
 ) {
     val TAG = "WebViewScreen"
-    var hasBackBar by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     val swipeRefreshRef = remember { mutableStateOf<SwipeRefreshLayout?>(null) }
     val activity = LocalContext.current as MainActivity
@@ -84,7 +83,10 @@ fun WebViewScreen(
                 settings.allowFileAccess = true
                 settings.allowContentAccess = true
                 settings.domStorageEnabled = true
-                Log.d(TAG, "Creating MainWebViewClient with baseURL ${baseUrl}")
+                Log.d(
+                    TAG,
+                    "Creating AMIWebViewClient with baseURL ${baseUrl} and currentUrl is ${webViewViewModel.currentUrl}"
+                )
                 webChromeClient = object : WebChromeClient() {
                     // Required for Android WebView to handle beforeunload confirmation dialogs
                     override fun onJsBeforeUnload(
@@ -97,10 +99,9 @@ fun WebViewScreen(
                         return super.onJsBeforeUnload(view, url, message, result)
                     }
                 }
-                webViewClient = MainWebViewClient(
+                webViewClient = AMIWebViewClient(
                     baseUrl = webViewViewModel.currentUrl,
                     webViewModel = webViewViewModel,
-                    onBackBarChanged = { hasBackBar = it },
                     onUrlChanged =
                         {
                             webViewViewModel.onUrlChanged(it)
@@ -160,7 +161,11 @@ fun WebViewScreen(
                             EventWebview.USER_LOGGED_OUT -> {
                                 webViewViewModel.viewModelScope.launch {
                                     storage.clearBearer()
-                                    navigate(Screen.FranceConnection)
+                                    navigate(
+                                        Screen.FranceConnection,
+                                        WebViewType.HOME,
+                                        webViewViewModel.currentUrl
+                                    )
                                 }
                             }
 
@@ -222,7 +227,7 @@ fun WebViewScreen(
     /** Handle back button for WebView navigation
     We can't just check webView.canGoBack() here as it would only be done during recomposition,
     which doesn't seem to happen when navigating in the webview.
-    We thus need to check it in MainWebViewClient.doUpdateVisitedHistory using a callback to update
+    We thus need to check it in AMIWebViewClient.doUpdateVisitedHistory using a callback to update
     the `canGoBack` state here.
      **/
     BackHandler(enabled = webViewViewModel.canGoBack) {
@@ -236,144 +241,138 @@ fun WebViewScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
     var showPermissionAlert by remember { mutableStateOf(false) }
 
-    BaseScreen(viewModel = webViewViewModel) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .imePadding()
-            ) {
-                if (webViewViewModel.showNotificationPermissionGrantedBanner) {
-                    InformationBanner(
-                        informationType = InformationType.Validation,
-                        title = stringResource(R.string.notification_permission_granted),
-                        icon = R.drawable.ic_information_validation,
-                        onClose = { webViewViewModel.dismissNotificationPermissionGrantedBanner() }
-                    )
-                }
 
-                if (webViewViewModel.showSSLErrorBanner) {
-                    InformationBanner(
-                        informationType = InformationType.Error,
-                        title = stringResource(R.string.ssl_error_title),
-                        icon = R.drawable.ic_information_error,
-                        content = stringResource(R.string.ssl_error_description),
-                        onClose = { webViewViewModel.dismissSSLErrorBanner() }
-                    )
-                }
-
-                if (hasBackBar) {
-                    BackBar {
-                        webViewViewModel.webView?.loadUrl(baseUrl)
-                    }
-                }
-
-                // Progress bar just above the Webview
-                LinearProgressIndicator(
-                    modifier = Modifier
-                        .alpha(if (isLoading) 1f else 0f)
-                        .fillMaxWidth()
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
+        ) {
+            if (webViewViewModel.showNotificationPermissionGrantedBanner) {
+                InformationBanner(
+                    informationType = InformationType.Validation,
+                    title = stringResource(R.string.notification_permission_granted),
+                    icon = R.drawable.ic_information_validation,
+                    onClose = { webViewViewModel.dismissNotificationPermissionGrantedBanner() }
                 )
+            }
 
-                if (webViewViewModel.webView != null) {
-                    AndroidView(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        factory = {
-                            swipeRefreshRef.value = SwipeRefreshLayout(context)
+            if (webViewViewModel.showSSLErrorBanner) {
+                InformationBanner(
+                    informationType = InformationType.Error,
+                    title = stringResource(R.string.ssl_error_title),
+                    icon = R.drawable.ic_information_error,
+                    content = stringResource(R.string.ssl_error_description),
+                    onClose = { webViewViewModel.dismissSSLErrorBanner() }
+                )
+            }
+
+
+            // Progress bar just above the Webview
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .alpha(if (isLoading) 1f else 0f)
+                    .fillMaxWidth()
+            )
+
+            if (webViewViewModel.webView != null) {
+                AndroidView(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    factory = {
+                        swipeRefreshRef.value = SwipeRefreshLayout(context)
+                        webViewViewModel.webView!!
+                        (webViewViewModel.webView!!.parent as? ViewGroup)?.removeView(
                             webViewViewModel.webView!!
-                            (webViewViewModel.webView!!.parent as? ViewGroup)?.removeView(
-                                webViewViewModel.webView!!
-                            )
+                        )
 
-                            swipeRefreshRef.value?.addView(webViewViewModel.webView)
-                            swipeRefreshRef.value?.setOnRefreshListener {
-                                webViewViewModel.requestRefresh()
-                            }
+                        swipeRefreshRef.value?.addView(webViewViewModel.webView)
+                        swipeRefreshRef.value?.setOnRefreshListener {
+                            webViewViewModel.requestRefresh()
+                        }
 
-                            swipeRefreshRef.value!!
-                        },
-                        update = {
-                            swipeRefreshRef.value?.isRefreshing = webViewViewModel.isRefreshing
+                        swipeRefreshRef.value!!
+                    },
+                    update = {
+                        swipeRefreshRef.value?.isRefreshing = webViewViewModel.isRefreshing
 
-                            // allow passkey if it is available
-                            // TODO: Why not use the closure parameter `webView`? Would avoid to test its real value.
-                            webViewViewModel.webView?.let {
-                                run {
-                                    webViewViewModel.configurePasskeys(it)
-                                }
+                        // allow passkey if it is available
+                        // TODO: Why not use the closure parameter `webView`? Would avoid to test its real value.
+                        webViewViewModel.webView?.let {
+                            run {
+                                webViewViewModel.configurePasskeys(it)
                             }
                         }
-                    )
-                }
+                    }
+                )
             }
+        }
 
-            //bottom sheet for import files
-            if (showBottomSheet) {
-                ImportFileBottomSheet(
-                    sheetState,
-                    onDismissRequest = {
-                        showBottomSheet = false
-                        activity.cancelFileChooser()
-                    },
-                    onFileSelected = {
-                        showBottomSheet = false
-                        val intent = activity.fileChooserParams?.createIntent()
-                            ?: Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                                type = "*/*"
-                                addCategory(Intent.CATEGORY_OPENABLE)
-                                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                            }
-
-                        activity.filePickerLauncher.launch(intent)
-                    },
-                    onCameraSelected = {
-                        PermissionManager(activity).requestCameraPermission { granted ->
-                            if (granted) {
-                                showBottomSheet = false
-                                activity.cameraImageUri = FileUtils(activity).createCameraImageUri()
-                                activity.cameraLauncher.launch(activity.cameraImageUri!!)
-                            } else {
-                                //if permission is denied, the bottomsheet remains visible and an alertDialog is displayed
-                                activity.cancelFileChooser()
-                                if (!ActivityCompat.shouldShowRequestPermissionRationale(
-                                        activity,
-                                        Manifest.permission.CAMERA
-                                    )
-                                ) {
-                                    showPermissionAlert = true
-                                }
-                            }
+        //bottom sheet for import files
+        if (showBottomSheet) {
+            ImportFileBottomSheet(
+                sheetState,
+                onDismissRequest = {
+                    showBottomSheet = false
+                    activity.cancelFileChooser()
+                },
+                onFileSelected = {
+                    showBottomSheet = false
+                    val intent = activity.fileChooserParams?.createIntent()
+                        ?: Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                            type = "*/*"
+                            addCategory(Intent.CATEGORY_OPENABLE)
+                            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
                         }
-                    })
-            }
 
-            if (showPermissionAlert) {
-                AlertDialog(
-                    onDismissRequest = { showPermissionAlert = false },
-                    confirmButton = {
-                        PrimaryButton(
-                            text = stringResource(R.string.allow_camera),
-                            onClick = {
-                                showPermissionAlert = false
-                                val intent = Intent(
-                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                    Uri.fromParts("package", context.packageName, null)
+                    activity.filePickerLauncher.launch(intent)
+                },
+                onCameraSelected = {
+                    PermissionManager(activity).requestCameraPermission { granted ->
+                        if (granted) {
+                            showBottomSheet = false
+                            activity.cameraImageUri = FileUtils(activity).createCameraImageUri()
+                            activity.cameraLauncher.launch(activity.cameraImageUri!!)
+                        } else {
+                            //if permission is denied, the bottomsheet remains visible and an alertDialog is displayed
+                            activity.cancelFileChooser()
+                            if (!ActivityCompat.shouldShowRequestPermissionRationale(
+                                    activity,
+                                    Manifest.permission.CAMERA
                                 )
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                context.startActivity(intent)
-                            })
-                    },
-                    dismissButton = {
-                        SecondaryButton(
-                            text = stringResource(R.string.common_cancel),
-                            onClick = { showPermissionAlert = false })
-                    },
-                    text = {
-                        Text(stringResource(R.string.allow_camera_modal))
-                    })
-            }
+                            ) {
+                                showPermissionAlert = true
+                            }
+                        }
+                    }
+                })
+        }
+
+        if (showPermissionAlert) {
+            AlertDialog(
+                onDismissRequest = { showPermissionAlert = false },
+                confirmButton = {
+                    PrimaryButton(
+                        text = stringResource(R.string.allow_camera),
+                        onClick = {
+                            showPermissionAlert = false
+                            val intent = Intent(
+                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.fromParts("package", context.packageName, null)
+                            )
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            context.startActivity(intent)
+                        })
+                },
+                dismissButton = {
+                    SecondaryButton(
+                        text = stringResource(R.string.common_cancel),
+                        onClick = { showPermissionAlert = false })
+                },
+                text = {
+                    Text(stringResource(R.string.allow_camera_modal))
+                })
         }
     }
 }
@@ -384,7 +383,7 @@ fun PreviewWebViewScreenLight() {
     AMITheme {
         WebViewScreen(
             webViewViewModel = viewModel(),
-            navigate = {})
+            navigate = { _, _, _ -> })
     }
 }
 
@@ -394,6 +393,6 @@ fun PreviewWebViewScreenDark() {
     AMITheme {
         WebViewScreen(
             webViewViewModel = viewModel(),
-            navigate = {})
+            navigate = { _, _, _ -> })
     }
 }

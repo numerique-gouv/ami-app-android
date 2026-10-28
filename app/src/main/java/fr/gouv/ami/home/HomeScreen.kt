@@ -2,32 +2,52 @@ package fr.gouv.ami.home
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.Screen
 import fr.gouv.ami.ui.theme.AMITheme
+import fr.gouv.ami.webview.HomeWebView
+import fr.gouv.ami.webview.ServiceWebView
+import fr.gouv.ami.webview.WebViewType
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun HomeScreen(
-    webViewViewModel: WebViewViewModel,
-    navigate: (Screen) -> Unit,
+    startUrl: String,
+    navigate: (Screen, WebViewType, String?) -> Unit,
+    webViewType: WebViewType,
+    backButton: () -> Unit
 ) {
 
     /** UI **/
 
-    WebViewScreen(
-        webViewViewModel,
-        navigate = navigate
-    )
+    when (webViewType) {
+        WebViewType.HOME -> HomeWebView(
+            startUrl,
+            navigate
+        )
+
+        WebViewType.SERVICE -> ServiceWebView(
+            startUrl,
+            navigate,
+            backButton
+        )
+
+        WebViewType.CONNEXION -> {}
+    }
+
 }
 
 @Preview
 @Composable
 fun PreviewHomeScreenLight() {
     AMITheme {
-        HomeScreen(viewModel(), navigate = {})
+        HomeScreen(
+            startUrl = "https://numerique.gouv.fr",
+            navigate = { _, _, _ -> },
+            webViewType = WebViewType.HOME,
+            backButton = {})
     }
 }
 
@@ -35,6 +55,10 @@ fun PreviewHomeScreenLight() {
 @Composable
 fun PreviewHomeScreenDark() {
     AMITheme {
-        HomeScreen(viewModel(), navigate = {})
+        HomeScreen(
+            startUrl = "https://numerique.gouv.fr",
+            navigate = { _, _, _ -> },
+            webViewType = WebViewType.HOME,
+            backButton = {})
     }
 }

@@ -22,9 +22,11 @@ import fr.gouv.ami.dev.home.ReviewAppsScreen
 import fr.gouv.ami.home.FranceConnexionScreen
 import fr.gouv.ami.home.HomeScreen
 import fr.gouv.ami.home.WebViewViewModel
+import fr.gouv.ami.home.WebViewViewModelFactory
 import fr.gouv.ami.settings.SettingsScreen
 import fr.gouv.ami.settings.OnboardingNotificationScreen
 import fr.gouv.ami.utils.storage.LowStorageManager
+import fr.gouv.ami.webview.WebViewType
 import kotlinx.coroutines.flow.catch
 
 //list of all screens
@@ -43,7 +45,9 @@ fun HomeApp(
 ) {
 
     val TAG = object {}.javaClass.enclosingClass?.simpleName ?: "AMI"
-    val webViewViewModel = viewModel<WebViewViewModel>()
+    val webViewViewModel = viewModel<WebViewViewModel>(
+        factory = WebViewViewModelFactory(WebViewType.HOME)
+    )
     val storage = LowStorageManager(LocalContext.current)
     var isConnected by remember {
         mutableStateOf(false)
@@ -74,7 +78,7 @@ fun HomeApp(
 
     if (pendingUrl != null) {
         Log.d(TAG, "App has been opened from clicking on a push notification.")
-        webViewViewModel.currentUrl = pendingUrl
+        //webViewViewModel.currentUrl = pendingUrl
     }
 
     val connexionDestination =
@@ -94,20 +98,37 @@ fun HomeApp(
         startDestination = startDestinationScreen
     ) {
         composable(
-            route = "${Screen.Home.name}?url={url}",
-            arguments = listOf(navArgument("url") {
-                type = NavType.StringType
-                nullable = true
-            })
+            route = "${Screen.Home.name}?webViewType={webViewType}&destinationUrl={destinationUrl}",
+            arguments = listOf(
+                navArgument("webViewType") {
+                    type = NavType.StringType
+                    nullable = true
+                },
+                navArgument("destinationUrl") {
+                    type = NavType.StringType
+                    nullable = true
+                })
+
         ) { backStackEntry ->
-            val url = Uri.decode(
-                backStackEntry.arguments?.getString("url") ?: baseUrl
+            val webviewType = WebViewType.valueOf(
+                Uri.decode(
+                    backStackEntry.arguments?.getString("webViewType") ?: WebViewType.HOME.name
+                )
             )
 
+            val destinationUrl = Uri.decode(
+                backStackEntry.arguments?.getString("destinationUrl") ?: baseUrl
+            )
+
+
             HomeScreen(
-                webViewViewModel = webViewViewModel,
-                navigate = { screen ->
-                    navController.navigate(screen.name)
+                startUrl = destinationUrl,
+                navigate = { screen, webviewType, destinationUrl ->
+                    navController.navigate(route = "${screen.name}?webViewType=${webviewType.name}&destinationUrl=${destinationUrl}")
+                },
+                webViewType = webviewType,
+                backButton = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -115,9 +136,6 @@ fun HomeApp(
         composable(route = Screen.ReviewApp.name) {
             ReviewAppsScreen(
                 onSelectedReviewApp = {
-                    // We need to update the `currentUrl` here, as it was initialized with the
-                    // baseUrl from the config, before we even selected the review app.
-                    webViewViewModel.currentUrl = baseUrl
                     navController.navigate(connexionDestination)
                 }
             )
@@ -127,7 +145,7 @@ fun HomeApp(
                 onFcClick = {
                     val url = "${baseUrl}login-france-connect"
                     navController.navigate(
-                        route = "${Screen.Home.name}?url=${Uri.encode(url)}"
+                        route = "${Screen.Home.name}?destinationUrl=${Uri.encode(url)}"
                     )
                 })
         }

@@ -6,19 +6,22 @@ import android.webkit.WebView
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.data.models.UrlAliases
 import fr.gouv.ami.global.BaseViewModel
+import fr.gouv.ami.webview.WebViewType
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
-class WebViewViewModel : BaseViewModel() {
+class WebViewViewModel(webviewType: WebViewType) : BaseViewModel() {
     private val TAG = this::class.java.simpleName
     var currentUrl by mutableStateOf(baseUrl)
-    var lastUrl by mutableStateOf(baseUrl) //not used for now
     var canGoBack by mutableStateOf(false)
+    val webViewType: WebViewType = webviewType
 
     var isRefreshing by mutableStateOf(false)
         private set
@@ -47,9 +50,6 @@ class WebViewViewModel : BaseViewModel() {
 
     fun onUrlChanged(url: String) {
         Log.d(TAG, "onUrlChanged to url ${url}")
-        if (currentUrl.contains(baseUrl)) {
-            lastUrl = currentUrl
-        }
         currentUrl = url
     }
 
@@ -119,5 +119,21 @@ class WebViewViewModel : BaseViewModel() {
 
             return true
         }
+    }
+}
+
+class WebViewViewModelFactory(
+    private val webViewType: WebViewType
+) : ViewModelProvider.Factory {
+
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(WebViewViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return WebViewViewModel(webViewType) as T
+        }
+
+        throw IllegalArgumentException(
+            "Unknown ViewModel class: ${modelClass.name}"
+        )
     }
 }

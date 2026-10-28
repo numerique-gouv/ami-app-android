@@ -1,4 +1,4 @@
-package fr.gouv.ami.components.webviewClient
+package fr.gouv.ami.components.webview.webviewClient
 
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -14,26 +14,25 @@ import android.webkit.SslErrorHandler
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.annotation.RequiresApi
 import fr.gouv.ami.Screen
 import fr.gouv.ami.components.handleSslError
 import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.navigation.NavigatorMapping
 import fr.gouv.ami.navigation.PromotedUrls
 import androidx.core.net.toUri
+import fr.gouv.ami.webview.WebViewType
 
-class MainWebViewClient(
+class AMIWebViewClient(
     private val baseUrl: String,
     private val webViewModel: WebViewViewModel,
-    private val onBackBarChanged: (Boolean) -> Unit,
     private val onUrlChanged: (String) -> Unit,
     private val onLoadingChanged: (Boolean) -> Unit,
     private val onCanGoBackChanged: (Boolean) -> Unit = {},
     private val onPageFinished: () -> Unit = {},
     private val onSslError: () -> Unit = {},
-    private val navigate: (Screen) -> Unit = {}
+    private val navigate: (Screen, WebViewType, String?) -> Unit = { _, _, _ -> }
 ) : WebViewClient() {
-    val TAG = "MainWebViewClient"
+    val TAG = "AMIWebViewClient"
 
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
 
@@ -49,11 +48,21 @@ class MainWebViewClient(
                 PromotedUrls.from(urlAlias.alias)?.let { alias ->
                     Log.d(TAG, "navigate to native screen $alias with url ${urlAlias.pattern}")
                     val screen = NavigatorMapping.resolve(alias)
-                    navigate(screen ?: Screen.Home)
+                    navigate(screen ?: Screen.Home, WebViewType.HOME, null)
                 }
 
                 return true
             }
+        }
+        if (!request?.url.toString()
+                .contains(baseUrl) && webViewModel.webViewType != WebViewType.SERVICE
+        ) {
+            Log.d(
+                TAG,
+                "L'url ne contient pas le baseurl and l'url de destination est ${request?.url.toString()}"
+            )
+            navigate(Screen.Home, WebViewType.SERVICE, request?.url.toString())
+            return true
         }
 
         // Show loader immediately on link click (before onPageStarted)
@@ -76,7 +85,6 @@ class MainWebViewClient(
     ) {
         Log.d(TAG, "UpdateVisitedHistory: baseUrl is: ${baseUrl}, url visited: $url")
         if (!url.isNullOrEmpty()) {
-            onBackBarChanged(!url.contains(baseUrl))
             onUrlChanged(url)
             Log.d("HomeScreen", url)
         }
@@ -116,75 +124,84 @@ class MainWebViewClient(
             onSslError()
         }
     }
-}
 
-@RequiresApi(Build.VERSION_CODES.R)
-private fun launchNativeApi30(context: Context, url: String): Boolean {
-    Log.d("MainWebViewClient", "API at of after 30")
-    val nativeAppIntent = Intent(Intent.ACTION_VIEW, url.toUri()).apply {
-        addCategory(Intent.CATEGORY_BROWSABLE)
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        addFlags(Intent.FLAG_ACTIVITY_REQUIRE_NON_BROWSER)
+    private fun launchNativeApi30(context: Context, url: String): Boolean {
+        Log.d(TAG, "API at of after 30")
+        val nativeAppIntent = Intent(Intent.ACTION_VIEW, url.toUri()).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_REQUIRE_NON_BROWSER)
+        }
+        return try {
+            context.startActivity(nativeAppIntent)
+            Log.d(TAG, "Found a native app, launching it")
+            true
+        } catch (e: ActivityNotFoundException) {
+            Log.d(TAG, "Didn't find a native app")
+            false
+        }
     }
-    return try {
-        context.startActivity(nativeAppIntent)
-        Log.d("MainWebViewClient", "Found a native app, launching it")
-        true
-    } catch (e: ActivityNotFoundException) {
-        Log.d("MainWebViewClient", "Didn't find a native app")
-        false
-    }
-}
 
-private fun launchNativeBeforeApi30(context: Context, url: String): Boolean {
-    Log.d("MainWebViewClient", "API before 30")
-    val pm = context.packageManager
+    private fun launchNativeBeforeApi30(context: Context, url: String): Boolean {
+        Log.d(TAG, "API before 30")
+        val pm = context.packageManager
 
-    // Get all Apps that resolve a generic url (both http:// and https://)
-    val httpBrowserIntent = Intent(Intent.ACTION_VIEW, "http://".toUri()).apply {
-        addCategory(Intent.CATEGORY_BROWSABLE)
-    }
-    val httpsBrowserIntent = Intent(Intent.ACTION_VIEW, "https://".toUri()).apply {
-        addCategory(Intent.CATEGORY_BROWSABLE)
-    }
-    val genericResolvedList =
-        extractPackageNames(pm.queryIntentActivities(httpBrowserIntent, PackageManager.MATCH_ALL)) +
-                extractPackageNames(
-                    pm.queryIntentActivities(
-                        httpsBrowserIntent,
-                        PackageManager.MATCH_ALL
-                    )
+        // Get all Apps that resolve a generic url (both http:// and https://)
+        val httpBrowserIntent = Intent(Intent.ACTION_VIEW, "http://".toUri()).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
+        }
+        val httpsBrowserIntent = Intent(Intent.ACTION_VIEW, "https://".toUri()).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
+        }
+        val genericResolvedList =
+            extractPackageNames(
+                pm.queryIntentActivities(
+                    httpBrowserIntent,
+                    PackageManager.MATCH_ALL
                 )
-    Log.d("MainWebViewClient", "Native apps that can open any url: $genericResolvedList")
+            ) +
+                    extractPackageNames(
+                        pm.queryIntentActivities(
+                            httpsBrowserIntent,
+                            PackageManager.MATCH_ALL
+                        )
+                    )
+        Log.d(TAG, "Native apps that can open any url: $genericResolvedList")
 
-    // Get all apps that resolve the specific Url
-    val specializedActivityIntent = Intent(Intent.ACTION_VIEW, url.toUri()).apply {
-        addCategory(Intent.CATEGORY_BROWSABLE)
+        // Get all apps that resolve the specific Url
+        val specializedActivityIntent = Intent(Intent.ACTION_VIEW, url.toUri()).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
+        }
+        val resolvedSpecializedList =
+            extractPackageNames(
+                pm.queryIntentActivities(
+                    specializedActivityIntent,
+                    0
+                )
+            ).toMutableSet()
+        Log.d(
+            TAG,
+            "Native apps that can open the following url $url: $resolvedSpecializedList"
+        )
+
+        // Keep only the Urls that resolve the specific, but not the generic urls.
+        resolvedSpecializedList.removeAll(genericResolvedList)
+        Log.d(TAG, "Specialized apps: $resolvedSpecializedList")
+
+        // If the list is empty, no native app handlers were found.
+        if (resolvedSpecializedList.isEmpty()) {
+            Log.d(TAG, "Didn't find a native app")
+            return false
+        }
+
+        // We found native handlers. Launch the Intent.
+        specializedActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(specializedActivityIntent)
+        Log.d(TAG, "Found a native app, launching it")
+        return true
     }
-    val resolvedSpecializedList =
-        extractPackageNames(pm.queryIntentActivities(specializedActivityIntent, 0)).toMutableSet()
-    Log.d(
-        "MainWebViewClient",
-        "Native apps that can open the following url $url: $resolvedSpecializedList"
-    )
 
-    // Keep only the Urls that resolve the specific, but not the generic urls.
-    resolvedSpecializedList.removeAll(genericResolvedList)
-    Log.d("MainWebViewClient", "Specialized apps: $resolvedSpecializedList")
-
-    // If the list is empty, no native app handlers were found.
-    if (resolvedSpecializedList.isEmpty()) {
-        Log.d("MainWebViewClient", "Didn't find a native app")
-        return false
+    private fun extractPackageNames(resolveInfos: List<ResolveInfo>): Set<String> {
+        return resolveInfos.map { it.activityInfo.packageName }.toSet()
     }
-
-    // We found native handlers. Launch the Intent.
-    specializedActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    context.startActivity(specializedActivityIntent)
-    Log.d("MainWebViewClient", "Found a native app, launching it")
-    return true
-}
-
-private fun extractPackageNames(resolveInfos: List<ResolveInfo>): Set<String> {
-    return resolveInfos.map { it.activityInfo.packageName }.toSet()
 }
