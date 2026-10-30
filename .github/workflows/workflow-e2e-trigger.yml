@@ -18,7 +18,7 @@ concurrency:
 jobs:
   # Résout le cas (pr | merge | tag).
   guard:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       case: ${{ steps.check.outputs.case }} # pr | merge | tag | none
     steps:
