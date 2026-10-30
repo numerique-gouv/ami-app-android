@@ -1,0 +1,92 @@
+name: e2e trigger
+# ce script réagi aux push, merge, tag et pull request pour lancer le bon jeu de tests e2e automatiquement.
+on:
+  pull_request:
+  push:
+    branches: [master]
+    tags: ['*.*.*']
+
+# Permissions minimales par défaut ; les jobs qui appellent l'e2e déclarent checks/pull-requests (check du commit testé, commentaire de PR).
+permissions:
+  contents: read
+
+# on évite de finir le build d'un push précédent, vu qu'on vient, à priori, de push un correctif.
+concurrency:
+  group: e2e-android-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Résout le cas (pr | merge | tag).
+  guard:
+    runs-on: ubuntu-24.04
+    outputs:
+      case: ${{ steps.check.outputs.case }} # pr | merge | tag | none
+    steps:
+      - id: check
+        if: true # empêche l'exécution tant que les tests en branche ne sont pas suffisants. (Valeur littérale `true` : l'étape s'exécute toujours ; à passer à false pour couper le déclencheur — non modifié ici.)
+        env:
+          # Via l'environnement et non ${{ }} dans le script : un nom de branche ou de tag est une entrée contrôlée par l'auteur de la PR.
+          GIT_REF: ${{ github.ref }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [[ "$GIT_REF" == refs/tags/* ]]; then
+            echo "case=tag" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT_NAME" = "pull_request" ]; then
+            echo "case=pr" >> "$GITHUB_OUTPUT"
+          elif [ "$GIT_REF" = "refs/heads/master" ]; then
+            echo "case=merge" >> "$GITHUB_OUTPUT"
+          else
+            echo "case=none" >> "$GITHUB_OUTPUT"
+          fi
+
+  # PR : mobile_all (tous les tests mobiles) sur pixel_8_api36, avec l'APK que cette PR vient de builder.
+  call-pr:
+    needs: guard
+    if: needs.guard.outputs.case == 'pr'
+    uses: ./.github/workflows/workflow-e2e-shared.yml
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    with:
+      run_android: mobile_all
+      android_device: pixel_8_api36
+      pr_number: ${{ github.event.pull_request.number }}
+      source_sha: ${{ github.event.pull_request.head.sha }}
+      # `main` suit la CI d'ami-system-tests tant qu'elle évolue ; à remplacer par un SHA (dans `uses` et `checkout_ref`, identiques) quand elle sera stable (VULN16, issue #78).
+      checkout_ref: main
+    secrets: inherit
+
+  # Merge : mobile_all, UN SEUL passage, sur pixel_8_api36.
+  call-merge:
+    needs: guard
+    if: ${{ needs.guard.outputs.case == 'merge' }}
+    uses: ./.github/workflows/workflow-e2e-shared.yml
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    with:
+      run_android: mobile_all
+      android_device: pixel_8_api36
+      source_sha: ${{ github.sha }}
+      # Voir call-pr.
+      checkout_ref: main
+      # pr_number laissé au défaut 0 — pas de PR associée à un push sur master.
+    secrets: inherit
+
+  call-tag:
+    needs: guard
+    if: ${{ needs.guard.outputs.case == 'tag' }}
+    uses: ./.github/workflows/workflow-e2e-shared.yml
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    with:
+      run_android: mobile_all
+      android_device: pixel_8_api36
+      source_sha: ${{ github.sha }}
+      version_tag: ${{ github.ref_name }}
+      # pr_number laissé au défaut 0 — pas de PR associée à un tag.
+    secrets: inherit
