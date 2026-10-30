@@ -39,7 +39,7 @@ fun HomeScreen(
             backButton
         )
 
-        WebViewType.CONNEXION -> {}
+        WebViewType.CONNECTION -> {}
     }
 
 }

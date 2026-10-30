@@ -12,9 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -26,9 +24,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,7 +33,7 @@ import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.ui.theme.AMITheme
 
 @Composable
-fun FranceConnexionScreen(onFcClick: () -> Unit) {
+fun FranceConnectionScreen(onFcClick: () -> Unit) {
     val targetTchap = "fr.gouv.tchap.a"
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -62,13 +57,13 @@ fun FranceConnexionScreen(onFcClick: () -> Unit) {
                 )
                 Text(
                     modifier = Modifier.padding(vertical = 16.dp),
-                    text = stringResource(R.string.franceConnexion_description), fontSize = 16.sp
+                    text = stringResource(R.string.franceConnection_description), fontSize = 16.sp
                 )
                 Text(
                     modifier = Modifier.padding(
                         vertical = 24.dp
                     ),
-                    text = stringResource(R.string.franceConnexion_subtitle),
+                    text = stringResource(R.string.franceConnection_subtitle),
                     fontSize = 12.sp,
                     color = Gray
                 )
@@ -130,16 +125,16 @@ fun Context.openOrInstallApp(packageName: String) {
 
 @Preview
 @Composable
-fun PreviewFranceConnexionScreenLight() {
+fun PreviewFranceConnectionScreenLight() {
     AMITheme {
-        FranceConnexionScreen() {}
+        FranceConnectionScreen() {}
     }
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun PreviewFranceConnexionScreenDark() {
+fun PreviewFranceConnectionScreenDark() {
     AMITheme {
-        FranceConnexionScreen() {}
+        FranceConnectionScreen() {}
     }
 }

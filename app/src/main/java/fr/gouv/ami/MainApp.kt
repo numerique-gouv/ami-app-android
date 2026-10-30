@@ -19,7 +19,7 @@ import androidx.navigation.navArgument
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.data.repository.checkAuth
 import fr.gouv.ami.dev.home.ReviewAppsScreen
-import fr.gouv.ami.home.FranceConnexionScreen
+import fr.gouv.ami.home.FranceConnectionScreen
 import fr.gouv.ami.home.HomeScreen
 import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.home.WebViewViewModelFactory
@@ -81,13 +81,13 @@ fun HomeApp(
         //webViewViewModel.currentUrl = pendingUrl
     }
 
-    val connexionDestination =
+    val connectionDestination =
         if (isConnected)
             "${Screen.Home.name}?webViewType=${WebViewType.HOME.name}"
         else
             Screen.FranceConnection.name
 
-    var startDestinationScreen = connexionDestination
+    var startDestinationScreen = connectionDestination
 
     if (BuildConfig.FLAVOR == "staging" && pendingUrl == null) {
         startDestinationScreen = Screen.ReviewApp.name
@@ -135,12 +135,12 @@ fun HomeApp(
         composable(route = Screen.ReviewApp.name) {
             ReviewAppsScreen(
                 onSelectedReviewApp = {
-                    navController.navigate(connexionDestination)
+                    navController.navigate(connectionDestination)
                 }
             )
         }
         composable(route = Screen.FranceConnection.name) {
-            FranceConnexionScreen(
+            FranceConnectionScreen(
                 onFcClick = {
                     val url = "${baseUrl}login-france-connect"
                     navController.navigate(
