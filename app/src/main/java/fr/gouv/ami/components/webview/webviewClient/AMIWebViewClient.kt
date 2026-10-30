@@ -30,7 +30,7 @@ class AMIWebViewClient(
     private val onCanGoBackChanged: (Boolean) -> Unit = {},
     private val onPageFinished: () -> Unit = {},
     private val onSslError: () -> Unit = {},
-    private val navigate: (Screen, WebViewType, String?) -> Unit = { _, _, _ -> }
+    private val navigate: (Screen, String?) -> Unit = { _, _ -> }
 ) : WebViewClient() {
     val TAG = "AMIWebViewClient"
 
@@ -39,6 +39,7 @@ class AMIWebViewClient(
 
         Log.d(TAG, "shouldOverrideUrlLoading is called from ${request?.url?.toString()}")
 
+        //url is promoted
         val urlAlias = webViewModel.aliases.firstOrNull {
             request?.url.toString().endsWith(it.pattern)
         }
@@ -48,20 +49,27 @@ class AMIWebViewClient(
                 PromotedUrls.from(urlAlias.alias)?.let { alias ->
                     Log.d(TAG, "navigate to native screen $alias with url ${urlAlias.pattern}")
                     val screen = NavigatorMapping.resolve(alias)
-                    navigate(screen ?: Screen.Home, WebViewType.HOME, null)
+                    navigate(screen, null)
                 }
 
                 return true
             }
         }
+
+        //Switch to another service
         if (!request?.url.toString()
                 .contains(baseUrl) && webViewModel.webViewType != WebViewType.SERVICE
         ) {
-            Log.d(
-                TAG,
-                "L'url ne contient pas le baseurl and l'url de destination est ${request?.url.toString()}"
-            )
-            navigate(Screen.Home, WebViewType.SERVICE, request?.url.toString())
+            Log.d(TAG, "switch to a service webapp")
+            navigate(Screen.Home, request?.url.toString())
+            return true
+        }
+
+        //return to the homeview
+        if (request?.url.toString()
+                .contains(baseUrl) && webViewModel.webViewType == WebViewType.SERVICE
+        ) {
+            navigate(Screen.Home, request?.url.toString())
             return true
         }
 

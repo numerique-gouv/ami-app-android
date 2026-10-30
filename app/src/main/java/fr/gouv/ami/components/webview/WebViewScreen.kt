@@ -60,7 +60,6 @@ import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.ui.theme.AMITheme
 import fr.gouv.ami.utils.FileUtils
 import fr.gouv.ami.utils.storage.LowStorageManager
-import fr.gouv.ami.webview.WebViewType
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
@@ -68,7 +67,7 @@ import kotlinx.serialization.json.Json
 @Composable
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
-    navigate: (Screen, WebViewType, String?) -> Unit
+    navigate: (Screen, String?) -> Unit
 ) {
     val TAG = "WebViewScreen"
     var isLoading by remember { mutableStateOf(false) }
@@ -163,7 +162,6 @@ fun WebViewScreen(
                                     storage.clearBearer()
                                     navigate(
                                         Screen.FranceConnection,
-                                        WebViewType.HOME,
                                         webViewViewModel.currentUrl
                                     )
                                 }
@@ -383,7 +381,7 @@ fun PreviewWebViewScreenLight() {
     AMITheme {
         WebViewScreen(
             webViewViewModel = viewModel(),
-            navigate = { _, _, _ -> })
+            navigate = { _, _ -> })
     }
 }
 
@@ -393,6 +391,6 @@ fun PreviewWebViewScreenDark() {
     AMITheme {
         WebViewScreen(
             webViewViewModel = viewModel(),
-            navigate = { _, _, _ -> })
+            navigate = { _, _ -> })
     }
 }

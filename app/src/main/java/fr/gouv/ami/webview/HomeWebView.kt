@@ -11,7 +11,7 @@ import fr.gouv.ami.home.WebViewViewModelFactory
 @Composable
 fun HomeWebView(
     startUrl: String,
-    navigate: (Screen, WebViewType, String?) -> Unit,
+    navigate: (Screen, String?) -> Unit,
 ) {
     val webViewViewModel = viewModel<WebViewViewModel>(
         factory = WebViewViewModelFactory(WebViewType.HOME)

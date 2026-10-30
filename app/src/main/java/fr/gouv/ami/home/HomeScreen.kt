@@ -2,10 +2,10 @@ package fr.gouv.ami.home
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import fr.gouv.ami.Screen
+import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.ui.theme.AMITheme
 import fr.gouv.ami.webview.HomeWebView
 import fr.gouv.ami.webview.ServiceWebView
@@ -15,12 +15,17 @@ import fr.gouv.ami.webview.WebViewType
 @Composable
 fun HomeScreen(
     startUrl: String,
-    navigate: (Screen, WebViewType, String?) -> Unit,
-    webViewType: WebViewType,
+    navigate: (Screen, String?) -> Unit,
     backButton: () -> Unit
 ) {
 
     /** UI **/
+    val webViewType =
+        if (startUrl.startsWith(baseUrl)) {
+            WebViewType.HOME
+        } else {
+            WebViewType.SERVICE
+        }
 
     when (webViewType) {
         WebViewType.HOME -> HomeWebView(
@@ -45,8 +50,7 @@ fun PreviewHomeScreenLight() {
     AMITheme {
         HomeScreen(
             startUrl = "https://numerique.gouv.fr",
-            navigate = { _, _, _ -> },
-            webViewType = WebViewType.HOME,
+            navigate = { _, _ -> },
             backButton = {})
     }
 }
@@ -57,8 +61,7 @@ fun PreviewHomeScreenDark() {
     AMITheme {
         HomeScreen(
             startUrl = "https://numerique.gouv.fr",
-            navigate = { _, _, _ -> },
-            webViewType = WebViewType.HOME,
+            navigate = { _, _ -> },
             backButton = {})
     }
 }

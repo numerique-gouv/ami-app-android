@@ -83,7 +83,7 @@ fun HomeApp(
 
     val connexionDestination =
         if (isConnected)
-            Screen.Home.name
+            "${Screen.Home.name}?webViewType=${WebViewType.HOME.name}"
         else
             Screen.FranceConnection.name
 
@@ -123,10 +123,9 @@ fun HomeApp(
 
             HomeScreen(
                 startUrl = destinationUrl,
-                navigate = { screen, webviewType, destinationUrl ->
-                    navController.navigate(route = "${screen.name}?webViewType=${webviewType.name}&destinationUrl=${destinationUrl}")
+                navigate = { screen, destinationUrl ->
+                    navController.navigate(route = "${screen.name}?destinationUrl=${destinationUrl}")
                 },
-                webViewType = webviewType,
                 backButton = {
                     navController.popBackStack()
                 }
@@ -145,7 +144,7 @@ fun HomeApp(
                 onFcClick = {
                     val url = "${baseUrl}login-france-connect"
                     navController.navigate(
-                        route = "${Screen.Home.name}?destinationUrl=${Uri.encode(url)}"
+                        route = "${Screen.Home.name}?destinationUrl=${Uri.encode(url)}&webViewType=${WebViewType.SERVICE.name}"
                     )
                 })
         }
@@ -161,8 +160,11 @@ fun HomeApp(
             OnboardingNotificationScreen(
                 webViewViewModel = webViewViewModel,
                 onChooseClick = {
-                    navController.navigate(Screen.Home.name)
-                })
+                    navController.navigate(
+                        route = "${Screen.Home.name}?webViewType=${WebViewType.HOME.name}"
+                    )
+                }
+            )
         }
     }
 }
