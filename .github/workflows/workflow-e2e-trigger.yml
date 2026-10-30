@@ -39,7 +39,7 @@ jobs:
             echo "case=none" >> "$GITHUB_OUTPUT"
           fi
 
-  # PR : mobile_all (tous les tests mobiles) sur appareil ANCIEN (pixel_6_api31), avec l'APK que cette PR vient de builder.
+  # PR : mobile_all (tous les tests mobiles) sur pixel_8_api36, avec l'APK que cette PR vient de builder.
   call-pr:
     needs: guard
     if: needs.guard.outputs.case == 'pr'
@@ -50,7 +50,7 @@ jobs:
       pull-requests: write
     with:
       run_android: mobile_all
-      android_device: pixel_6_api31
+      android_device: pixel_8_api36
       pr_number: ${{ github.event.pull_request.number }}
       source_sha: ${{ github.event.pull_request.head.sha }}
       # PROVISOIRE, le temps de la mise au point : la ref d'ami-system-tests est celle de `uses` dans workflow-e2e-shared.yml
@@ -58,7 +58,7 @@ jobs:
       checkout_ref: 77-migre-vers-wdio-10
     secrets: inherit
 
-  # Merge : mobile_all, UN SEUL passage, sur l'appareil RÉCENT (pixel_8_api36) : vieux (PR) VS jeune (merge).
+  # Merge : mobile_all, UN SEUL passage, sur pixel_8_api36.
   call-merge:
     needs: guard
     if: ${{ needs.guard.outputs.case == 'merge' }}
@@ -86,7 +86,7 @@ jobs:
       pull-requests: write
     with:
       run_android: mobile_all
-      android_device: pixel_6_api31
+      android_device: pixel_8_api36
       source_sha: ${{ github.sha }}
       version_tag: ${{ github.ref_name }}
       # pr_number laissé au défaut 0 — pas de PR associée à un tag.

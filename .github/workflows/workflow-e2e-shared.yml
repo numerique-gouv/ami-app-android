@@ -18,9 +18,9 @@ on:
         type: string
         required: true
       android_device:
-        description: "AVD Android au format pixel_<profil>_api<niveau> : pixel_6_api31 = appareil ancien, pixel_8_api36 = récent (targetSdk)"
+        description: "AVD Android au format pixel_<profil>_api<niveau>  (ex. pixel_8_api36)"
         type: string
-        default: pixel_6_api31
+        default: pixel_8_api36
       report_label:
         description: "étiquette (lettres, chiffres, - _) quand plusieurs runs e2e rapportent sur le même commit/PR (ex. old-device) : un check (et un commentaire) par étiquette"
         type: string
