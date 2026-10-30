@@ -34,9 +34,9 @@ on:
         type: string
         default: ''
       checkout_ref:
-        description: "ref (branche/tag/sha) d'ami-system-tests à checkout ; PROVISOIRE : 77-migre-vers-wdio-10 (la même que `uses` ci-dessous), à repasser sur main à la fusion"
+        description: "ref (branche/tag/sha) d'ami-system-tests à checkout, égale à celle de `uses` ci-dessous"
         type: string
-        default: 77-migre-vers-wdio-10
+        default: main
       version_tag:
         description: "tag de la version, passé en argument pour être testable en manuel"
         type: string
@@ -95,7 +95,8 @@ jobs:
     needs: build
     # TANT QUE les changements d'ami-system-tests (job report, suites mobile_*, sorties) ne sont pas fusionnés dans master/main, cette ref
     # est la branche qui les porte ; à repointer vers main une fois fusionnés.
-    uses: numerique-gouv/ami-system-tests/.github/workflows/workflow-e2e-main.yml@77-migre-vers-wdio-10
+    # `main` suit la CI d'ami-system-tests tant qu'elle évolue ; à remplacer par un SHA (dans `uses` et `checkout_ref`, identiques) quand elle sera stable (VULN16, issue #78).
+    uses: numerique-gouv/ami-system-tests/.github/workflows/workflow-e2e-main.yml@main
     # Le workflow appelé ne peut pas dépasser ces permissions : checks (check du commit testé) et pull-requests (commentaire unique).
     permissions:
       contents: read
