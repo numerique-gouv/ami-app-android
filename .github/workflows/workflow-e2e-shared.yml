@@ -111,7 +111,10 @@ jobs:
       pr_number: 0 # les tests android tournent toujours sur l'env staging
       comment_pr_number: ${{ inputs.pr_number }} # mais le résultat est rapporté sur la PR d'origine (0 = pas de commentaire)
       checkout_ref: ${{ inputs.checkout_ref }}
-    secrets: inherit
+    # Secrets passés un par un (pas « inherit ») : les tests Android n'utilisent que le partenaire AMI (pas de webapp, APK du run courant).
+    secrets:
+      NOTIF_PARTNER_ID: ${{ secrets.NOTIF_PARTNER_ID }}
+      NOTIF_PARTNER_SECRET: ${{ secrets.NOTIF_PARTNER_SECRET }}
 
   # Publie l'APK et la version, pour qu'ami-notifications-api puisse les récupérer.
   publish-version:
