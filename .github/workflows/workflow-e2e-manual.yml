@@ -13,7 +13,7 @@ on:
         type: string
         default: mobile_short
       android_device:
-        description: "AVD Android au format pixel_<profil>_api<niveau> : pixel_2_api30 = appareil ancien, pixel_8_api36 = récent (targetSdk)"
+        description: "AVD Android au format pixel_<profil>_api<niveau> : pixel_6_api31 = appareil ancien, pixel_8_api36 = récent (targetSdk)"
         type: string
         default: pixel_8_api36
       pr_number:

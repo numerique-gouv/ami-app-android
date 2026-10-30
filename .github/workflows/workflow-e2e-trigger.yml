@@ -39,7 +39,7 @@ jobs:
             echo "case=none" >> "$GITHUB_OUTPUT"
           fi
 
-  # PR : mobile_all (tous les tests mobiles) sur appareil ANCIEN (pixel_2_api30), avec l'APK que cette PR vient de builder.
+  # PR : mobile_all (tous les tests mobiles) sur appareil ANCIEN (pixel_6_api31), avec l'APK que cette PR vient de builder.
   call-pr:
     needs: guard
     if: needs.guard.outputs.case == 'pr'
@@ -50,7 +50,7 @@ jobs:
       pull-requests: write
     with:
       run_android: mobile_all
-      android_device: pixel_2_api30
+      android_device: pixel_6_api31
       pr_number: ${{ github.event.pull_request.number }}
       source_sha: ${{ github.event.pull_request.head.sha }}
       # PROVISOIRE, le temps de la mise au point : la ref d'ami-system-tests est celle de `uses` dans workflow-e2e-shared.yml
@@ -86,7 +86,7 @@ jobs:
       pull-requests: write
     with:
       run_android: mobile_all
-      android_device: pixel_2_api30
+      android_device: pixel_6_api31
       source_sha: ${{ github.sha }}
       version_tag: ${{ github.ref_name }}
       # pr_number laissé au défaut 0 — pas de PR associée à un tag.
