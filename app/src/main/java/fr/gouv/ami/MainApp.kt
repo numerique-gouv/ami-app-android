@@ -45,6 +45,10 @@ fun HomeApp(
 ) {
 
     val TAG = object {}.javaClass.enclosingClass?.simpleName ?: "AMI"
+    val destinationUrlKey = "destinationUrl"
+    val webViewTypeKey = "webViewType"
+
+
     val webViewViewModel = viewModel<WebViewViewModel>(
         factory = WebViewViewModelFactory(WebViewType.HOME)
     )
@@ -98,13 +102,13 @@ fun HomeApp(
         startDestination = startDestinationScreen
     ) {
         composable(
-            route = "${Screen.Home.name}?webViewType={webViewType}&destinationUrl={destinationUrl}",
+            route = "${Screen.Home.name}?${webViewTypeKey}={${webViewTypeKey}}&${destinationUrlKey}={${destinationUrlKey}}",
             arguments = listOf(
-                navArgument("webViewType") {
+                navArgument(webViewTypeKey) {
                     type = NavType.StringType
                     nullable = true
                 },
-                navArgument("destinationUrl") {
+                navArgument(destinationUrlKey) {
                     type = NavType.StringType
                     nullable = true
                 })
@@ -112,19 +116,19 @@ fun HomeApp(
         ) { backStackEntry ->
             val webviewType = WebViewType.valueOf(
                 Uri.decode(
-                    backStackEntry.arguments?.getString("webViewType") ?: WebViewType.HOME.name
+                    backStackEntry.arguments?.getString(webViewTypeKey) ?: WebViewType.HOME.name
                 )
             )
 
             val destinationUrl = Uri.decode(
-                backStackEntry.arguments?.getString("destinationUrl") ?: baseUrl
+                backStackEntry.arguments?.getString(destinationUrlKey) ?: baseUrl
             )
 
 
             HomeScreen(
                 startUrl = destinationUrl,
                 navigate = { screen, destinationUrl ->
-                    navController.navigate(route = "${screen.name}?destinationUrl=${destinationUrl}")
+                    navController.navigate(route = "${screen.name}?${destinationUrlKey}=${destinationUrl}")
                 },
                 backButton = {
                     navController.popBackStack()
@@ -144,7 +148,7 @@ fun HomeApp(
                 onFcClick = {
                     val url = "${baseUrl}login-france-connect"
                     navController.navigate(
-                        route = "${Screen.Home.name}?destinationUrl=${Uri.encode(url)}&webViewType=${WebViewType.SERVICE.name}"
+                        route = "${Screen.Home.name}?${destinationUrlKey}=${Uri.encode(url)}&${webViewTypeKey}=${WebViewType.SERVICE.name}"
                     )
                 })
         }
@@ -161,7 +165,7 @@ fun HomeApp(
                 webViewViewModel = webViewViewModel,
                 onChooseClick = {
                     navController.navigate(
-                        route = "${Screen.Home.name}?webViewType=${WebViewType.HOME.name}"
+                        route = "${Screen.Home.name}?${webViewTypeKey}=${WebViewType.HOME.name}"
                     )
                 }
             )
