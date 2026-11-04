@@ -16,7 +16,7 @@ import fr.gouv.ami.home.WebViewViewModelFactory
 @Composable
 fun ServiceWebView(
     startUrl: String,
-    navigate: (Screen, String?) -> Unit,
+    navigate: (Screen, String?, WebViewType?) -> Unit,
     backButton: () -> Unit
 ) {
     val webViewViewModel = viewModel<WebViewViewModel>(

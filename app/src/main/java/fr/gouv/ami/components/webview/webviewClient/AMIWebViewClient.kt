@@ -30,9 +30,17 @@ class AMIWebViewClient(
     private val onCanGoBackChanged: (Boolean) -> Unit = {},
     private val onPageFinished: () -> Unit = {},
     private val onSslError: () -> Unit = {},
-    private val navigate: (Screen, String?) -> Unit = { _, _ -> }
+    private val navigate: (Screen, String?, WebViewType?) -> Unit = { _, _, _ -> }
 ) : WebViewClient() {
     val TAG = "AMIWebViewClient"
+
+    private fun navigateTo(
+        screen: Screen,
+        url: String? = null,
+        webViewType: WebViewType? = null
+    ) {
+        navigate(screen, url, webViewType)
+    }
 
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
 
@@ -49,7 +57,7 @@ class AMIWebViewClient(
                 PromotedUrls.from(urlAlias.alias)?.let { alias ->
                     Log.d(TAG, "navigate to native screen $alias with url ${urlAlias.pattern}")
                     val screen = NavigatorMapping.resolve(alias)
-                    navigate(screen, null)
+                    navigateTo(screen)
                 }
 
                 return true
@@ -58,18 +66,23 @@ class AMIWebViewClient(
 
         //Switch to another service
         if (!request?.url.toString()
-                .contains(baseUrl) && webViewModel.webViewType != WebViewType.SERVICE
+                .startsWith(baseUrl) && webViewModel.webViewType == WebViewType.HOME
         ) {
             Log.d(TAG, "switch to a service webapp")
-            navigate(Screen.Home, request?.url.toString())
+            navigateTo(
+                Screen.Home,
+                url = request?.url.toString(),
+                webViewType = WebViewType.SERVICE
+            )
             return true
         }
 
         //return to the homeview
         if (request?.url.toString()
-                .contains(baseUrl) && webViewModel.webViewType == WebViewType.SERVICE
+                .startsWith(baseUrl) && webViewModel.webViewType == WebViewType.SERVICE
         ) {
-            navigate(Screen.Home, request?.url.toString())
+            Log.d(TAG, "return to the home")
+            navigateTo(Screen.Home, request?.url.toString())
             return true
         }
 

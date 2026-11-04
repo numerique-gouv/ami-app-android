@@ -114,7 +114,7 @@ fun HomeApp(
                 })
 
         ) { backStackEntry ->
-            val webviewType = WebViewType.valueOf(
+            val webViewType = WebViewType.valueOf(
                 Uri.decode(
                     backStackEntry.arguments?.getString(webViewTypeKey) ?: WebViewType.HOME.name
                 )
@@ -127,8 +127,9 @@ fun HomeApp(
 
             HomeScreen(
                 startUrl = destinationUrl,
-                navigate = { screen, destinationUrl ->
-                    navController.navigate(route = "${screen.name}?${destinationUrlKey}=${destinationUrl}")
+                webViewType = webViewType,
+                navigate = { screen, destinationUrl, destinationWebViewType ->
+                    navController.navigate(route = "${screen.name}?${destinationUrlKey}=${destinationUrl}&${webViewTypeKey}=${destinationWebViewType}")
                 },
                 backButton = {
                     navController.popBackStack()
@@ -148,7 +149,7 @@ fun HomeApp(
                 onFcClick = {
                     val url = "${baseUrl}login-france-connect"
                     navController.navigate(
-                        route = "${Screen.Home.name}?${destinationUrlKey}=${Uri.encode(url)}&${webViewTypeKey}=${WebViewType.SERVICE.name}"
+                        route = "${Screen.Home.name}?${destinationUrlKey}=${Uri.encode(url)}&${webViewTypeKey}=${WebViewType.CONNECTION.name}"
                     )
                 })
         }

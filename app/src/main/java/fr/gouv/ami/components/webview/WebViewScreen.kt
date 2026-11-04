@@ -60,6 +60,7 @@ import fr.gouv.ami.notifications.FirebaseService
 import fr.gouv.ami.ui.theme.AMITheme
 import fr.gouv.ami.utils.FileUtils
 import fr.gouv.ami.utils.storage.LowStorageManager
+import fr.gouv.ami.webview.WebViewType
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
@@ -67,7 +68,7 @@ import kotlinx.serialization.json.Json
 @Composable
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
-    navigate: (Screen, String?) -> Unit
+    navigate: (Screen, String?, WebViewType?) -> Unit
 ) {
     val TAG = "WebViewScreen"
     var isLoading by remember { mutableStateOf(false) }
@@ -148,6 +149,14 @@ fun WebViewScreen(
                                     if (!fcmToken.isNullOrEmpty()) {
                                         FirebaseService().sendRegistration(fcmToken)
                                     }
+                                    //navigate to home only if it's not a home webapp
+                                    if (webViewViewModel.webViewType != WebViewType.HOME) {
+                                        navigate(
+                                            Screen.Home,
+                                            baseUrl,
+                                            WebViewType.HOME
+                                        )
+                                    }
                                 }
                                 //We're letting the web app handle the onboarding screen for now
                                 /*if (!hasRequestedPermissionBefore(context)) {
@@ -162,7 +171,8 @@ fun WebViewScreen(
                                     storage.clearBearer()
                                     navigate(
                                         Screen.FranceConnection,
-                                        webViewViewModel.currentUrl
+                                        webViewViewModel.currentUrl,
+                                        WebViewType.HOME
                                     )
                                 }
                             }
@@ -381,7 +391,7 @@ fun PreviewWebViewScreenLight() {
     AMITheme {
         WebViewScreen(
             webViewViewModel = viewModel(),
-            navigate = { _, _ -> })
+            navigate = { _, _, _ -> })
     }
 }
 
@@ -391,6 +401,6 @@ fun PreviewWebViewScreenDark() {
     AMITheme {
         WebViewScreen(
             webViewViewModel = viewModel(),
-            navigate = { _, _ -> })
+            navigate = { _, _, _ -> })
     }
 }
