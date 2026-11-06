@@ -32,7 +32,8 @@ fun HomeScreen(
         WebViewType.SERVICE, WebViewType.CONNECTION -> ServiceWebView(
             startUrl,
             navigate,
-            backButton
+            backButton,
+            webViewType
         )
     }
 

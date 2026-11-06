@@ -17,10 +17,11 @@ import fr.gouv.ami.home.WebViewViewModelFactory
 fun ServiceWebView(
     startUrl: String,
     navigate: (Screen, String?, WebViewType?) -> Unit,
-    backButton: () -> Unit
+    backButton: () -> Unit,
+    webViewType: WebViewType
 ) {
     val webViewViewModel = viewModel<WebViewViewModel>(
-        factory = WebViewViewModelFactory(WebViewType.SERVICE)
+        factory = WebViewViewModelFactory(webViewType)
     )
     webViewViewModel.currentUrl = startUrl
     BaseScreen(viewModel = webViewViewModel) {
