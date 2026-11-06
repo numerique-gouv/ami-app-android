@@ -153,7 +153,7 @@ fun WebViewScreen(
                                     if (webViewViewModel.webViewType != WebViewType.HOME) {
                                         navigate(
                                             Screen.Home,
-                                            baseUrl,
+                                            webViewViewModel.currentUrl,
                                             WebViewType.HOME
                                         )
                                     }
