@@ -129,7 +129,13 @@ fun HomeApp(
                 startUrl = destinationUrl,
                 webViewType = webViewType,
                 navigate = { screen, destinationUrl, destinationWebViewType ->
-                    navController.navigate(route = "${screen.name}?${destinationUrlKey}=${destinationUrl}&${webViewTypeKey}=${destinationWebViewType}")
+                    navController.navigate(route = "${screen.name}?${destinationUrlKey}=${destinationUrl}&${webViewTypeKey}=${destinationWebViewType}") {
+                        if (webViewType == WebViewType.CONNECTION) {
+                            popUpTo(navController.currentDestination!!.id) {
+                                inclusive = true
+                            }
+                        }
+                    }
                 },
                 backButton = {
                     navController.popBackStack()
