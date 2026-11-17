@@ -16,6 +16,7 @@ class WebviewScripts {
         USER_LOGGED_OUT("user_logged_out"),
         NOTIFICATION_PERMISSION_REQUESTED("notification_permission_requested"),
         NOTIFICATION_PERMISSION_REMOVED("notification_permission_removed"),
+        USER_AUTHENTICATION_PHASE_COMPLETED("user_authentication_phase_completed"),
         WEBAPP_BRIDGE_READY("webappBridgeReady");
 
 

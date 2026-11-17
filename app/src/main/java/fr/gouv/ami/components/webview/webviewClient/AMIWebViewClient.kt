@@ -20,10 +20,10 @@ import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.navigation.NavigatorMapping
 import fr.gouv.ami.navigation.PromotedUrls
 import androidx.core.net.toUri
+import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.webview.WebViewType
 
 class AMIWebViewClient(
-    private val baseUrl: String,
     private val webViewModel: WebViewViewModel,
     private val onUrlChanged: (String) -> Unit,
     private val onLoadingChanged: (Boolean) -> Unit,
@@ -65,14 +65,21 @@ class AMIWebViewClient(
         }
 
         //Switch to another service
-        if (!request?.url.toString()
-                .startsWith(baseUrl) && webViewModel.webViewType == WebViewType.HOME
+        if ((!request?.url.toString()
+                .startsWith(baseUrl) || request?.url.toString()
+                .contains("silent-login-ami")) && webViewModel.webViewType == WebViewType.HOME
         ) {
             Log.d(TAG, "switch to a service webapp")
+            val type = if(request?.url.toString()
+                    .contains("silent-login-ami")) {
+                WebViewType.CONNECTION
+            } else {
+                WebViewType.SERVICE
+            }
             navigateTo(
                 Screen.Home,
                 url = request?.url.toString(),
-                webViewType = WebViewType.SERVICE
+                webViewType = type
             )
             return true
         }

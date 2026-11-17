@@ -52,6 +52,7 @@ import fr.gouv.ami.components.PrimaryButton
 import fr.gouv.ami.components.SecondaryButton
 import fr.gouv.ami.components.webview.webviewClient.AMIWebViewClient
 import fr.gouv.ami.data.models.UrlAliases
+import fr.gouv.ami.data.models.UrlNavigation
 import fr.gouv.ami.global.PermissionManager
 import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.home.WebviewScripts.Companion.nativeInfosScript
@@ -100,7 +101,6 @@ fun WebViewScreen(
                     }
                 }
                 webViewClient = AMIWebViewClient(
-                    baseUrl = webViewViewModel.currentUrl,
                     webViewModel = webViewViewModel,
                     onUrlChanged =
                         {
@@ -149,12 +149,24 @@ fun WebViewScreen(
                                     if (!fcmToken.isNullOrEmpty()) {
                                         FirebaseService().sendRegistration(fcmToken)
                                     }
-                                    //navigate to home only if it's not a home webapp
-                                    if (webViewViewModel.webViewType != WebViewType.HOME) {
+                                }
+                            }
+
+                            EventWebview.USER_AUTHENTICATION_PHASE_COMPLETED -> {
+                                val gotoUrl = Json.decodeFromString<UrlNavigation>(dataJson).gotoUrl
+                                //navigate to home only if it's not a home webview
+                                if (webViewViewModel.webViewType != WebViewType.HOME) {
+                                    webViewViewModel.viewModelScope.launch {
+                                        val type =
+                                            if (gotoUrl.startsWith(baseUrl)) {
+                                                WebViewType.HOME
+                                            } else {
+                                                WebViewType.SERVICE
+                                            }
                                         navigate(
                                             Screen.Home,
-                                            webViewViewModel.currentUrl,
-                                            WebViewType.HOME
+                                            gotoUrl,
+                                            type
                                         )
                                     }
                                 }
