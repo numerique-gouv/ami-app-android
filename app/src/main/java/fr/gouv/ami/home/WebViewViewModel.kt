@@ -29,6 +29,7 @@ class WebViewViewModel(webviewType: WebViewType) : BaseViewModel() {
     var webView by mutableStateOf<WebView?>(null)
 
     var aliases by mutableStateOf(emptyArray<UrlAliases>())
+    var authenticationUrls by mutableStateOf(emptyList<String>())
 
     private val _notificationPermissionRequested = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val notificationPermissionRequested = _notificationPermissionRequested.asSharedFlow()

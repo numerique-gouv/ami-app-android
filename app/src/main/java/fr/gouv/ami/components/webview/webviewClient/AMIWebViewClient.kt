@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.graphics.Bitmap
+import android.net.Uri
 import android.net.http.SslError
 import android.os.Build
 import android.util.Log
@@ -64,22 +65,26 @@ class AMIWebViewClient(
             }
         }
 
-        //Switch to another service
-        if ((!request?.url.toString()
-                .startsWith(baseUrl) || request?.url.toString()
-                .contains("silent-login-ami")) && webViewModel.webViewType == WebViewType.HOME
-        ) {
-            Log.d(TAG, "switch to a service webapp")
-            val type = if(request?.url.toString()
-                    .contains("silent-login-ami")) {
-                WebViewType.CONNECTION
-            } else {
-                WebViewType.SERVICE
-            }
+        //Launch a connection webview
+        val uriWithoutQuery = request?.url.toString().toUri().buildUpon().clearQuery().build()
+        if (webViewModel.authenticationUrls.contains(uriWithoutQuery.toString()) && webViewModel.webViewType != WebViewType.CONNECTION) {
             navigateTo(
                 Screen.Home,
                 url = request?.url.toString(),
-                webViewType = type
+                webViewType = WebViewType.CONNECTION
+            )
+            return true
+        }
+
+        //Switch to another service
+        if (!request?.url.toString()
+                .startsWith(baseUrl) && webViewModel.webViewType == WebViewType.HOME
+        ) {
+            Log.d(TAG, "switch to a service webapp")
+            navigateTo(
+                Screen.Home,
+                url = request?.url.toString(),
+                webViewType = WebViewType.SERVICE
             )
             return true
         }

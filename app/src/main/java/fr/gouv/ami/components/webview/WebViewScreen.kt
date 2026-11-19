@@ -203,12 +203,37 @@ fun WebViewScreen(
                                     evaluateJavascript(
                                         "window.WebAppBridge.getUrlAliases();",
                                         { result ->
-                                            val aliasesJson = Json.decodeFromString<String>(result)
-                                            webViewViewModel.aliases =
-                                                Json.decodeFromString<Array<UrlAliases>>(
-                                                    aliasesJson
-                                                )
+                                            try {
+                                                val aliasesJson =
+                                                    Json.decodeFromString<String>(result)
+                                                webViewViewModel.aliases =
+                                                    Json.decodeFromString<Array<UrlAliases>>(
+                                                        aliasesJson
+                                                    )
+                                            } catch (e: Exception) {
+                                                Log.e(TAG, "urlAliases can't be deserialized", e)
+                                            }
                                         })
+                                }
+
+                                webViewViewModel.webView?.post {
+                                    evaluateJavascript(
+                                        "window.WebAppBridge.getAuthenticationUrls();"
+                                    ) { authenticationUrlsJson ->
+                                        try {
+                                            webViewViewModel.authenticationUrls =
+                                                Json.decodeFromString<List<String>>(
+                                                    authenticationUrlsJson
+                                                )
+                                        } catch (e: Exception) {
+                                            Log.e(
+                                                TAG,
+                                                "authenticationUrlsJson can't be deserialized",
+                                                e
+                                            )
+                                        }
+
+                                    }
                                 }
                             }
 
