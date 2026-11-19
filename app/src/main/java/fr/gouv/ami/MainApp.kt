@@ -134,6 +134,9 @@ fun HomeApp(
                             popUpTo(navController.currentDestination!!.id) {
                                 inclusive = true
                             }
+                            popUpTo(Screen.FranceConnection.name) {
+                                inclusive = true
+                            }
                         }
                     }
                 },
