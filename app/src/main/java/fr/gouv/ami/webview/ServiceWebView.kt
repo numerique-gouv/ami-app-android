@@ -3,6 +3,7 @@ package fr.gouv.ami.webview
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -12,10 +13,12 @@ import fr.gouv.ami.components.webview.WebViewScreen
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.home.WebViewViewModelFactory
+import fr.gouv.ami.notifications.NotificationViewModel
 
 @Composable
 fun ServiceWebView(
     startUrl: String,
+    notificationViewModel: NotificationViewModel,
     navigate: (Screen, String?, WebViewType?) -> Unit,
     backButton: () -> Unit,
     webViewType: WebViewType
@@ -36,6 +39,7 @@ fun ServiceWebView(
 
             WebViewScreen(
                 webViewViewModel,
+                notificationViewModel,
                 navigate = navigate
             )
         }

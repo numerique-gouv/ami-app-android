@@ -7,10 +7,12 @@ import fr.gouv.ami.components.webview.WebViewScreen
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.home.WebViewViewModelFactory
+import fr.gouv.ami.notifications.NotificationViewModel
 
 @Composable
 fun HomeWebView(
     startUrl: String,
+    notificationViewModel: NotificationViewModel,
     navigate: (Screen, String?, WebViewType?) -> Unit,
 ) {
     val webViewViewModel = viewModel<WebViewViewModel>(
@@ -20,6 +22,7 @@ fun HomeWebView(
     BaseScreen(viewModel = webViewViewModel) {
         WebViewScreen(
             webViewViewModel,
+            notificationViewModel,
             navigate = navigate
         )
     }

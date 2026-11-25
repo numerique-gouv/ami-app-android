@@ -23,17 +23,17 @@ import fr.gouv.ami.components.PrimaryButton
 import fr.gouv.ami.components.SecondaryButton
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.home.NotificationPermissionHandler
-import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.home.markPermissionRequested
+import fr.gouv.ami.notifications.NotificationViewModel
 import fr.gouv.ami.ui.theme.AMITheme
 
 @Composable
-fun OnboardingNotificationScreen(webViewViewModel: WebViewViewModel, onChooseClick: () -> Unit) {
+fun OnboardingNotificationScreen(notificationViewModel: NotificationViewModel, onChooseClick: () -> Unit) {
     val context = LocalContext.current
 
-    NotificationPermissionHandler(webViewViewModel)
+    NotificationPermissionHandler(notificationViewModel)
 
-    BaseScreen(viewModel = webViewViewModel) {
+    BaseScreen(viewModel = notificationViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -56,7 +56,7 @@ fun OnboardingNotificationScreen(webViewViewModel: WebViewViewModel, onChooseCli
                 modifier = Modifier.padding(bottom = 16.dp)
             )
             PrimaryButton(stringResource(R.string.enable)) {
-                webViewViewModel.triggerNotificationPermissionRequest()
+                notificationViewModel.triggerNotificationPermissionRequest()
                 onChooseClick()
             }
             SecondaryButton(stringResource(R.string.maybe_later)) {

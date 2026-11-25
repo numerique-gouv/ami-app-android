@@ -16,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import fr.gouv.ami.notifications.NotificationViewModel
 
 /**
  * Handles notification permission request when triggered by JavaScript event.
@@ -24,28 +25,11 @@ import androidx.core.content.ContextCompat
  * (via NativeBridge.onEvent("notification_permission_requested")). When the event is received,
  * it triggers the Android permission dialog. After the user responds, it navigates back home.
  *
- * @param webViewViewModel The WebView view model to observe events and trigger navigation
+ * @param notificationViewModel The WebView view model to observe events and trigger navigation
  */
 @Composable
-fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
+fun NotificationPermissionHandler(notificationViewModel: NotificationViewModel) {
     val context = LocalContext.current
-
-    // Initialize localStorage with current permission state when page finishes loading
-    // Doing it only once when creating the Webview fails: it tries to execute javascript too early
-    // and doesn't properly set the localStorage.
-    LaunchedEffect(Unit) {
-        webViewViewModel.pageFinished.collect {
-            val isGranted = isPermissionGranted(context)
-            webViewViewModel.setLocalStorage(
-                "notifications_enabled",
-                if (isGranted) "true" else "false"
-            )
-            Log.d(
-                "NotificationPermission",
-                "Initialized localStorage notifications_enabled: $isGranted"
-            )
-        }
-    }
 
     // Permission launcher
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
@@ -54,18 +38,16 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
         Log.d("NotificationPermission", "User responded: ${if (isGranted) "GRANTED" else "DENIED"}")
 
         if (isGranted) {
-            webViewViewModel.showNotificationPermissionGrantedBanner()
-            webViewViewModel.setLocalStorage("notifications_enabled", "true")
+            notificationViewModel.showNotificationPermissionGrantedBanner()
+            notificationViewModel.setLocalStorage("notifications_enabled", "true")
         } else {
-            webViewViewModel.setLocalStorage("notifications_enabled", "false")
+            notificationViewModel.setLocalStorage("notifications_enabled", "false")
         }
-        // Navigate back to home after user responds
-        webViewViewModel.onGoHome()
     }
 
     // Observe event for notification permission request
     LaunchedEffect(Unit) {
-        webViewViewModel.notificationPermissionRequested.collect {
+        notificationViewModel.notificationPermissionRequested.collect {
             Log.d(
                 "NotificationPermission",
                 "JavaScript event 'notification_permission_requested' received"
@@ -88,7 +70,6 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
                     "Permission permanently denied, we can't show the permission popup anymore, last resort is displaying the OS notification settings"
                 )
                 openAppNotificationSettings(context)
-                webViewViewModel.onGoHome()
             } else {
                 // Mark that we've requested permission (before showing the dialog)
                 markPermissionRequested(context)
@@ -100,13 +81,12 @@ fun NotificationPermissionHandler(webViewViewModel: WebViewViewModel) {
 
     // Observe event to open notification settings
     LaunchedEffect(Unit) {
-        webViewViewModel.openNotificationSettings.collect {
+        notificationViewModel.openNotificationSettings.collect {
             Log.d(
                 "NotificationPermission",
                 "JavaScript event 'notification_permission_removed' received"
             )
             openAppNotificationSettings(context)
-            webViewViewModel.onGoHome()
         }
     }
 }

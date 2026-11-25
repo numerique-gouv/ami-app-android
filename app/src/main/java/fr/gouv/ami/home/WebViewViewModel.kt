@@ -31,20 +31,8 @@ class WebViewViewModel(webviewType: WebViewType) : BaseViewModel() {
     var aliases by mutableStateOf(emptyArray<UrlAliases>())
     var authenticationUrls by mutableStateOf(emptyList<String>())
 
-    private val _notificationPermissionRequested = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
-    val notificationPermissionRequested = _notificationPermissionRequested.asSharedFlow()
-
-    var showNotificationPermissionGrantedBanner by mutableStateOf(false)
-        private set
-
     var showSSLErrorBanner by mutableStateOf(false)
         private set
-
-    private val _openNotificationSettings = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
-    val openNotificationSettings = _openNotificationSettings.asSharedFlow()
-
-    private val _executeJavaScript = MutableSharedFlow<String>(extraBufferCapacity = 1)
-    val executeJavaScript = _executeJavaScript.asSharedFlow()
 
     private val _pageFinished = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val pageFinished = _pageFinished.asSharedFlow()
@@ -54,42 +42,12 @@ class WebViewViewModel(webviewType: WebViewType) : BaseViewModel() {
         currentUrl = url
     }
 
-    fun onGoHome() {
-        Log.d(TAG, "onGoHome to ${baseUrl}")
-        currentUrl = baseUrl
-    }
-
-    fun triggerNotificationPermissionRequest() {
-        _notificationPermissionRequested.tryEmit(Unit)
-    }
-
-    fun showNotificationPermissionGrantedBanner() {
-        showNotificationPermissionGrantedBanner = true
-    }
-
-    fun dismissNotificationPermissionGrantedBanner() {
-        showNotificationPermissionGrantedBanner = false
-    }
-
     fun showSSLErrorBanner() {
         showSSLErrorBanner = true
     }
 
     fun dismissSSLErrorBanner() {
         showSSLErrorBanner = false
-    }
-
-    fun openNotificationSettings() {
-        _openNotificationSettings.tryEmit(Unit)
-    }
-
-    fun runJavaScript(script: String) {
-        _executeJavaScript.tryEmit(script)
-    }
-
-    fun setLocalStorage(key: String, value: String) {
-        val script = "localStorage.setItem('$key', '$value');"
-        runJavaScript(script)
     }
 
     fun notifyPageFinished() {

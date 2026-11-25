@@ -22,6 +22,7 @@ import fr.gouv.ami.data.repository.checkAuth
 import fr.gouv.ami.dev.home.ReviewAppsScreen
 import fr.gouv.ami.home.FranceConnectionScreen
 import fr.gouv.ami.home.HomeScreen
+import fr.gouv.ami.notifications.NotificationViewModel
 import fr.gouv.ami.settings.SettingsScreen
 import fr.gouv.ami.settings.OnboardingNotificationScreen
 import fr.gouv.ami.utils.storage.LowStorageManager
@@ -51,9 +52,7 @@ fun HomeApp(
     val webViewTypeKey = "webViewType"
 
 
-    val webViewViewModel = viewModel<WebViewViewModel>(
-        factory = WebViewViewModelFactory(WebViewType.HOME)
-    )
+    val notificationViewModel = viewModel<NotificationViewModel>()
     val storage = LowStorageManager(LocalContext.current)
     var isConnected by remember {
         mutableStateOf(false)
@@ -136,6 +135,7 @@ fun HomeApp(
             HomeScreen(
                 startUrl = destinationUrl,
                 webViewType = webViewType,
+                notificationViewModel = notificationViewModel,
                 navigate = { screen, destinationUrl, destinationWebViewType ->
                     CoroutineScope(Dispatchers.IO).launch {
                         checkConnection()
@@ -199,12 +199,12 @@ fun HomeApp(
                 onBackButton = {
                     navController.popBackStack()
                 },
-                webViewViewModel = webViewViewModel,
+                notificationViewModel = notificationViewModel,
             )
         }
         composable(route = Screen.Onboarding.name) {
             OnboardingNotificationScreen(
-                webViewViewModel = webViewViewModel,
+                notificationViewModel = notificationViewModel,
                 onChooseClick = {
                     navController.navigate(
                         route = "${Screen.Home.name}?${webViewTypeKey}=${WebViewType.HOME.name}"

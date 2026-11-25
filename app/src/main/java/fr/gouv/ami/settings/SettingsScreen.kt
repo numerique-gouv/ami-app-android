@@ -29,17 +29,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.R
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.home.NotificationPermissionHandler
-import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.home.isPermissionGranted
+import fr.gouv.ami.notifications.NotificationViewModel
 import fr.gouv.ami.ui.theme.AMITheme
 
 @Composable
 fun SettingsScreen(
-    webViewViewModel: WebViewViewModel,
+    notificationViewModel: NotificationViewModel,
     onBackButton: () -> Unit,
 ) {
 
-    NotificationPermissionHandler(webViewViewModel)
+    NotificationPermissionHandler(notificationViewModel)
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -82,9 +82,9 @@ fun SettingsScreen(
                     checked = checked,
                     onCheckedChange = { checked ->
                         if (checked) {
-                            webViewViewModel.triggerNotificationPermissionRequest()
+                            notificationViewModel.triggerNotificationPermissionRequest()
                         } else {
-                            webViewViewModel.openNotificationSettings()
+                            notificationViewModel.openNotificationSettings()
                         }
                     },
                     colors = SwitchDefaults.colors(

@@ -58,6 +58,7 @@ import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.home.WebviewScripts.Companion.nativeInfosScript
 import fr.gouv.ami.home.WebviewScripts.EventWebview
 import fr.gouv.ami.notifications.FirebaseService
+import fr.gouv.ami.notifications.NotificationViewModel
 import fr.gouv.ami.ui.theme.AMITheme
 import fr.gouv.ami.utils.FileUtils
 import fr.gouv.ami.utils.storage.LowStorageManager
@@ -182,14 +183,14 @@ fun WebViewScreen(
                             EventWebview.NOTIFICATION_PERMISSION_REQUESTED -> {
                                 // Trigger notification permission request
                                 webViewViewModel.viewModelScope.launch {
-                                    webViewViewModel.triggerNotificationPermissionRequest()
+                                    notificationViewModel.triggerNotificationPermissionRequest()
                                 }
                             }
 
                             EventWebview.NOTIFICATION_PERMISSION_REMOVED -> {
                                 // Open system settings to let user revoke permission
                                 webViewViewModel.viewModelScope.launch {
-                                    webViewViewModel.openNotificationSettings()
+                                    notificationViewModel.openNotificationSettings()
                                 }
                             }
 
@@ -253,7 +254,7 @@ fun WebViewScreen(
     }
 
     LaunchedEffect(Unit) {
-        webViewViewModel.executeJavaScript.collect { script ->
+        notificationViewModel.executeJavaScript.collect { script ->
             webViewViewModel.webView?.evaluateJavascript(script, null)
             Log.d("WebView", "Executed JavaScript: $script")
         }
@@ -283,12 +284,12 @@ fun WebViewScreen(
                 .fillMaxSize()
                 .imePadding()
         ) {
-            if (webViewViewModel.showNotificationPermissionGrantedBanner) {
+            if (notificationViewModel.showNotificationPermissionGrantedBanner) {
                 InformationBanner(
                     informationType = InformationType.Validation,
                     title = stringResource(R.string.notification_permission_granted),
                     icon = R.drawable.ic_information_validation,
-                    onClose = { webViewViewModel.dismissNotificationPermissionGrantedBanner() }
+                    onClose = { notificationViewModel.dismissNotificationPermissionGrantedBanner() }
                 )
             }
 
@@ -418,6 +419,7 @@ fun PreviewWebViewScreenLight() {
     AMITheme {
         WebViewScreen(
             webViewViewModel = viewModel(),
+            notificationViewModel = viewModel(),
             navigate = { _, _, _ -> })
     }
 }
@@ -428,6 +430,7 @@ fun PreviewWebViewScreenDark() {
     AMITheme {
         WebViewScreen(
             webViewViewModel = viewModel(),
+            notificationViewModel = viewModel(),
             navigate = { _, _, _ -> })
     }
 }
