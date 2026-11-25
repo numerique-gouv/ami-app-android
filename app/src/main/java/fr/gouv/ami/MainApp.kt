@@ -21,7 +21,7 @@ import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.data.repository.checkAuth
 import fr.gouv.ami.dev.home.ReviewAppsScreen
 import fr.gouv.ami.home.FranceConnectionScreen
-import fr.gouv.ami.home.HomeScreen
+import fr.gouv.ami.home.WebViewScreen
 import fr.gouv.ami.notifications.NotificationViewModel
 import fr.gouv.ami.settings.SettingsScreen
 import fr.gouv.ami.settings.OnboardingNotificationScreen
@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
 
 //list of all screens
 enum class Screen {
-    Home,
+    WebView,
     ReviewApp,
     Settings,
     Onboarding,
@@ -60,7 +60,7 @@ fun HomeApp(
 
     var connectionDestination =
         if (isConnected)
-            "${Screen.Home.name}?webViewType=${WebViewType.HOME.name}"
+            "${Screen.WebView.name}?webViewType=${WebViewType.HOME.name}"
         else
             Screen.FranceConnection.name
 
@@ -109,7 +109,7 @@ fun HomeApp(
         startDestination = startDestinationScreen
     ) {
         composable(
-            route = "${Screen.Home.name}?${webViewTypeKey}={${webViewTypeKey}}&${destinationUrlKey}={${destinationUrlKey}}",
+            route = "${Screen.WebView.name}?${webViewTypeKey}={${webViewTypeKey}}&${destinationUrlKey}={${destinationUrlKey}}",
             arguments = listOf(
                 navArgument(webViewTypeKey) {
                     type = NavType.StringType
@@ -132,7 +132,7 @@ fun HomeApp(
             )
 
 
-            HomeScreen(
+            WebViewScreen(
                 startUrl = destinationUrl,
                 webViewType = webViewType,
                 notificationViewModel = notificationViewModel,
@@ -190,7 +190,7 @@ fun HomeApp(
                 onFcClick = {
                     val url = "${baseUrl}login-france-connect"
                     navController.navigate(
-                        route = "${Screen.Home.name}?${destinationUrlKey}=${Uri.encode(url)}&${webViewTypeKey}=${WebViewType.CONNECTION.name}"
+                        route = "${Screen.WebView.name}?${destinationUrlKey}=${Uri.encode(url)}&${webViewTypeKey}=${WebViewType.CONNECTION.name}"
                     )
                 })
         }
@@ -207,7 +207,7 @@ fun HomeApp(
                 notificationViewModel = notificationViewModel,
                 onChooseClick = {
                     navController.navigate(
-                        route = "${Screen.Home.name}?${webViewTypeKey}=${WebViewType.HOME.name}"
+                        route = "${Screen.WebView.name}?${webViewTypeKey}=${WebViewType.HOME.name}"
                     )
                 }
             )

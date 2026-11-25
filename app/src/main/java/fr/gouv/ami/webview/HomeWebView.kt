@@ -3,7 +3,7 @@ package fr.gouv.ami.webview
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.Screen
-import fr.gouv.ami.components.webview.WebViewScreen
+import fr.gouv.ami.components.webview.AMIWebView
 import fr.gouv.ami.global.BaseScreen
 import fr.gouv.ami.home.WebViewViewModel
 import fr.gouv.ami.home.WebViewViewModelFactory
@@ -20,7 +20,7 @@ fun HomeWebView(
     )
     webViewViewModel.currentUrl = startUrl
     BaseScreen(viewModel = webViewViewModel) {
-        WebViewScreen(
+        AMIWebView(
             webViewViewModel,
             notificationViewModel,
             navigate = navigate

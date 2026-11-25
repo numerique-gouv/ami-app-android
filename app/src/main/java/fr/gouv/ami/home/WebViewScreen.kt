@@ -15,7 +15,7 @@ import fr.gouv.ami.webview.WebViewType
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun HomeScreen(
+fun WebViewScreen(
     startUrl: String,
     webViewType: WebViewType,
     notificationViewModel: NotificationViewModel,
@@ -46,9 +46,9 @@ fun HomeScreen(
 
 @Preview
 @Composable
-fun PreviewHomeScreenLight() {
+fun PreviewWebViewScreenLight() {
     AMITheme {
-        HomeScreen(
+        WebViewScreen(
             startUrl = "https://numerique.gouv.fr",
             webViewType = WebViewType.HOME,
             notificationViewModel = viewModel(),
@@ -59,9 +59,9 @@ fun PreviewHomeScreenLight() {
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun PreviewHomeScreenDark() {
+fun PreviewWebViewScreenDark() {
     AMITheme {
-        HomeScreen(
+        WebViewScreen(
             startUrl = "https://numerique.gouv.fr",
             webViewType = WebViewType.HOME,
             notificationViewModel = viewModel(),

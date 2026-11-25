@@ -68,7 +68,7 @@ import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WebViewScreen(
+fun AMIWebView(
     webViewViewModel: WebViewViewModel,
     notificationViewModel: NotificationViewModel,
     navigate: (Screen, String?, WebViewType?) -> Unit
@@ -166,7 +166,7 @@ fun WebViewScreen(
                                                 WebViewType.SERVICE
                                             }
                                         navigate(
-                                            Screen.Home,
+                                            Screen.WebView,
                                             gotoUrl,
                                             type
                                         )
@@ -415,9 +415,9 @@ fun WebViewScreen(
 
 @Preview
 @Composable
-fun PreviewWebViewScreenLight() {
+fun PreviewAMIWebViewLight() {
     AMITheme {
-        WebViewScreen(
+        AMIWebView(
             webViewViewModel = viewModel(),
             notificationViewModel = viewModel(),
             navigate = { _, _, _ -> })
@@ -426,9 +426,9 @@ fun PreviewWebViewScreenLight() {
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun PreviewWebViewScreenDark() {
+fun PreviewAMIWebViewDark() {
     AMITheme {
-        WebViewScreen(
+        AMIWebView(
             webViewViewModel = viewModel(),
             notificationViewModel = viewModel(),
             navigate = { _, _, _ -> })
