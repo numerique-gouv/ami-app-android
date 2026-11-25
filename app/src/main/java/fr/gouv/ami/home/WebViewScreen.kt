@@ -22,9 +22,10 @@ fun WebViewScreen(
     navigate: (Screen, String?, WebViewType?) -> Unit,
     backButton: () -> Unit
 ) {
+    val TAG = "WebViewScreen"
 
     /** UI **/
-    Log.d("homescreen", "this is a ${webViewType.name} webapp and it's startUrl is $startUrl")
+    Log.d(TAG, "this is a ${webViewType.name} webapp and it's startUrl is $startUrl")
 
     when (webViewType) {
         WebViewType.HOME -> HomeWebView(
