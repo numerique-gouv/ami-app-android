@@ -64,7 +64,7 @@ class AMIWebViewClient(
             }
         }
 
-        if (webViewModel.webViewType == WebViewType.CONNECTION && request?.url.toString().contains("is_logged_out")) {
+        if (webViewModel.webViewType == WebViewType.CONNECTION && isLogout(request?.url.toString())) {
             navigateTo(Screen.FranceConnection)
         }
 
@@ -161,6 +161,11 @@ class AMIWebViewClient(
             handler.cancel()
             onSslError()
         }
+    }
+
+    // Return true if the URL is the last logout URL
+    private fun isLogout(url: String): Boolean {
+        return url.contains("is_logged_out")
     }
 
     private fun launchNativeApi30(context: Context, url: String): Boolean {
