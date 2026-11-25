@@ -120,7 +120,7 @@ fun AMIWebView(
                 if (
                     WebViewFeature.isFeatureSupported(
                         WebViewFeature.DOCUMENT_START_SCRIPT
-                    )
+                    ) && webViewViewModel.webViewType == WebViewType.HOME
                 ) {
                     WebViewCompat.addDocumentStartJavaScript(
                         this,
