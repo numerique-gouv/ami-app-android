@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -21,13 +22,14 @@ import fr.gouv.ami.data.repository.checkAuth
 import fr.gouv.ami.dev.home.ReviewAppsScreen
 import fr.gouv.ami.home.FranceConnectionScreen
 import fr.gouv.ami.home.HomeScreen
-import fr.gouv.ami.home.WebViewViewModel
-import fr.gouv.ami.home.WebViewViewModelFactory
 import fr.gouv.ami.settings.SettingsScreen
 import fr.gouv.ami.settings.OnboardingNotificationScreen
 import fr.gouv.ami.utils.storage.LowStorageManager
 import fr.gouv.ami.webview.WebViewType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.launch
 
 //list of all screens
 enum class Screen {
@@ -57,12 +59,19 @@ fun HomeApp(
         mutableStateOf(false)
     }
 
-    LaunchedEffect(Unit) {
+    var connectionDestination =
+        if (isConnected)
+            "${Screen.Home.name}?webViewType=${WebViewType.HOME.name}"
+        else
+            Screen.FranceConnection.name
+
+    suspend fun checkConnection() {
         val token = storage.getBearerToken()
         if (token != null) {
             val authenticationFlow = checkAuth(token)
             authenticationFlow
                 .catch { e ->
+                    isConnected = false
                     Log.e(TAG, "Error", e)
                 }
                 .collect { response ->
@@ -74,22 +83,21 @@ fun HomeApp(
                             TAG,
                             "Error: ${response.code()} - ${response.message()}"
                         )
+                        isConnected = false
                         storage.clearBearer()
                     }
                 }
         }
     }
 
+    LaunchedEffect(Unit) {
+        checkConnection()
+    }
+
     if (pendingUrl != null) {
         Log.d(TAG, "App has been opened from clicking on a push notification.")
         //webViewViewModel.currentUrl = pendingUrl
     }
-
-    val connectionDestination =
-        if (isConnected)
-            "${Screen.Home.name}?webViewType=${WebViewType.HOME.name}"
-        else
-            Screen.FranceConnection.name
 
     var startDestinationScreen = connectionDestination
 
@@ -129,13 +137,37 @@ fun HomeApp(
                 startUrl = destinationUrl,
                 webViewType = webViewType,
                 navigate = { screen, destinationUrl, destinationWebViewType ->
-                    navController.navigate(route = "${screen.name}?${destinationUrlKey}=${Uri.encode(destinationUrl)}&${webViewTypeKey}=${destinationWebViewType}") {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        checkConnection()
+                    }
+                    navController.navigate(
+                        route = "${screen.name}?${destinationUrlKey}=${
+                            Uri.encode(
+                                destinationUrl
+                            )
+                        }&${webViewTypeKey}=${destinationWebViewType}"
+                    ) {
                         if (webViewType == WebViewType.CONNECTION) {
-                            popUpTo(navController.currentDestination!!.id) {
-                                inclusive = true
+                            //navigate from the connection webview to france connection screen
+                            if (screen == Screen.FranceConnection) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    inclusive = if (BuildConfig.FLAVOR == "staging")
+                                        false //In staging, the start destination is the review app, so we don't want to remove it
+                                    else
+                                        true
+                                }
                             }
-                            popUpTo(Screen.FranceConnection.name) {
-                                inclusive = true
+                            //navigate from the connection webview to home webview starting from the france connection screen
+                            else if (navController.previousBackStackEntry?.destination?.route == Screen.FranceConnection.name) {
+                                popUpTo(Screen.FranceConnection.name) {
+                                    inclusive = true
+                                }
+                            }
+                            //navigate from connection webview during a silent reconnection
+                            else {
+                                popUpTo(navController.currentDestination!!.id) {
+                                    inclusive = true
+                                }
                             }
                         }
                     }

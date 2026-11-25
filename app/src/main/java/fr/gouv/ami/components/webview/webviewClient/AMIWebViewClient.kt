@@ -65,9 +65,16 @@ class AMIWebViewClient(
             }
         }
 
+        if (webViewModel.webViewType == WebViewType.CONNECTION && request?.url.toString().contains("is_logged_out")) {
+            navigateTo(Screen.FranceConnection)
+        }
+
         //Launch a connection webview
         val uriWithoutQuery = request?.url.toString().toUri().buildUpon().clearQuery().build()
-        if (webViewModel.authenticationUrls.contains(uriWithoutQuery.toString()) && webViewModel.webViewType != WebViewType.CONNECTION) {
+        if ((webViewModel.authenticationUrls.contains(uriWithoutQuery.toString()) || uriWithoutQuery.toString()
+                .contains("logout-france-connect")) && webViewModel.webViewType != WebViewType.CONNECTION
+        ) {
+            Log.d(TAG, "Launch a connection")
             navigateTo(
                 Screen.Home,
                 url = request?.url.toString(),

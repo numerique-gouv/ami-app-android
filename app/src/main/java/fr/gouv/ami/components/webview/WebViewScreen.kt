@@ -69,6 +69,7 @@ import kotlinx.serialization.json.Json
 @Composable
 fun WebViewScreen(
     webViewViewModel: WebViewViewModel,
+    notificationViewModel: NotificationViewModel,
     navigate: (Screen, String?, WebViewType?) -> Unit
 ) {
     val TAG = "WebViewScreen"
@@ -158,7 +159,7 @@ fun WebViewScreen(
                                 if (webViewViewModel.webViewType != WebViewType.HOME) {
                                     webViewViewModel.viewModelScope.launch {
                                         val type =
-                                            if (gotoUrl.startsWith(baseUrl)) {
+                                            if (gotoUrl.startsWith(baseUrl) && !gotoUrl.contains("goto-redirect-url")) {
                                                 WebViewType.HOME
                                             } else {
                                                 WebViewType.SERVICE
@@ -175,11 +176,6 @@ fun WebViewScreen(
                             EventWebview.USER_LOGGED_OUT -> {
                                 webViewViewModel.viewModelScope.launch {
                                     storage.clearBearer()
-                                    navigate(
-                                        Screen.FranceConnection,
-                                        webViewViewModel.currentUrl,
-                                        WebViewType.HOME
-                                    )
                                 }
                             }
 
