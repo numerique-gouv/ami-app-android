@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -19,17 +20,21 @@ import androidx.navigation.navArgument
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.data.repository.checkAuth
 import fr.gouv.ami.dev.home.ReviewAppsScreen
-import fr.gouv.ami.home.FranceConnexionScreen
-import fr.gouv.ami.home.HomeScreen
-import fr.gouv.ami.home.WebViewViewModel
+import fr.gouv.ami.home.FranceConnectionScreen
+import fr.gouv.ami.home.WebViewScreen
+import fr.gouv.ami.notifications.NotificationViewModel
 import fr.gouv.ami.settings.SettingsScreen
 import fr.gouv.ami.settings.OnboardingNotificationScreen
 import fr.gouv.ami.utils.storage.LowStorageManager
+import fr.gouv.ami.webview.WebViewType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.launch
 
 //list of all screens
 enum class Screen {
-    Home,
+    WebView,
     ReviewApp,
     Settings,
     Onboarding,
@@ -43,18 +48,29 @@ fun HomeApp(
 ) {
 
     val TAG = object {}.javaClass.enclosingClass?.simpleName ?: "AMI"
-    val webViewViewModel = viewModel<WebViewViewModel>()
+    val destinationUrlKey = "destinationUrl"
+    val webViewTypeKey = "webViewType"
+
+
+    val notificationViewModel = viewModel<NotificationViewModel>()
     val storage = LowStorageManager(LocalContext.current)
     var isConnected by remember {
         mutableStateOf(false)
     }
 
-    LaunchedEffect(Unit) {
+    var connectionDestination =
+        if (isConnected)
+            "${Screen.WebView.name}?webViewType=${WebViewType.HOME.name}"
+        else
+            Screen.FranceConnection.name
+
+    suspend fun checkConnection() {
         val token = storage.getBearerToken()
         if (token != null) {
             val authenticationFlow = checkAuth(token)
             authenticationFlow
                 .catch { e ->
+                    isConnected = false
                     Log.e(TAG, "Error", e)
                 }
                 .collect { response ->
@@ -66,24 +82,23 @@ fun HomeApp(
                             TAG,
                             "Error: ${response.code()} - ${response.message()}"
                         )
+                        isConnected = false
                         storage.clearBearer()
                     }
                 }
         }
     }
 
-    if (pendingUrl != null) {
-        Log.d(TAG, "App has been opened from clicking on a push notification.")
-        webViewViewModel.currentUrl = pendingUrl
+    LaunchedEffect(Unit) {
+        checkConnection()
     }
 
-    val connexionDestination =
-        if (isConnected)
-            Screen.Home.name
-        else
-            Screen.FranceConnection.name
+    if (pendingUrl != null) {
+        Log.d(TAG, "App has been opened from clicking on a push notification.")
+        //webViewViewModel.currentUrl = pendingUrl
+    }
 
-    var startDestinationScreen = connexionDestination
+    var startDestinationScreen = connectionDestination
 
     if (BuildConfig.FLAVOR == "staging" && pendingUrl == null) {
         startDestinationScreen = Screen.ReviewApp.name
@@ -94,20 +109,71 @@ fun HomeApp(
         startDestination = startDestinationScreen
     ) {
         composable(
-            route = "${Screen.Home.name}?url={url}",
-            arguments = listOf(navArgument("url") {
-                type = NavType.StringType
-                nullable = true
-            })
+            route = "${Screen.WebView.name}?${webViewTypeKey}={${webViewTypeKey}}&${destinationUrlKey}={${destinationUrlKey}}",
+            arguments = listOf(
+                navArgument(webViewTypeKey) {
+                    type = NavType.StringType
+                    nullable = true
+                },
+                navArgument(destinationUrlKey) {
+                    type = NavType.StringType
+                    nullable = true
+                })
+
         ) { backStackEntry ->
-            val url = Uri.decode(
-                backStackEntry.arguments?.getString("url") ?: baseUrl
+            val webViewType = WebViewType.valueOf(
+                Uri.decode(
+                    backStackEntry.arguments?.getString(webViewTypeKey) ?: WebViewType.HOME.name
+                )
             )
 
-            HomeScreen(
-                webViewViewModel = webViewViewModel,
-                navigate = { screen ->
-                    navController.navigate(screen.name)
+            val destinationUrl = Uri.decode(
+                backStackEntry.arguments?.getString(destinationUrlKey) ?: baseUrl
+            )
+
+
+            WebViewScreen(
+                startUrl = destinationUrl,
+                webViewType = webViewType,
+                notificationViewModel = notificationViewModel,
+                navigate = { screen, destinationUrl, destinationWebViewType ->
+                    CoroutineScope(Dispatchers.IO).launch {
+                        checkConnection()
+                    }
+                    navController.navigate(
+                        route = "${screen.name}?${destinationUrlKey}=${
+                            Uri.encode(
+                                destinationUrl
+                            )
+                        }&${webViewTypeKey}=${destinationWebViewType}"
+                    ) {
+                        if (webViewType == WebViewType.CONNECTION) {
+                            //navigate from the connection webview to france connection screen
+                            if (screen == Screen.FranceConnection) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    inclusive = if (BuildConfig.FLAVOR == "staging")
+                                        false //In staging, the start destination is the review app, so we don't want to remove it
+                                    else
+                                        true
+                                }
+                            }
+                            //navigate from the connection webview to home webview starting from the france connection screen
+                            else if (navController.previousBackStackEntry?.destination?.route == Screen.FranceConnection.name) {
+                                popUpTo(Screen.FranceConnection.name) {
+                                    inclusive = true
+                                }
+                            }
+                            //navigate from connection webview during a silent reconnection
+                            else {
+                                popUpTo(navController.currentDestination!!.id) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    }
+                },
+                backButton = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -115,19 +181,16 @@ fun HomeApp(
         composable(route = Screen.ReviewApp.name) {
             ReviewAppsScreen(
                 onSelectedReviewApp = {
-                    // We need to update the `currentUrl` here, as it was initialized with the
-                    // baseUrl from the config, before we even selected the review app.
-                    webViewViewModel.currentUrl = baseUrl
-                    navController.navigate(connexionDestination)
+                    navController.navigate(connectionDestination)
                 }
             )
         }
         composable(route = Screen.FranceConnection.name) {
-            FranceConnexionScreen(
+            FranceConnectionScreen(
                 onFcClick = {
                     val url = "${baseUrl}login-france-connect"
                     navController.navigate(
-                        route = "${Screen.Home.name}?url=${Uri.encode(url)}"
+                        route = "${Screen.WebView.name}?${destinationUrlKey}=${Uri.encode(url)}&${webViewTypeKey}=${WebViewType.CONNECTION.name}"
                     )
                 })
         }
@@ -136,15 +199,18 @@ fun HomeApp(
                 onBackButton = {
                     navController.popBackStack()
                 },
-                webViewViewModel = webViewViewModel,
+                notificationViewModel = notificationViewModel,
             )
         }
         composable(route = Screen.Onboarding.name) {
             OnboardingNotificationScreen(
-                webViewViewModel = webViewViewModel,
+                notificationViewModel = notificationViewModel,
                 onChooseClick = {
-                    navController.navigate(Screen.Home.name)
-                })
+                    navController.navigate(
+                        route = "${Screen.WebView.name}?${webViewTypeKey}=${WebViewType.HOME.name}"
+                    )
+                }
+            )
         }
     }
 }

@@ -6,19 +6,22 @@ import android.webkit.WebView
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import fr.gouv.ami.api.baseUrl
 import fr.gouv.ami.data.models.UrlAliases
 import fr.gouv.ami.global.BaseViewModel
+import fr.gouv.ami.webview.WebViewType
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
-class WebViewViewModel : BaseViewModel() {
+class WebViewViewModel(webviewType: WebViewType) : BaseViewModel() {
     private val TAG = this::class.java.simpleName
     var currentUrl by mutableStateOf(baseUrl)
-    var lastUrl by mutableStateOf(baseUrl) //not used for now
     var canGoBack by mutableStateOf(false)
+    val webViewType: WebViewType = webviewType
 
     var isRefreshing by mutableStateOf(false)
         private set
@@ -26,48 +29,17 @@ class WebViewViewModel : BaseViewModel() {
     var webView by mutableStateOf<WebView?>(null)
 
     var aliases by mutableStateOf(emptyArray<UrlAliases>())
-
-    private val _notificationPermissionRequested = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
-    val notificationPermissionRequested = _notificationPermissionRequested.asSharedFlow()
-
-    var showNotificationPermissionGrantedBanner by mutableStateOf(false)
-        private set
+    var authenticationUrls by mutableStateOf(emptyList<String>())
 
     var showSSLErrorBanner by mutableStateOf(false)
         private set
-
-    private val _openNotificationSettings = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
-    val openNotificationSettings = _openNotificationSettings.asSharedFlow()
-
-    private val _executeJavaScript = MutableSharedFlow<String>(extraBufferCapacity = 1)
-    val executeJavaScript = _executeJavaScript.asSharedFlow()
 
     private val _pageFinished = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val pageFinished = _pageFinished.asSharedFlow()
 
     fun onUrlChanged(url: String) {
         Log.d(TAG, "onUrlChanged to url ${url}")
-        if (currentUrl.contains(baseUrl)) {
-            lastUrl = currentUrl
-        }
         currentUrl = url
-    }
-
-    fun onGoHome() {
-        Log.d(TAG, "onGoHome to ${baseUrl}")
-        currentUrl = baseUrl
-    }
-
-    fun triggerNotificationPermissionRequest() {
-        _notificationPermissionRequested.tryEmit(Unit)
-    }
-
-    fun showNotificationPermissionGrantedBanner() {
-        showNotificationPermissionGrantedBanner = true
-    }
-
-    fun dismissNotificationPermissionGrantedBanner() {
-        showNotificationPermissionGrantedBanner = false
     }
 
     fun showSSLErrorBanner() {
@@ -76,19 +48,6 @@ class WebViewViewModel : BaseViewModel() {
 
     fun dismissSSLErrorBanner() {
         showSSLErrorBanner = false
-    }
-
-    fun openNotificationSettings() {
-        _openNotificationSettings.tryEmit(Unit)
-    }
-
-    fun runJavaScript(script: String) {
-        _executeJavaScript.tryEmit(script)
-    }
-
-    fun setLocalStorage(key: String, value: String) {
-        val script = "localStorage.setItem('$key', '$value');"
-        runJavaScript(script)
     }
 
     fun notifyPageFinished() {
@@ -119,5 +78,21 @@ class WebViewViewModel : BaseViewModel() {
 
             return true
         }
+    }
+}
+
+class WebViewViewModelFactory(
+    private val webViewType: WebViewType
+) : ViewModelProvider.Factory {
+
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(WebViewViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return WebViewViewModel(webViewType) as T
+        }
+
+        throw IllegalArgumentException(
+            "Unknown ViewModel class: ${modelClass.name}"
+        )
     }
 }

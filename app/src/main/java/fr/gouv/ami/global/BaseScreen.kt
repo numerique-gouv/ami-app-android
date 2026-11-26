@@ -18,7 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -40,8 +42,14 @@ fun BaseScreen(
     val context = LocalContext.current
     val networkMonitor = remember { NetworkMonitor(context) }
     val isConnected by networkMonitor.isConnected.collectAsState(true)
+    var isFirstComposition by remember { mutableStateOf(true) }
 
     LaunchedEffect(isConnected) {
+        // Prevent showing the loader on the first composition
+        if (isFirstComposition) {
+            isFirstComposition = false
+            return@LaunchedEffect
+        }
         if (isConnected) {
             viewModel.requestRefresh()
         }

@@ -1,4 +1,4 @@
-package fr.gouv.ami.components.webviewClient
+package fr.gouv.ami.components.webview.webviewClient
 
 import android.net.Uri
 import android.util.Log
@@ -10,7 +10,7 @@ import android.webkit.WebView
 import fr.gouv.ami.MainActivity
 import fr.gouv.ami.global.PermissionManager
 
-class MainWebChromeClient(
+class AMIWebChromeClient(
     val activity: MainActivity,
     val visibilityModalFilesChanged: (Boolean) -> Unit
 ) : WebChromeClient() {

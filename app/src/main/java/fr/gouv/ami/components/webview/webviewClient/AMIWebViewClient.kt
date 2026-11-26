@@ -1,0 +1,251 @@
+package fr.gouv.ami.components.webview.webviewClient
+
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
+import android.graphics.Bitmap
+import android.net.http.SslError
+import android.os.Build
+import android.util.Log
+import android.webkit.CookieManager
+import android.webkit.SslErrorHandler
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import fr.gouv.ami.Screen
+import fr.gouv.ami.components.handleSslError
+import fr.gouv.ami.home.WebViewViewModel
+import fr.gouv.ami.navigation.NavigatorMapping
+import fr.gouv.ami.navigation.PromotedUrls
+import androidx.core.net.toUri
+import fr.gouv.ami.api.baseUrl
+import fr.gouv.ami.webview.WebViewType
+
+class AMIWebViewClient(
+    private val webViewModel: WebViewViewModel,
+    private val onUrlChanged: (String) -> Unit,
+    private val onLoadingChanged: (Boolean) -> Unit,
+    private val onCanGoBackChanged: (Boolean) -> Unit = {},
+    private val onPageFinished: () -> Unit = {},
+    private val onSslError: () -> Unit = {},
+    private val navigate: (Screen, String?, WebViewType?) -> Unit = { _, _, _ -> }
+) : WebViewClient() {
+    val TAG = "AMIWebViewClient"
+
+    private fun navigateTo(
+        screen: Screen,
+        url: String? = null,
+        webViewType: WebViewType? = null
+    ) {
+        navigate(screen, url, webViewType)
+    }
+
+    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+
+
+        Log.d(TAG, "shouldOverrideUrlLoading is called from ${request?.url?.toString()}")
+
+        val url = request?.url?.toString() ?: return false
+
+        //url is promoted
+        val urlAlias = webViewModel.aliases.firstOrNull {
+            url.endsWith(it.pattern)
+        }
+        urlAlias?.let {
+            if (url.endsWith(urlAlias.pattern)) {
+                view?.goBack()
+                PromotedUrls.from(urlAlias.alias)?.let { alias ->
+                    Log.d(TAG, "navigate to native screen $alias with url ${urlAlias.pattern}")
+                    val screen = NavigatorMapping.resolve(alias)
+                    navigateTo(screen)
+                }
+
+                return true
+            }
+        }
+
+        if (webViewModel.webViewType == WebViewType.CONNECTION && isLogout(url)) {
+            navigateTo(Screen.FranceConnection)
+        }
+
+        //Launch a connection webview
+        val uriWithoutQuery = url.toUri().buildUpon().clearQuery().build()
+        if (webViewModel.authenticationUrls.contains(uriWithoutQuery.toString()) && webViewModel.webViewType != WebViewType.CONNECTION
+        ) {
+            Log.d(TAG, "Launch a connection")
+            navigateTo(
+                Screen.WebView,
+                url = url,
+                webViewType = WebViewType.CONNECTION
+            )
+            return true
+        }
+
+        //Switch to another service
+        if (!url
+                .startsWith(baseUrl) && webViewModel.webViewType == WebViewType.HOME
+        ) {
+            Log.d(TAG, "switch to a service webapp")
+            navigateTo(
+                Screen.WebView,
+                url = url,
+                webViewType = WebViewType.SERVICE
+            )
+            return true
+        }
+
+        //return to the homeview
+        if (url
+                .startsWith(baseUrl) && webViewModel.webViewType == WebViewType.SERVICE
+        ) {
+            Log.d(TAG, "return to the home")
+            navigateTo(Screen.WebView, url)
+            return true
+        }
+
+        // Show loader immediately on link click (before onPageStarted)
+        onLoadingChanged(true)
+        // Try launching the URL in an external app, in case it's a deeplink.
+        val context = view?.context ?: return false
+
+        return if (Build.VERSION.SDK_INT >= 30) {
+            launchNativeApi30(context, url)
+        } else {
+            launchNativeBeforeApi30(context, url)
+        }
+    }
+
+    override fun doUpdateVisitedHistory(
+        view: WebView?,
+        url: String?,
+        isReload: Boolean
+    ) {
+        Log.d(TAG, "UpdateVisitedHistory: baseUrl is: ${baseUrl}, url visited: $url")
+        if (!url.isNullOrEmpty()) {
+            onUrlChanged(url)
+            Log.d("HomeScreen", url)
+        }
+        view?.let {
+            onCanGoBackChanged(it.canGoBack())
+        }
+        super.doUpdateVisitedHistory(view, url, isReload)
+    }
+
+    override fun onPageStarted(
+        view: WebView?,
+        url: String?,
+        favicon: Bitmap?
+    ) {
+        super.onPageStarted(view, url, favicon)
+        Log.d(TAG, "onPageStarted with url $url")
+        onLoadingChanged(true)
+    }
+
+    override fun onPageFinished(view: WebView?, url: String?) {
+        super.onPageFinished(view, url)
+        onLoadingChanged(false)
+
+        // Flush cookies to persistent storage immediately: this is to make sure the `token` cookie
+        // received from the backend is stored for the next app restart.
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.flush()
+
+        // Notify that page finished loading
+        onPageFinished()
+    }
+
+    override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
+        Log.w("WebView", "SSL Error on URL: ${error.url} - Error type: ${error.primaryError}")
+        if (!handler.handleSslError()) {
+            handler.cancel()
+            onSslError()
+        }
+    }
+
+    // Return true if the URL is the last logout URL
+    private fun isLogout(url: String): Boolean {
+        return url.contains("is_logged_out")
+    }
+
+    private fun launchNativeApi30(context: Context, url: String): Boolean {
+        Log.d(TAG, "API at of after 30")
+        val nativeAppIntent = Intent(Intent.ACTION_VIEW, url.toUri()).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_REQUIRE_NON_BROWSER)
+        }
+        return try {
+            context.startActivity(nativeAppIntent)
+            Log.d(TAG, "Found a native app, launching it")
+            true
+        } catch (e: ActivityNotFoundException) {
+            Log.d(TAG, "Didn't find a native app")
+            false
+        }
+    }
+
+    private fun launchNativeBeforeApi30(context: Context, url: String): Boolean {
+        Log.d(TAG, "API before 30")
+        val pm = context.packageManager
+
+        // Get all Apps that resolve a generic url (both http:// and https://)
+        val httpBrowserIntent = Intent(Intent.ACTION_VIEW, "http://".toUri()).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
+        }
+        val httpsBrowserIntent = Intent(Intent.ACTION_VIEW, "https://".toUri()).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
+        }
+        val genericResolvedList =
+            extractPackageNames(
+                pm.queryIntentActivities(
+                    httpBrowserIntent,
+                    PackageManager.MATCH_ALL
+                )
+            ) +
+                    extractPackageNames(
+                        pm.queryIntentActivities(
+                            httpsBrowserIntent,
+                            PackageManager.MATCH_ALL
+                        )
+                    )
+        Log.d(TAG, "Native apps that can open any url: $genericResolvedList")
+
+        // Get all apps that resolve the specific Url
+        val specializedActivityIntent = Intent(Intent.ACTION_VIEW, url.toUri()).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
+        }
+        val resolvedSpecializedList =
+            extractPackageNames(
+                pm.queryIntentActivities(
+                    specializedActivityIntent,
+                    0
+                )
+            ).toMutableSet()
+        Log.d(
+            TAG,
+            "Native apps that can open the following url $url: $resolvedSpecializedList"
+        )
+
+        // Keep only the Urls that resolve the specific, but not the generic urls.
+        resolvedSpecializedList.removeAll(genericResolvedList)
+        Log.d(TAG, "Specialized apps: $resolvedSpecializedList")
+
+        // If the list is empty, no native app handlers were found.
+        if (resolvedSpecializedList.isEmpty()) {
+            Log.d(TAG, "Didn't find a native app")
+            return false
+        }
+
+        // We found native handlers. Launch the Intent.
+        specializedActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(specializedActivityIntent)
+        Log.d(TAG, "Found a native app, launching it")
+        return true
+    }
+
+    private fun extractPackageNames(resolveInfos: List<ResolveInfo>): Set<String> {
+        return resolveInfos.map { it.activityInfo.packageName }.toSet()
+    }
+}

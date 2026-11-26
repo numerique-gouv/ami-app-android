@@ -12,6 +12,6 @@ object NavigatorMapping {
                 to Screen.Settings
     )
 
-    fun resolve(alias: PromotedUrls): Screen? =
-        routes[alias]
+    fun resolve(alias: PromotedUrls): Screen =
+        routes[alias]!!
 }

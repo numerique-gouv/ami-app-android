@@ -1,0 +1,29 @@
+package fr.gouv.ami.webview
+
+import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.gouv.ami.Screen
+import fr.gouv.ami.components.webview.AMIWebView
+import fr.gouv.ami.global.BaseScreen
+import fr.gouv.ami.home.WebViewViewModel
+import fr.gouv.ami.home.WebViewViewModelFactory
+import fr.gouv.ami.notifications.NotificationViewModel
+
+@Composable
+fun HomeWebView(
+    startUrl: String,
+    notificationViewModel: NotificationViewModel,
+    navigate: (Screen, String?, WebViewType?) -> Unit,
+) {
+    val webViewViewModel = viewModel<WebViewViewModel>(
+        factory = WebViewViewModelFactory(WebViewType.HOME)
+    )
+    webViewViewModel.currentUrl = startUrl
+    BaseScreen(viewModel = webViewViewModel) {
+        AMIWebView(
+            webViewViewModel,
+            notificationViewModel,
+            navigate = navigate
+        )
+    }
+}
