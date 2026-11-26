@@ -36,4 +36,7 @@
     <string name="biometric_prompt_title">Utilisez la biométrie pour valider</string>
 
     <string name="allow_camera_modal">Vous devez autoriser la caméra pour prendre une photo</string>
+    
+    <string name="service_without_followup_title">À noter</string>
+    <string name="service_without_followup_description">Vous pouvez faire cette démarche depuis l\'application. Le service en charge vous informera de son avancée directement par e-mail. Le suivi sur l\'appli arrive très bientôt !</string>
 </resources>
