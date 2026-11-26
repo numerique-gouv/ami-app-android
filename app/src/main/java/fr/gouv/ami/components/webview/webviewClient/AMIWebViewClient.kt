@@ -47,12 +47,14 @@ class AMIWebViewClient(
 
         Log.d(TAG, "shouldOverrideUrlLoading is called from ${request?.url?.toString()}")
 
+        val url = request?.url?.toString() ?: return false
+
         //url is promoted
         val urlAlias = webViewModel.aliases.firstOrNull {
-            request?.url.toString().endsWith(it.pattern)
+            url.endsWith(it.pattern)
         }
         urlAlias?.let {
-            if (request?.url.toString().endsWith(urlAlias.pattern)) {
+            if (url.endsWith(urlAlias.pattern)) {
                 view?.goBack()
                 PromotedUrls.from(urlAlias.alias)?.let { alias ->
                     Log.d(TAG, "navigate to native screen $alias with url ${urlAlias.pattern}")
@@ -64,49 +66,48 @@ class AMIWebViewClient(
             }
         }
 
-        if (webViewModel.webViewType == WebViewType.CONNECTION && isLogout(request?.url.toString())) {
+        if (webViewModel.webViewType == WebViewType.CONNECTION && isLogout(url)) {
             navigateTo(Screen.FranceConnection)
         }
 
         //Launch a connection webview
-        val uriWithoutQuery = request?.url.toString().toUri().buildUpon().clearQuery().build()
+        val uriWithoutQuery = url.toUri().buildUpon().clearQuery().build()
         if (webViewModel.authenticationUrls.contains(uriWithoutQuery.toString()) && webViewModel.webViewType != WebViewType.CONNECTION
         ) {
             Log.d(TAG, "Launch a connection")
             navigateTo(
                 Screen.WebView,
-                url = request?.url.toString(),
+                url = url,
                 webViewType = WebViewType.CONNECTION
             )
             return true
         }
 
         //Switch to another service
-        if (!request?.url.toString()
+        if (!url
                 .startsWith(baseUrl) && webViewModel.webViewType == WebViewType.HOME
         ) {
             Log.d(TAG, "switch to a service webapp")
             navigateTo(
                 Screen.WebView,
-                url = request?.url.toString(),
+                url = url,
                 webViewType = WebViewType.SERVICE
             )
             return true
         }
 
         //return to the homeview
-        if (request?.url.toString()
+        if (url
                 .startsWith(baseUrl) && webViewModel.webViewType == WebViewType.SERVICE
         ) {
             Log.d(TAG, "return to the home")
-            navigateTo(Screen.WebView, request?.url.toString())
+            navigateTo(Screen.WebView, url)
             return true
         }
 
         // Show loader immediately on link click (before onPageStarted)
         onLoadingChanged(true)
         // Try launching the URL in an external app, in case it's a deeplink.
-        val url = request?.url?.toString() ?: return false
         val context = view?.context ?: return false
 
         return if (Build.VERSION.SDK_INT >= 30) {
