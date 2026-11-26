@@ -38,8 +38,8 @@ android {
         applicationId = "fr.gouv.ami"
         minSdk = 28
         targetSdk = 36
-        versionCode = 12
-        versionName = "0.4.3"
+        versionCode = 14
+        versionName = "0.5.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
