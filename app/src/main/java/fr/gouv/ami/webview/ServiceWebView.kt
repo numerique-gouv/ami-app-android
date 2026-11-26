@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.Screen
@@ -26,6 +29,11 @@ fun ServiceWebView(
         factory = WebViewViewModelFactory(webViewType)
     )
     webViewViewModel.currentUrl = startUrl
+
+    LaunchedEffect(Unit) {
+        webViewViewModel.refreshServiceUrlsWithoutFollowup()
+    }
+
     BaseScreen(viewModel = webViewViewModel) {
         Column(
             modifier = Modifier

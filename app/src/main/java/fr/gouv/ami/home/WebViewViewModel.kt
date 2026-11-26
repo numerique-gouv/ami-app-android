@@ -8,14 +8,25 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import fr.gouv.ami.api.baseUrl
+import fr.gouv.ami.data.models.Review
+import fr.gouv.ami.data.models.ServiceUrls
 import fr.gouv.ami.data.models.UrlAliases
+import fr.gouv.ami.data.repository.getServiceUrlsWithoutFollowupFlow
 import fr.gouv.ami.global.BaseViewModel
 import fr.gouv.ami.webview.WebViewType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.launch
+import java.net.URL
 
 class WebViewViewModel(webviewType: WebViewType) : BaseViewModel() {
     private val TAG = this::class.java.simpleName
@@ -36,6 +47,32 @@ class WebViewViewModel(webviewType: WebViewType) : BaseViewModel() {
 
     private val _pageFinished = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val pageFinished = _pageFinished.asSharedFlow()
+
+    private val _serviceUrlsWithoutFollowup = MutableStateFlow<List<URL>?>(null)
+    val serviceUrlsWithoutFollowup = _serviceUrlsWithoutFollowup.asStateFlow()
+
+    fun refreshServiceUrlsWithoutFollowup() {
+        if (webViewType != WebViewType.SERVICE) return
+
+        viewModelScope.launch {
+            val flow = getServiceUrlsWithoutFollowupFlow()
+            flow
+                .catch { e ->
+                    Log.e(TAG, "Error fetching service urls without followup", e)
+                }
+                .collect { response ->
+                    if (response.isSuccessful) {
+                        _serviceUrlsWithoutFollowup.value = response.body()?.serviceUrlsWithoutFollowup
+                        Log.d(TAG, "The list of service urls without followup is ${_serviceUrlsWithoutFollowup.value}")
+                    } else {
+                        Log.e(
+                            TAG,
+                            "Error loading service urls without followup: ${response.code()} - ${response.message()}"
+                        )
+                    }
+                }
+        }
+    }
 
     fun onUrlChanged(url: String) {
         Log.d(TAG, "onUrlChanged to url ${url}")
