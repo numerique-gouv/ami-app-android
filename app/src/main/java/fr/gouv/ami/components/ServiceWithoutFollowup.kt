@@ -56,17 +56,17 @@ fun ServiceWithoutFollowup(
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
-                IconButton(onClick = onCloseButton) {
-                    Image(
-                        painterResource(R.drawable.ic_close),
-                        contentDescription = "close",
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
             }
             Text(
                 stringResource(R.string.service_without_followup_description),
                 fontSize = 14.sp
+            )
+        }
+        IconButton(onClick = onCloseButton,
+            modifier = Modifier.size(20.dp)) {
+            Image(
+                painterResource(R.drawable.ic_close),
+                contentDescription = "close"
             )
         }
     }
