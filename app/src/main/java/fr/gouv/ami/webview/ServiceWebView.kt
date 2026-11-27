@@ -26,11 +26,10 @@ fun ServiceWebView(
     startUrl: String,
     notificationViewModel: NotificationViewModel,
     navigate: (Screen, String?, WebViewType?) -> Unit,
-    backButton: () -> Unit,
-    webViewType: WebViewType
+    backButton: () -> Unit
 ) {
     val webViewViewModel = viewModel<WebViewViewModel>(
-        factory = WebViewViewModelFactory(webViewType)
+        factory = WebViewViewModelFactory(WebViewType.SERVICE)
     )
     webViewViewModel.currentUrl = startUrl
 
