@@ -27,4 +27,8 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Response<AuthenticationOutput>
 
+    /** Service **/
+    @GET("/api-utils/service-urls-without-followup")
+    suspend fun getServiceUrlsWithoutFollowup(): Response<ServiceUrls>
+
 }

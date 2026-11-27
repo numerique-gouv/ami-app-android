@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.gouv.ami.Screen
 import fr.gouv.ami.notifications.NotificationViewModel
 import fr.gouv.ami.ui.theme.AMITheme
+import fr.gouv.ami.webview.ConnectionWebView
 import fr.gouv.ami.webview.HomeWebView
 import fr.gouv.ami.webview.ServiceWebView
 import fr.gouv.ami.webview.WebViewType
@@ -34,12 +35,18 @@ fun WebViewScreen(
             navigate
         )
 
-        WebViewType.SERVICE, WebViewType.CONNECTION -> ServiceWebView(
+        WebViewType.SERVICE -> ServiceWebView(
             startUrl,
             notificationViewModel,
             navigate,
-            backButton,
-            webViewType
+            backButton
+        )
+
+        WebViewType.CONNECTION -> ConnectionWebView(
+            startUrl,
+            notificationViewModel,
+            navigate,
+            backButton
         )
     }
 
